@@ -1,4 +1,6 @@
-# Sliding Tile Puzzle
+# Sliding Puzzle
+
+[![Documentation Status](https://readthedocs.org/projects/slidingtilepuzzle/badge/?version=latest)](https://slidingtilepuzzle.readthedocs.io/en/latest/?badge=latest)
 
 A package for solving and working with sliding tile puzzles.
 
