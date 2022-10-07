@@ -10,6 +10,10 @@ A package for solving and working with sliding tile puzzles.
 pip install slidingpuzzle
 ```
 
+## Documentation
+
+https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html
+
 ## Examples
 
 All submodule code is imported into the parent namespace, so there is no need
