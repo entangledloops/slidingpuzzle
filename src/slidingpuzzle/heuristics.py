@@ -12,6 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+This module provides heuristic functions used to evaluate board states.
+
+Each function accepts a puzzle board as input, and returns a numeric value
+that indicates the estimated distance from the goal.
+"""
 
 def euclidean_distance(board: tuple[list[int]]) -> int:
     w = len(board[0])

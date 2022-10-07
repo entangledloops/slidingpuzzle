@@ -12,6 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+A collection of functions for working with sliding tile puzzle boards.
+"""
 
 import collections
 import copy
@@ -21,14 +24,28 @@ import sys
 from slidingpuzzle.state import SearchResult, State
 
 
-def new_board(h, w) -> tuple[list[int]]:
+def new_board(h: int, w: int) -> tuple[list[int]]:
     """
-    Return a new board in the default solved state.
+    Create a new board in the default solved state.
+
+    Args:
+        h: Height of the board.
+        w: Width of the board.
+
+    Returns:
+        The new board.
     """
     return tuple([(y * w) + x + 1 for x in range(w)] for y in range(h))
 
 
 def print_board(board: tuple[list[int]], file=sys.stdout) -> None:
+    """
+    Convience function for printing a formatted board.
+
+    Args:
+        board: The board to print.
+        file: The target output file. Defaults to stdout.
+    """
     empty_tile = len(board) * len(board[0])
     # the longest str we need to print is the largest tile number
     max_width = len(str(empty_tile - 1))
@@ -44,6 +61,12 @@ def print_board(board: tuple[list[int]], file=sys.stdout) -> None:
 def get_empty_yx(board: tuple[list[int]]) -> tuple[int, int]:
     """
     Locate the empty tile's (y, x)-coord.
+
+    Args:
+        board: The puzzle board.
+
+    Returns:
+        The (y, x)-coord of the empty tile.
     """
     empty_tile = len(board) * len(board[0])
     for y, row in enumerate(board):
@@ -54,12 +77,23 @@ def get_empty_yx(board: tuple[list[int]]) -> tuple[int, int]:
 
 
 def get_next_moves(
-    board: tuple[list[int]], empty_pos: tuple[int]
+    board: tuple[list[int]],
+    empty_pos: tuple[int] = None,
 ) -> list[tuple[int, int]]:
     """
-    Return a list of (y, x)-coords that are tile positions capable of
-    swapping with the empty tile.
+    Return a list of all possible moves.
+
+    Args:
+        board: The current puzzle board.
+        empty_pos: The position of the empty tile.
+            If not provided, it will be located automatically.
+
+    Returns:
+        A list of (y, x)-coords that are tile positions capable of
+        swapping with the empty tile.
     """
+    if empty_pos is None:
+        empty_pos = get_empty_yx(board)
     y, x = empty_pos
     moves = []
     for dy, dx in ((0, -1), (0, 1), (-1, 0), (1, 0)):
@@ -71,6 +105,11 @@ def get_next_moves(
 def swap_tiles(board, pos1: tuple[int, int], pos2: tuple[int, int]) -> None:
     """
     Mutates the board by swapping a pair of tiles.
+
+    Args:
+        board: The board to modify.
+        pos1: The first tile position.
+        pos2: The second tile position.
     """
     y1, x1 = pos1
     y2, x2 = pos2
@@ -80,7 +119,13 @@ def swap_tiles(board, pos1: tuple[int, int], pos2: tuple[int, int]) -> None:
 def count_inversions(board) -> int:
     """
     From each tile, count the number of tiles that are out of place.
-    Returns the sum of all counts. See `is_solvable`.
+    Returns the sum of all counts. See :func:`is_solvable`.
+
+    Args:
+        board: The puzzle board.
+
+    Returns:
+        The count of inversions.
     """
     h, w = len(board), len(board[0])
     empty_tile = h * w
@@ -98,12 +143,21 @@ def count_inversions(board) -> int:
 
 def is_solvable(board) -> bool:
     """
-    Returns True if it is possible to solve this board.
+    Determines if it is possible to solve this board.
 
-    The original idea comes from:
-    https://www.cs.princeton.edu/courses/archive/spring21/cos226/assignments/8puzzle/specification.php
+    Note:
+        The algorithm counts `inversions`_ to determine solvability.
+        The "standard" algorithm has been modified here to support
+        non-square board sizes.
 
-    This has been augmented to support non-square boards.
+    Args:
+        board: The puzzle board.
+
+    Returns:
+        bool: True if the board is solvable, False otherwise.
+
+    .. _inversions:
+        https://www.cs.princeton.edu/courses/archive/spring21/cos226/assignments/8puzzle/specification.php
     """
     inversions = count_inversions(board)
     h, w = len(board), len(board[0])
@@ -121,7 +175,12 @@ def is_solvable(board) -> bool:
 
 
 def shuffle_board(board) -> None:
-    """Shuffles a board in place quickly and then verifies it is solvable. If not, repeat."""
+    """
+    Shuffles a board in place and validates that the result is solvable.
+
+    Args:
+        board: The board to shuffle.
+    """
     h, w = len(board), len(board[0])
     while True:
         # first shuffle the board
@@ -135,11 +194,13 @@ def shuffle_board(board) -> None:
             break
 
 
-def shuffle_board_slow(board, num_moves = None) -> None:
+def shuffle_board_slow(board, num_moves=None) -> None:
     """
     Shuffles a board in place by making random legal moves.
 
-    :param num_moves: Number of moves to shuffle. If None, (h*w)^2 will be used.
+    Args:
+        num_moves (int): Number of random moves to make.
+            If ``None``, ``(h * w) ** 2`` will be used.
     """
     h, w = len(board), len(board[0])
     if num_moves is None:
@@ -155,9 +216,7 @@ def shuffle_board_slow(board, num_moves = None) -> None:
 
 def get_next_states(state: State) -> list[State]:
     """
-    Returns a list of viable next states, given the current state.
-    Although the state is fully captured by only the board, it is
-    convenient and more efficient to also track the empty position.
+    Creates a list of next viable states, given the current state.
     """
     moves = get_next_moves(state.board, state.empty_pos)
     next_states = []
@@ -176,7 +235,11 @@ def get_next_states(state: State) -> list[State]:
 
 def print_result(result: SearchResult, file=sys.stdout):
     """
-    Print an abbreviated search result.
+    Convenience function for printing a search result summary.
+
+    Args:
+        result (SearchResult): The result from :func:`search`.
+        file: The target output file. Defaults to stdout.
     """
     print(
         (
@@ -190,13 +253,15 @@ def print_result(result: SearchResult, file=sys.stdout):
     )
 
 
-def search(board, algorithm="bfs", heuristic=None) -> SearchResult:
+def search(
+    board: tuple[list[int]], algorithm: str = "bfs", heuristic=None
+) -> SearchResult:
     """
-    Returns a `SearchResult` containing a list of moves to solve the puzzle from
-    the initial state along with some search statistics.
+    Searches for a set of moves that take the provided board state to the
+    solved state.
 
-    Requested algorithm may be one of: ["bfs", "dfs", "greedy", "a*"]
-    See `heuristics.py` for available heuristic functions or provide your own.
+    Requested algorithm may be one of: ["bfs", "dfs", "greedy", "a*"].
+    See :mod:`heuristics` for available heuristic functions or provide your own.
 
     If a heuristic is provided with "bfs" or "dfs", it is only used to sort
     the locally generated nodes on each expansion, but not the entire open list.
@@ -204,6 +269,15 @@ def search(board, algorithm="bfs", heuristic=None) -> SearchResult:
     If "greedy" or "a*" is used, the entire open list is sorted. The "greedy"
     algorithm sorts only on the heuristic, while "a*" uses heuristic + length
     of the solution.
+
+    Args:
+        board: The initial board state to search.
+        algorithm (str): The algorithm to use for search.
+        heuristic: A function to evaluate the board. See :mod:`slidingpuzzle.heuristics`.
+
+    Returns:
+        Returns a :class:`SearchResult` containing a list of moves to solve the
+        puzzle from the initial state along with some search statistics.
     """
     if algorithm not in ["bfs", "dfs", "greedy", "a*"]:
         raise ValueError(f"Unknown algorithm: '{algorithm}'")
@@ -241,7 +315,9 @@ def search(board, algorithm="bfs", heuristic=None) -> SearchResult:
         next_states = get_next_states(state)
         if "a*" == algorithm:
             unvisited.extend(next_states)
-            unvisited.sort(key=lambda s: len(s.history) + heuristic(s.board), reverse=True)
+            unvisited.sort(
+                key=lambda s: len(s.history) + heuristic(s.board), reverse=True
+            )
         elif "greedy" == algorithm:
             unvisited.extend(next_states)
             unvisited.sort(key=lambda s: heuristic(s.board), reverse=True)

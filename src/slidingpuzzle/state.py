@@ -12,12 +12,27 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+Provides some convience classes to track search state and results.
+"""
 
 import dataclasses
 
 
 @dataclasses.dataclass
 class State:
+    """
+    A dataclass for representing the state during search.
+    Although the ``board`` is enough to fully capture the game state,
+    it is convenient to track some additional information.
+
+    Args:
+        board: The board state.
+        empty_pos: The (y, x)-coord of the empty tile.
+        history: A list of (y, x)-coords representing moves from the initial
+            state to the current board state.
+    """
+
     board: tuple[list[int]]
     empty_pos: tuple[int, int]
     history: list[tuple[int, int]]
@@ -25,8 +40,26 @@ class State:
 
 @dataclasses.dataclass
 class SearchResult:
+    """
+    A dataclass for returning a puzzle solution along with some information
+    concerning how the search progressed. Useful for evaluating different
+    heuristics.
+
+    Args:
+        generated: The number of states generated during search.
+        expanded: The number of states evaluated during search.
+        unvisited: The list of states that were never reached.
+        visited: The set of boards evaluated.
+        solution: The list of moves from initial position to solution.
+
+    Note:
+        The ``unvisited`` and ``visited`` attributes are traditionally known
+        as "open" and "closed" in search parlance. However, Python has a builtin
+        function ``open``, so they have been renamed to avoid collision.
+    """
+
     generated: int
     expanded: int
     unvisited: list[State]
     visited: set[tuple[tuple[int]]]
-    solution: list[tuple[int]]
+    solution: list[tuple[int, int]]

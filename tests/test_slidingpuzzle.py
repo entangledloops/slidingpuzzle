@@ -28,6 +28,10 @@ def test_newboard():
     assert new_board(3, 2) == ground_truth
 
 
+def test_print_board():
+    print_board(new_board(5, 5))
+
+    
 def test_get_empty_yx():
     board = new_board(3, 3)
     assert get_empty_yx(board) == (2, 2)
