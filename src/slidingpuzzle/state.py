@@ -54,8 +54,8 @@ class SearchResult:
 
     Note:
         The ``unvisited`` and ``visited`` attributes are traditionally known
-        as "open" and "closed" in search parlance. However, Python has a builtin
-        function ``open``, so they have been renamed to avoid collision.
+        as "open" and "closed" in search parlance. However, Python's built-in
+        function ``open`` would collide, so they have been renamed.
     """
 
     generated: int

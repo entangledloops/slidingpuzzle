@@ -1,5 +1,5 @@
-slidingpuzzle package
-=====================
+Sliding Puzzle Documentation
+============================
 
 .. automodule:: slidingpuzzle
    :members:
