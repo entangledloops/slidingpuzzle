@@ -4,6 +4,14 @@
 ![tests](https://github.com/entangledloops/slidingpuzzle/actions/workflows/tests.yaml/badge.svg)
 <a href="https://www.buymeacoffee.com/entangledloops" target="_blank"><img src="https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png" alt="Buy Me A Coffee" ></a>
 
+- [Sliding Puzzle](#sliding-puzzle)
+  - [Installation](#installation)
+  - [Documentation](#documentation)
+  - [Examples](#examples)
+  - [Algorithms](#algorithms)
+  - [Heuristics](#heuristics)
+  - [Creating a Pull Request](#creating-a-pull-request)
+
 A package for solving and working with sliding tile puzzles.
 
 ## Installation
