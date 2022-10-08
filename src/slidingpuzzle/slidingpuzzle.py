@@ -257,7 +257,8 @@ def print_result(result: SearchResult, file=sys.stdout):
 
 def search(
     board: tuple[list[int], ...],
-    algorithm: str = "bfs",
+    algorithm: str = "a*",
+    algorithm_kwargs=None,
     heuristic=None,
     goal: tuple[list[int], ...] = None,
 ) -> SearchResult:
@@ -265,7 +266,7 @@ def search(
     Searches for a set of moves that take the provided board state to the
     solved state.
 
-    Requested algorithm may be one of: ["bfs", "dfs", "greedy", "a*"].
+    Requested algorithm may be one of: ["a*", "beam", "bfs", "dfs", "greedy"].
     See :mod:`heuristics` for available heuristic functions or provide your own.
 
     If a heuristic is provided with "bfs" or "dfs", it is only used to sort
@@ -274,6 +275,14 @@ def search(
     If "greedy" or "a*" is used, the entire open list is sorted. The "greedy"
     algorithm sorts only on the heuristic, while "a*" uses heuristic + length
     of the solution.
+
+    Of the provided algorithms, only beam search is incomplete. This means it
+    may miss the goal, even thought the board is solvable.
+
+    Some algorithms support additional kwargs that can be used to customize
+    their behavior. These are:
+        a*: {"weight": default is 1}
+        beam: {"width", default is 2}
 
     Args:
         board: The initial board state to search.
@@ -286,24 +295,36 @@ def search(
         Returns a :class:`SearchResult` containing a list of moves to solve the
         puzzle from the initial state along with some search statistics.
     """
-    if goal is None:
-        goal = new_board(len(board), len(board[0]))
-        # we only check for solvability when using the default goal
-        if not is_solvable(board):
-            raise ValueError("The provided board is not solvable.")
-    if algorithm not in ["bfs", "dfs", "greedy", "a*"]:
+
+    algorithm = algorithm.strip().lower()
+    if algorithm not in ["a*", "beam", "bfs", "dfs", "greedy"]:
         raise ValueError(f'Unknown algorithm: "{algorithm}"')
+    if algorithm_kwargs is None:
+        algorithm_kwargs = {}
     if heuristic is None:
 
         # if no heuristic is provided, treat all nodes equally
         def heuristic(*_):
             return 0
 
+    if goal is None:
+        goal = new_board(len(board), len(board[0]))
+        # we only check for solvability when using the default goal
+        if not is_solvable(board):
+            raise ValueError("The provided board is not solvable.")
+
     # prepare initial state
+    a_star_weight = algorithm_kwargs.get("weight", 1)
+    beam_width = algorithm_kwargs.get("width", 2)
+    # there can only ever be 4 moves possible, so anything larger reduces to 4
+    if beam_width > 4:
+        beam_width = 4
     empty_pos = get_empty_yx(board)
     initial_state = State(copy.deepcopy(board), empty_pos, [])
     unvisited = (
-        collections.deque([initial_state]) if algorithm == "bfs" else [initial_state]
+        collections.deque([initial_state])
+        if algorithm in ("beam", "bfs")
+        else [initial_state]
     )  # open nodes
     visited = set()  # closed nodes
     expanded = 0
@@ -311,7 +332,7 @@ def search(
 
     while unvisited:
         # breadth-first search removes from the front, all others use the end
-        state = unvisited.popleft() if algorithm == "bfs" else unvisited.pop()
+        state = unvisited.popleft() if algorithm in ("beam", "bfs") else unvisited.pop()
         expanded += 1
 
         # check for duplicate states
@@ -329,20 +350,23 @@ def search(
         if "a*" == algorithm:
             unvisited.extend(next_states)
             unvisited.sort(
-                key=lambda s: len(s.history) + heuristic(s.board), reverse=True
+                key=lambda s: len(s.history) + a_star_weight * heuristic(s.board),
+                reverse=True,
             )
         elif "greedy" == algorithm:
             unvisited.extend(next_states)
             unvisited.sort(key=lambda s: heuristic(s.board), reverse=True)
         else:
             next_states.sort(key=lambda s: heuristic(s.board), reverse=True)
+            # we should only store the last beam_width states during beam search
+            if "beam" == algorithm:
+                next_states = next_states[-beam_width:]
             unvisited.extend(next_states)
         generated += len(next_states)
 
 
 def solution_as_tiles(
-    board: tuple[list[int], ...],
-    solution: list[tuple[int, int]]
+    board: tuple[list[int], ...], solution: list[tuple[int, int]]
 ) -> list[int]:
     """
     Converts a list of (y, x)-coords indicating moves into tile numbers,

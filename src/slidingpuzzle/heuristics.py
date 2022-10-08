@@ -19,6 +19,7 @@ Each function accepts a puzzle board as input, and returns a numeric value
 that indicates the estimated distance from the goal.
 """
 
+
 def euclidean_distance(board: tuple[list[int], ...]) -> int:
     w = len(board[0])
     dist = 0

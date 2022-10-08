@@ -117,17 +117,19 @@ def test_euclidean():
 def test_a_star():
     board = new_board(3, 3)
     shuffle_board_slow(board, num_moves=10)
-    assert len(search(board).solution) == len(search(board, "a*", manhattan_distance).solution)
+    assert len(search(board).solution) == len(
+        search(board, algorithm="a*", heuristic=manhattan_distance).solution
+    )
 
 
-@pytest.mark.parametrize("algorithm", ["bfs", "dfs", "greedy", "a*"])
+@pytest.mark.parametrize("algorithm", ["bfs", "dfs", "greedy", "a*", "beam"])
 @pytest.mark.parametrize(
     "heuristic", [None, euclidean_distance, manhattan_distance, random_distance]
 )
 def test_search(algorithm, heuristic):
     random.seed(0)
     board = tuple([[5, 2, 4], [3, 6, 1]])
-    result = search(board, algorithm=algorithm, heuristic=heuristic)
+    result = search(board, algorithm=algorithm, heuristic=heuristic, algorithm_kwargs={"width": 4})
     if algorithm == "bfs":
         assert len(result.solution) == 15
     else:
@@ -175,7 +177,7 @@ def test_heuristic_behavior():
 def test_solution_as_tiles():
     h, w = 3, 3
     b = new_board(h, w)
-    swap_tiles(b, (h-1, w-1), (h-2, w-1))
-    swap_tiles(b, (h-2, w-1), (h-2, w-2))
+    swap_tiles(b, (h - 1, w - 1), (h - 2, w - 1))
+    swap_tiles(b, (h - 2, w - 1), (h - 2, w - 2))
     r = search(b)
     assert [5, 6] == solution_as_tiles(b, r.solution)

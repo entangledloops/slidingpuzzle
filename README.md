@@ -1,6 +1,7 @@
 # Sliding Puzzle
 
 [![Documentation Status](https://readthedocs.org/projects/slidingtilepuzzle/badge/?version=latest)](https://slidingtilepuzzle.readthedocs.io/en/latest/?badge=latest)
+![Tests](https://github.com/entangledloops/slidingpuzzle/actions/workflows/tests.yaml/badge.svg)
 
 A package for solving and working with sliding tile puzzles.
 
@@ -72,16 +73,35 @@ Not all board configurations are solvable. The `search()` routine will validate 
 ## Algorithms
 
 The available algorithms for `search(... algorithm="choose from below")` are:
-- `"bfs"` (default) - [Breadth-first search](https://en.wikipedia.org/wiki/Breadth-first_search)
+- `"a*"` (default) - [A* search](https://en.wikipedia.org/wiki/A*_search_algorithm)
+- `"beam"` - [Beam search](https://en.wikipedia.org/wiki/Beam_search)
+- `"bfs"` - [Breadth-first search](https://en.wikipedia.org/wiki/Breadth-first_search)
 - `"dfs"` - [Depth-first search](https://en.wikipedia.org/wiki/Depth-first_search)
 - `"greedy"` - [Greedy best-first search](https://en.wikipedia.org/wiki/Best-first_search#Greedy_BFS)
-- `"a*"` - [A* search](https://en.wikipedia.org/wiki/A*_search_algorithm)
+
+Some algorithms support additional customization via `algorithm_kwargs`. These are:
+
+- `a*: {"weight": default is 1}`
+  - This provides support for [Weighted A*](https://en.wikipedia.org/wiki/A*_search_algorithm#Bounded_relaxation)
+- `beam: {"width", default is 2}`
+  - Values beyond 4 have no meaning, since there are a maximum of 4 moves possible. When width is < 4 (as in the default), is possible to never find a solution, although it exists.
+
+Example:
+
+```python
+result = search(
+    board,
+    algorithm="beam",
+    algorithm_kwargs={"width": 3},
+    heuristic=manhattan_distance
+)
+```
 
 ## Heuristics
 
 Heuristics are most relevant for `"greedy"` and `"a*"`, as they are used to sort all known moves before selecting the next action.
 
-When used with either `"bfs"` or `"dfs"`, the heuristic is only used to sort the local nodes. For example, when the `N` nearby available moves are examined, the algorithm will first sort those `N` next board states using the heuristic.
+When used with either `"bfs"`, `"dfs"`, or `"beam"` the heuristic is only used to sort the local nodes. For example, when the `N` nearby available moves are examined, the algorithm will first sort those `N` next board states using the heuristic.
 
 The available heuristics are:
 - `euclidean_distance` - The straight line distance in Euclidean space between two tiles. This is essentially the hypotenuse of a right triangle. (The square root is not used as it does not affect the sorting order.)
