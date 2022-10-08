@@ -148,7 +148,12 @@ If you wish to contribute to this library, setup your dev environment:
 pip install -r requirements-dev.txt
 ```
 
-Before submitting your PR, you should run `mypy` and ensure you haven't added new warnings:
+First, verify you haven't broken anything by running pytest:
+```console
+pytest
+```
+
+Before submitting your PR, you should also run `mypy` and ensure you haven't added new warnings:
 ```console
 mypy src
 ```
