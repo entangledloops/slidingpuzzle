@@ -142,20 +142,29 @@ The available heuristics are:
 
 ## Creating a Pull Request
 
-If you wish to contribute to this library, setup your dev environment:
+First of all, thanks for contributing!
+Setup your dev environment:
 
 ```console
 pip install -r requirements-dev.txt
 ```
 
-First, verify you haven't broken anything by running pytest:
+First and **most importantly** verify you haven't broken anything by running [`pytest`](https://pypi.org/project/pytest/):
 ```console
 pytest
 ```
 
-Before submitting your PR, you should also run `mypy` and ensure you haven't added new warnings:
+Don't forget to add new tests for anything you've added.
+
+You can also run `mypy` and look for any new violations:
 ```console
 mypy src
 ```
 
-Black and flake8 are used for formatting and linting, but they are automatically run by the pre-commit hooks installed in the Git repo.
+Finally, check that the docs look correct:
+```console
+cd docs
+./make html
+```
+
+[`Black`](https://pypi.org/project/black/) and [`flake8`](https://pypi.org/project/flake8/) are used for formatting and linting, but they are automatically run by the pre-commit hooks installed in the Git repo.
