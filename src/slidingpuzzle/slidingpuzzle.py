@@ -77,8 +77,8 @@ def get_empty_yx(board: tuple[list[int], ...]) -> tuple[int, int]:
 
 
 def get_next_moves(
-    board: tuple[list[int, ...]],
-    empty_pos: tuple[int] = None,
+    board: tuple[list[int], ...],
+    empty_pos: tuple[int, int] = None,
 ) -> list[tuple[int, int]]:
     """
     Return a list of all possible moves.
@@ -343,7 +343,7 @@ def search(
 def solution_as_tiles(
     board: tuple[list[int], ...],
     solution: list[tuple[int, int]]
-) -> list[int, ...]:
+) -> list[int]:
     """
     Converts a list of (y, x)-coords indicating moves into tile numbers,
     given a starting board configuration.
