@@ -129,7 +129,12 @@ def test_a_star():
 def test_search(algorithm, heuristic):
     random.seed(0)
     board = tuple([[5, 2, 4], [3, 6, 1]])
-    result = search(board, algorithm=algorithm, heuristic=heuristic, algorithm_kwargs={"width": 4})
+    result = search(
+        board,
+        algorithm=algorithm,
+        heuristic=heuristic,
+        algorithm_kwargs={"weight": 2, "width": 3},
+    )
     if algorithm == "bfs":
         assert len(result.solution) == 15
     else:
@@ -140,7 +145,12 @@ def test_search(algorithm, heuristic):
 def test_search_hard():
     random.seed(0)
     board = tuple([[8, 6, 7], [3, 5, 1], [2, 9, 4]])
-    result = search(board, algorithm="a*", heuristic=manhattan_distance)
+    result = search(
+        board,
+        algorithm="a*",
+        algorithm_kwargs={"weight": 1},
+        heuristic=manhattan_distance,
+    )
     assert len(result.solution) == 27
 
 
