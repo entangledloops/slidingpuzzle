@@ -2,6 +2,7 @@
 
 [![docs](https://readthedocs.org/projects/slidingtilepuzzle/badge/?version=latest)](https://slidingtilepuzzle.readthedocs.io/en/latest/?badge=latest)
 ![tests](https://github.com/entangledloops/slidingpuzzle/actions/workflows/tests.yaml/badge.svg)
+<a href="https://www.buymeacoffee.com/entangledloops" target="_blank"><img src="https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png" alt="Buy Me A Coffee" ></a>
 
 A package for solving and working with sliding tile puzzles.
 
@@ -54,7 +55,7 @@ If you are working with a physical puzzle and actual tile numbers would be easie
 [2, 3, 8, 7, 5, 4, 6, 1, 7, 5, 4, 6, 1, 4, 6, 2, 3, 6, 5, 8]
 ```
 
-The boards are just a `tuple` of `list[int]`. The number 0 is reserved for the blank. You can easily build your own board:
+The boards are just a `tuple` of `list[int]`. The number `0` is reserved for the blank. You can easily build your own board:
 
 ```python
 >>> b = ([4, 5, 6], [7, 8, 0], [1, 2, 3])
@@ -137,3 +138,19 @@ The available heuristics are:
 - `manhattan_distance` - Count of how many moves it would take each tile to arrive in the correct position, if other tiles could be ignored
 - `random_distance` - This is a random number (but a *consistent* random number for a given board state). It is useful as a baseline.
 - Any heuristic you want! Just pass any function that accepts a board and returns a number. The lower the number, the closer the board is to the goal (lower = better).
+
+
+## Creating a Pull Request
+
+If you wish to contribute to this library, setup your dev environment:
+
+```console
+pip install -r requirements-dev.txt
+```
+
+Before submitting your PR, you should run `mypy` and ensure you haven't added new warnings:
+```console
+mypy src
+```
+
+Black and flake8 are used for formatting and linting, but they are automatically run by the pre-commit hooks installed in the Git repo.

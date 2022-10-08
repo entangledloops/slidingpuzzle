@@ -376,8 +376,8 @@ def search(
     else:
         bound = kwargs.get("bound", float("inf"))
 
-    # this will hold the minimum bound observed that exceeded our current bound.
-    # it is only used for ida*
+    # this is used by iterative deepening algorithms to determine when the
+    # search space has been exhausted and/or to set the next iteration bound
     next_bound = float("inf")
 
     # prepare a func that will be used to evaluate states, depending upon alg.
