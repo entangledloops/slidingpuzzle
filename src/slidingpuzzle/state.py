@@ -65,5 +65,5 @@ class SearchResult:
     generated: int
     expanded: int
     unvisited: list[State]
-    visited: set[tuple[tuple[int]]]
+    visited: set[tuple[tuple[int, ...], ...]]
     solution: list[tuple[int, int]]

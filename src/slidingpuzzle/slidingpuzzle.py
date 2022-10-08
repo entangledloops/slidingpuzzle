@@ -451,7 +451,7 @@ def search(
             # goal check
             if state.board == goal:
                 return SearchResult(
-                    generated, expanded, unvisited, visited, state.history
+                    generated, expanded, list(unvisited), visited, state.history
                 )
 
             # compute value of next states
@@ -479,7 +479,7 @@ def search(
             unvisited.append(initial_state)
 
     # if we are here, no solution was found
-    return SearchResult(generated, expanded, unvisited, visited, None)
+    return SearchResult(generated, expanded, list(unvisited), visited, None)
 
 
 def solution_as_tiles(
