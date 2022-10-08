@@ -282,7 +282,7 @@ def search(
     Some algorithms support additional kwargs that can be used to customize
     their behavior. These are:
         a*: {"weight": default is 1}
-        beam: {"width", default is 2}
+        beam: {"width", default is 3}
 
     Args:
         board: The initial board state to search.
