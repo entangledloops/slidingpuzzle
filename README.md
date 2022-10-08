@@ -75,7 +75,7 @@ The available algorithms for `search(... algorithm="choose from below")` are:
 - `"bfs"` (default) - [Breadth-first search](https://en.wikipedia.org/wiki/Breadth-first_search)
 - `"dfs"` - [Depth-first search](https://en.wikipedia.org/wiki/Depth-first_search)
 - `"greedy"` - [Greedy best-first search](https://en.wikipedia.org/wiki/Best-first_search#Greedy_BFS)
-- `"a"*` - [A* search](https://en.wikipedia.org/wiki/A*_search_algorithm)
+- `"a*"` - [A* search](https://en.wikipedia.org/wiki/A*_search_algorithm)
 
 ## Heuristics
 
