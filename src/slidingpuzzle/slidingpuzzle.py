@@ -16,12 +16,36 @@
 A collection of functions for working with sliding tile puzzle boards.
 """
 
+from typing import Callable, Union
+
 import collections
 import copy
+import heapq
 import random
 import sys
 
+from slidingpuzzle.heuristics import manhattan_distance
 from slidingpuzzle.state import SearchResult, State
+
+
+# prevent typos
+EMPTY_TILE = 0
+A_STAR = "a*"
+BEAM = "beam"
+BFS = "bfs"
+DFS = "dfs"
+GREEDY = "greedy"
+IDA_STAR = "ida*"
+IDDFS = "iddfs"
+ALGORITHMS = (
+    A_STAR,
+    BEAM,
+    BFS,
+    DFS,
+    GREEDY,
+    IDA_STAR,
+    IDDFS,
+)
 
 
 def new_board(h: int, w: int) -> tuple[list[int]]:
@@ -35,7 +59,9 @@ def new_board(h: int, w: int) -> tuple[list[int]]:
     Returns:
         The new board.
     """
-    return tuple([(y * w) + x + 1 for x in range(w)] for y in range(h))
+    board = tuple([(y * w) + x + 1 for x in range(w)] for y in range(h))
+    board[-1][-1] = 0
+    return board
 
 
 def print_board(board: tuple[list[int], ...], file=sys.stdout) -> None:
@@ -46,12 +72,12 @@ def print_board(board: tuple[list[int], ...], file=sys.stdout) -> None:
         board: The board to print.
         file: The target output file. Defaults to stdout.
     """
-    empty_tile = len(board) * len(board[0])
+    board_size = len(board) * len(board[0])
     # the longest str we need to print is the largest tile number
-    max_width = len(str(empty_tile - 1))
+    max_width = len(str(board_size - 1))
     for row in board:
         for tile in row:
-            if tile == empty_tile:
+            if tile == EMPTY_TILE:
                 print(" " * max_width, end=" ", file=file)
             else:
                 print(str(tile).ljust(max_width), end=" ", file=file)
@@ -68,10 +94,9 @@ def get_empty_yx(board: tuple[list[int], ...]) -> tuple[int, int]:
     Returns:
         The (y, x)-coord of the empty tile.
     """
-    empty_tile = len(board) * len(board[0])
     for y, row in enumerate(board):
         for x, tile in enumerate(row):
-            if tile == empty_tile:
+            if tile == EMPTY_TILE:
                 return y, x
     raise ValueError("No empty tile found.")
 
@@ -130,13 +155,13 @@ def count_inversions(board: tuple[list[int], ...]) -> int:
         The count of inversions.
     """
     h, w = len(board), len(board[0])
-    empty_tile = h * w
+    board_size = h * w
     inversions = 0
-    for tile1 in range(empty_tile):
-        for tile2 in range(tile1 + 1, empty_tile):
+    for tile1 in range(board_size):
+        for tile2 in range(tile1 + 1, board_size):
             t1 = board[tile1 // w][tile1 % w]
             t2 = board[tile2 // w][tile2 % w]
-            if empty_tile in (t1, t2):
+            if EMPTY_TILE in (t1, t2):
                 continue
             if t2 < t1:
                 inversions += 1
@@ -257,20 +282,23 @@ def print_result(result: SearchResult, file=sys.stdout):
 
 def search(
     board: tuple[list[int], ...],
-    algorithm: str = "a*",
-    algorithm_kwargs=None,
-    heuristic=None,
-    goal: tuple[list[int], ...] = None,
+    algorithm: str = A_STAR,
+    heuristic: Callable[[tuple[list[int], ...]], Union[int, float]] = None,
+    **kwargs,
 ) -> SearchResult:
     """
     Searches for a set of moves that take the provided board state to the
     solved state.
 
-    Requested algorithm may be one of: ["a*", "beam", "bfs", "dfs", "greedy"].
-    See :mod:`heuristics` for available heuristic functions or provide your own.
+    Requested algorithm may be one of:
+        "a*", "beam", "bfs", "dfs", "greedy", "ida*", "iddfs"
 
-    If a heuristic is provided with "bfs" or "dfs", it is only used to sort
-    the locally generated nodes on each expansion, but not the entire open list.
+    See :mod:`heuristics` for heuristic functions or provide your own.
+
+    If a heuristic is provided with "bfs", "dfs", or "iddfs", it is only used
+    to sort the locally generated nodes on each expansion, but not the entire
+    open list. You may also provide a "bound" via the kwargs described below
+    to limit the search depth.
 
     If "greedy" or "a*" is used, the entire open list is sorted. The "greedy"
     algorithm sorts only on the heuristic, while "a*" uses heuristic + length
@@ -279,90 +307,173 @@ def search(
     Of the provided algorithms, only beam search is incomplete. This means it
     may miss the goal, even thought the board is solvable.
 
-    Some algorithms support additional kwargs that can be used to customize
-    their behavior. These are:
-        a*: {"weight": default is 1}
-        beam: {"width", default is 3}
+    The algorithms support some additional kwargs that can be used to
+    customize their behavior. These are:
+
+        a*: {
+            "bound": default is float("inf"),
+                restricts search to f-values < bound
+            "weight": default is 1
+        }
+        beam: {
+            "bound": default is float("inf"),
+                restricts search to f-values < bound
+            "width", default is 3
+        }
+        bfs: {
+            "bound": default is float("inf"),
+                restricts search to depth < bound
+        }
+        dfs: {
+            "bound": default is float("inf"),
+                restricts search to depth < bound
+        }
+        ida*: {
+            "bound", default is manhattan_distance(board),
+                restricts search to f-values < bound
+            "weight": default is 1
+        }
+        iddfs: {
+            "bound", default is manhattan_distance(board),
+                restricts search to depth < bound
+        }
 
     Args:
         board: The initial board state to search.
         algorithm (str): The algorithm to use for search.
         heuristic: A function to evaluate the board. See :mod:`slidingpuzzle.heuristics`.
-        goal: A custom target configuration. If this is provided, the board cannot be
-            validated to ensure solvability, so it is possible there is no solution.
 
     Returns:
         Returns a :class:`SearchResult` containing a list of moves to solve the
         puzzle from the initial state along with some search statistics.
     """
 
+    if not is_solvable(board):
+        raise ValueError("The provided board is not solvable.")
     algorithm = algorithm.strip().lower()
-    if algorithm not in ["a*", "beam", "bfs", "dfs", "greedy"]:
+    if algorithm not in ALGORITHMS:
         raise ValueError(f'Unknown algorithm: "{algorithm}"')
-    if algorithm_kwargs is None:
-        algorithm_kwargs = {}
     if heuristic is None:
 
         # if no heuristic is provided, treat all nodes equally
         def heuristic(*_):
             return 0
 
-    if goal is None:
-        goal = new_board(len(board), len(board[0]))
-        # we only check for solvability when using the default goal
-        if not is_solvable(board):
-            raise ValueError("The provided board is not solvable.")
-
-    # prepare initial state
-    a_star_weight = algorithm_kwargs.get("weight", 1)
-    beam_width = algorithm_kwargs.get("width", 3)
+    # only relevant for some algorithms
+    a_star_weight = kwargs.get("weight", 1)
+    beam_width = kwargs.get("width", 3)
     # there can only ever be 4 moves possible, so anything larger reduces to 4
     if beam_width > 4:
         beam_width = 4
+
+    if algorithm in (IDA_STAR, IDDFS):
+        # initial upper bound for ida* is the minimum number of moves possible
+        bound = kwargs.get("bound", manhattan_distance(board))
+    else:
+        bound = kwargs.get("bound", float("inf"))
+
+    # this will hold the minimum bound observed that exceeded our current bound.
+    # it is only used for ida*
+    next_bound = float("inf")
+
+    # prepare a func that will be used to evaluate states, depending upon alg.
+    if algorithm in (A_STAR, IDA_STAR):
+
+        def evaluate(state):
+            return len(state.history) + a_star_weight * heuristic(state.board)
+
+    else:
+
+        def evaluate(state):
+            return heuristic(state.board)
+
+    # prepare initial state
+    goal = new_board(len(board), len(board[0]))
     empty_pos = get_empty_yx(board)
-    initial_state = State(copy.deepcopy(board), empty_pos, [])
-    unvisited = (
-        collections.deque([initial_state])
-        if algorithm in ("beam", "bfs")
-        else [initial_state]
-    )  # open nodes
-    visited = set()  # closed nodes
     expanded = 0
     generated = 0
+    initial_state = State(copy.deepcopy(board), empty_pos, [])
+    visited = set()  # closed states
+    if algorithm in (BEAM, BFS):
+        unvisited = collections.deque([initial_state])
+    else:
+        unvisited = [initial_state]
+
+    def get_next_state() -> State:
+        """
+        A helper function to properly remove the next state based upon
+        the underlying data structure.
+        """
+        if algorithm in (BEAM, BFS):
+            return unvisited.popleft()
+        elif algorithm in (A_STAR, GREEDY, IDA_STAR):
+            return heapq.heappop(unvisited)
+        else:
+            return unvisited.pop()
+
+    def add_states(states) -> None:
+        """Add provided states to unvisited."""
+        if algorithm in (A_STAR, GREEDY, IDA_STAR):
+            for s in states:
+                heapq.heappush(unvisited, s)
+        else:
+            unvisited.extend(states)
 
     while unvisited:
-        # breadth-first search removes from the front, all others use the end
-        state = unvisited.popleft() if algorithm in ("beam", "bfs") else unvisited.pop()
-        expanded += 1
+        # some search algorithms need to restart search with an altered state.
+        # see code after this inner loop
+        while unvisited:
+            # breadth-first search removes from the front, all others use the end
+            state = get_next_state()
+            expanded += 1
 
-        # check for duplicate states
-        frozen_board = tuple(tuple(row) for row in state.board)
-        if frozen_board in visited:
-            continue
-        visited.add(frozen_board)
+            # bounds check (if not using bound, this will always pass)
+            if algorithm in (A_STAR, BEAM, IDA_STAR):
+                if state.f > bound:
+                    next_bound = min(next_bound, state.f)  # used by ida*
+                    continue
+            else:
+                depth = len(state.history)
+                if depth > bound:
+                    next_bound = depth  # used by iddfs
+                    continue
 
-        # goal check
-        if state.board == goal:
-            return SearchResult(generated, expanded, unvisited, visited, state.history)
+            # most algorithms check for duplicate states
+            if algorithm not in (IDA_STAR, IDDFS):
+                frozen_board = tuple(tuple(row) for row in state.board)
+                if frozen_board in visited:
+                    continue
+                visited.add(frozen_board)
 
-        # append next states
-        next_states = get_next_states(state)
-        if "a*" == algorithm:
-            unvisited.extend(next_states)
-            unvisited.sort(
-                key=lambda s: len(s.history) + a_star_weight * heuristic(s.board),
-                reverse=True,
-            )
-        elif "greedy" == algorithm:
-            unvisited.extend(next_states)
-            unvisited.sort(key=lambda s: heuristic(s.board), reverse=True)
-        else:
-            next_states.sort(key=lambda s: heuristic(s.board), reverse=True)
-            # we should only store the last beam_width states during beam search
-            if "beam" == algorithm:
-                next_states = next_states[-beam_width:]
-            unvisited.extend(next_states)
-        generated += len(next_states)
+            # goal check
+            if state.board == goal:
+                return SearchResult(
+                    generated, expanded, unvisited, visited, state.history
+                )
+
+            # compute value of next states
+            next_states = get_next_states(state)
+            for next_state in next_states:
+                next_state.f = evaluate(next_state)
+
+            # update the open list
+            if algorithm in (A_STAR, GREEDY, IDA_STAR):
+                add_states(next_states)
+            else:
+                # these algorithms sort only local nodes
+                next_states.sort(key=lambda state: state.f, reverse=True)
+                # we should only store the last beam_width states during beam search
+                if BEAM == algorithm:
+                    next_states = next_states[-beam_width:]
+                add_states(next_states)
+            generated += len(next_states)
+
+        # do we need to restart search?
+        if algorithm in (IDA_STAR, IDDFS) and bound != next_bound:
+            bound = next_bound
+            if IDA_STAR == algorithm:
+                next_bound = float("inf")
+            unvisited.append(initial_state)
 
 
 def solution_as_tiles(

@@ -19,12 +19,16 @@ Each function accepts a puzzle board as input, and returns a numeric value
 that indicates the estimated distance from the goal.
 """
 
+import slidingpuzzle
+
 
 def euclidean_distance(board: tuple[list[int], ...]) -> int:
     w = len(board[0])
     dist = 0
     for y, row in enumerate(board):
         for x, tile in enumerate(row):
+            if slidingpuzzle.EMPTY_TILE == tile:
+                continue
             a = abs(y - (tile - 1) // w)
             b = abs(x - (tile - 1) % w)
             dist += a**2 + b**2  # ignore sqrt to save time
@@ -36,6 +40,8 @@ def hamming_distance(board: tuple[list[int], ...]) -> int:
     dist = 0
     for y, row in enumerate(board):
         for x, tile in enumerate(row):
+            if slidingpuzzle.EMPTY_TILE == tile:
+                continue
             orig_y = (tile - 1) // w
             orig_x = (tile - 1) % w
             if y != orig_y or x != orig_x:
@@ -48,6 +54,8 @@ def manhattan_distance(board: tuple[list[int], ...]) -> int:
     dist = 0
     for y, row in enumerate(board):
         for x, tile in enumerate(row):
+            if slidingpuzzle.EMPTY_TILE == tile:
+                continue
             orig_y = (tile - 1) // w
             orig_x = (tile - 1) % w
             dist += abs(y - orig_y) + abs(x - orig_x)

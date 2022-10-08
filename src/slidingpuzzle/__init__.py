@@ -46,6 +46,15 @@ from slidingpuzzle.heuristics import (
 )
 
 from slidingpuzzle.slidingpuzzle import (
+    EMPTY_TILE,
+    A_STAR,
+    BEAM,
+    BFS,
+    DFS,
+    GREEDY,
+    IDA_STAR,
+    IDDFS,
+    ALGORITHMS,
     count_inversions,
     get_empty_yx,
     get_next_moves,

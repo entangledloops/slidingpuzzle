@@ -19,7 +19,7 @@ Provides some convience classes to track search state and results.
 import dataclasses
 
 
-@dataclasses.dataclass
+@dataclasses.dataclass(order=True)
 class State:
     """
     A dataclass for representing the state during search.
@@ -31,11 +31,15 @@ class State:
         empty_pos: The (y, x)-coord of the empty tile.
         history: A list of (y, x)-coords representing moves from the initial
             state to the current board state.
+        f: The stored value of this node. Used by some search algorithms.
+            The value stored here has no meaning if not using a relevant
+            search algorithm.
     """
 
-    board: tuple[list[int]]
-    empty_pos: tuple[int, int]
-    history: list[tuple[int, int]]
+    board: tuple[list[int]] = dataclasses.field(compare=False)
+    empty_pos: tuple[int, int] = dataclasses.field(compare=False)
+    history: list[tuple[int, int]] = dataclasses.field(compare=False)
+    f: int = 0
 
 
 @dataclasses.dataclass

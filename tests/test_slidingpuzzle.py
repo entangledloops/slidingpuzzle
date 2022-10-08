@@ -21,10 +21,10 @@ from slidingpuzzle import *
 
 
 def test_newboard():
-    ground_truth = ([1, 2, 3], [4, 5, 6], [7, 8, 9])
+    ground_truth = ([1, 2, 3], [4, 5, 6], [7, 8, 0])
     assert new_board(3, 3) == ground_truth
 
-    ground_truth = ([1, 2], [3, 4], [5, 6])
+    ground_truth = ([1, 2], [3, 4], [5, 0])
     assert new_board(3, 2) == ground_truth
 
 
@@ -118,24 +118,38 @@ def test_a_star():
     board = new_board(3, 3)
     shuffle_board_slow(board, num_moves=10)
     assert len(search(board).solution) == len(
-        search(board, algorithm="a*", heuristic=manhattan_distance).solution
+        search(board, A_STAR, manhattan_distance).solution
     )
 
 
-@pytest.mark.parametrize("algorithm", ["a*", "beam", "bfs", "dfs", "greedy"])
+@pytest.mark.parametrize("algorithm", [IDA_STAR, IDDFS])
+def test_search_slow(algorithm):
+    random.seed(0)
+    b = new_board(3, 3)
+    shuffle_board_slow(b, 20)
+    expected_len = len(search(b).solution)
+    actual = search(b, algorithm=algorithm, heuristic=manhattan_distance)
+    # there should be no history recorded for iterative deepening
+    assert len(actual.visited) == 0
+    # best solution should be found (using default args)
+    actual_len = len(actual.solution)
+    assert expected_len == actual_len
+
+
+@pytest.mark.parametrize("algorithm", [A_STAR, BEAM, BFS, DFS, GREEDY])
 @pytest.mark.parametrize(
     "heuristic", [None, euclidean_distance, manhattan_distance, random_distance]
 )
 def test_search(algorithm, heuristic):
     random.seed(0)
-    board = tuple([[5, 2, 4], [3, 6, 1]])
+    board = tuple([[5, 2, 4], [3, 0, 1]])
     result = search(
         board,
         algorithm=algorithm,
         heuristic=heuristic,
-        algorithm_kwargs={"weight": 2, "width": 3},
+        kwargs={"weight": 2, "width": 3},
     )
-    if algorithm == "bfs":
+    if BFS == algorithm:
         assert len(result.solution) == 15
     else:
         assert len(result.solution) >= 15
@@ -144,12 +158,12 @@ def test_search(algorithm, heuristic):
 
 def test_search_hard():
     random.seed(0)
-    board = tuple([[8, 6, 7], [3, 5, 1], [2, 9, 4]])
+    board = tuple([[8, 6, 7], [3, 5, 1], [2, 0, 4]])
     result = search(
         board,
-        algorithm="a*",
-        algorithm_kwargs={"weight": 1},
+        algorithm=A_STAR,
         heuristic=manhattan_distance,
+        kwargs={"weight": 1},
     )
     assert len(result.solution) == 27
 
