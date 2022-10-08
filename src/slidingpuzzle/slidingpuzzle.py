@@ -40,7 +40,7 @@ def new_board(h: int, w: int) -> tuple[list[int]]:
 
 def print_board(board: tuple[list[int], ...], file=sys.stdout) -> None:
     """
-    Convience function for printing a formatted board.
+    Convienance function for printing a formatted board.
 
     Args:
         board: The board to print.
