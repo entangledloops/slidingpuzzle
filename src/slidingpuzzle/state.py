@@ -36,7 +36,7 @@ class State:
             search algorithm.
     """
 
-    board: tuple[list[int]] = dataclasses.field(compare=False)
+    board: tuple[list[int], ...] = dataclasses.field(compare=False)
     empty_pos: tuple[int, int] = dataclasses.field(compare=False)
     history: list[tuple[int, int]] = dataclasses.field(compare=False)
     f: int = 0
