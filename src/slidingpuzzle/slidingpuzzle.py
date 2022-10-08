@@ -310,6 +310,8 @@ def search(
     The algorithms support some additional kwargs that can be used to
     customize their behavior. These are:
 
+    ..  code-block:: python
+
         a*: {
             "bound": default is float("inf"),
                 restricts search to f-values < bound
