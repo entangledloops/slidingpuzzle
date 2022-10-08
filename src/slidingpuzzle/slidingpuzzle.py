@@ -464,7 +464,7 @@ def search(
                 add_states(next_states)
             else:
                 # these algorithms sort only local nodes
-                next_states.sort(key=lambda state: state.f, reverse=True)
+                next_states.sort(reverse=True)
                 # we should only store the last beam_width states during beam search
                 if BEAM == algorithm:
                     next_states = next_states[-beam_width:]
