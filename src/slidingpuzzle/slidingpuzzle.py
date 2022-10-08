@@ -38,7 +38,7 @@ def new_board(h: int, w: int) -> tuple[list[int]]:
     return tuple([(y * w) + x + 1 for x in range(w)] for y in range(h))
 
 
-def print_board(board: tuple[list[int]], file=sys.stdout) -> None:
+def print_board(board: tuple[list[int], ...], file=sys.stdout) -> None:
     """
     Convience function for printing a formatted board.
 
@@ -58,7 +58,7 @@ def print_board(board: tuple[list[int]], file=sys.stdout) -> None:
         print(file=file)
 
 
-def get_empty_yx(board: tuple[list[int]]) -> tuple[int, int]:
+def get_empty_yx(board: tuple[list[int], ...]) -> tuple[int, int]:
     """
     Locate the empty tile's (y, x)-coord.
 
@@ -77,7 +77,7 @@ def get_empty_yx(board: tuple[list[int]]) -> tuple[int, int]:
 
 
 def get_next_moves(
-    board: tuple[list[int]],
+    board: tuple[list[int, ...]],
     empty_pos: tuple[int] = None,
 ) -> list[tuple[int, int]]:
     """
@@ -102,7 +102,9 @@ def get_next_moves(
     return moves
 
 
-def swap_tiles(board, pos1: tuple[int, int], pos2: tuple[int, int]) -> None:
+def swap_tiles(
+    board: tuple[list[int], ...], pos1: tuple[int, int], pos2: tuple[int, int]
+) -> None:
     """
     Mutates the board by swapping a pair of tiles.
 
@@ -141,7 +143,7 @@ def count_inversions(board) -> int:
     return inversions
 
 
-def is_solvable(board) -> bool:
+def is_solvable(board: tuple[list[int], ...]) -> bool:
     """
     Determines if it is possible to solve this board.
 
@@ -174,7 +176,7 @@ def is_solvable(board) -> bool:
     return False
 
 
-def shuffle_board(board) -> None:
+def shuffle_board(board: tuple[list[int], ...]) -> None:
     """
     Shuffles a board in place and validates that the result is solvable.
 
@@ -194,7 +196,7 @@ def shuffle_board(board) -> None:
             break
 
 
-def shuffle_board_slow(board, num_moves=None) -> None:
+def shuffle_board_slow(board: tuple[list[int], ...], num_moves: int = None) -> None:
     """
     Shuffles a board in place by making random legal moves.
 
@@ -254,7 +256,10 @@ def print_result(result: SearchResult, file=sys.stdout):
 
 
 def search(
-    board: tuple[list[int]], algorithm: str = "bfs", heuristic=None
+    board: tuple[list[int], ...],
+    algorithm: str = "bfs",
+    heuristic=None,
+    goal: tuple[list[int], ...] = None,
 ) -> SearchResult:
     """
     Searches for a set of moves that take the provided board state to the
@@ -274,22 +279,29 @@ def search(
         board: The initial board state to search.
         algorithm (str): The algorithm to use for search.
         heuristic: A function to evaluate the board. See :mod:`slidingpuzzle.heuristics`.
+        goal: A custom target configuration. If this is provided, the board cannot be
+            validated to ensure solvability, so it is possible there is no solution.
 
     Returns:
         Returns a :class:`SearchResult` containing a list of moves to solve the
         puzzle from the initial state along with some search statistics.
     """
+    if goal is None:
+        goal = new_board(len(board), len(board[0]))
+        # we only check for solvability when using the default goal
+        if not is_solvable(board):
+            raise ValueError("The provided board is not solvable.")
     if algorithm not in ["bfs", "dfs", "greedy", "a*"]:
-        raise ValueError(f"Unknown algorithm: '{algorithm}'")
+        raise ValueError(f'Unknown algorithm: "{algorithm}"')
     if heuristic is None:
 
+        # if no heuristic is provided, treat all nodes equally
         def heuristic(*_):
             return 0
 
     # prepare initial state
     empty_pos = get_empty_yx(board)
     initial_state = State(copy.deepcopy(board), empty_pos, [])
-    goal = new_board(len(board), len(board[0]))
     unvisited = (
         collections.deque([initial_state]) if algorithm == "bfs" else [initial_state]
     )  # open nodes
@@ -298,6 +310,7 @@ def search(
     generated = 0
 
     while unvisited:
+        # breadth-first search removes from the front, all others use the end
         state = unvisited.popleft() if algorithm == "bfs" else unvisited.pop()
         expanded += 1
 
@@ -311,7 +324,7 @@ def search(
         if state.board == goal:
             return SearchResult(generated, expanded, unvisited, visited, state.history)
 
-        # obtain next states
+        # append next states
         next_states = get_next_states(state)
         if "a*" == algorithm:
             unvisited.extend(next_states)
@@ -326,4 +339,28 @@ def search(
             unvisited.extend(next_states)
         generated += len(next_states)
 
-    raise RuntimeError("All possible boards explored, but no solution could be found.")
+
+def solution_as_tiles(
+    board: tuple[list[int], ...],
+    solution: list[tuple[int, int]]
+) -> list[int, ...]:
+    """
+    Converts a list of (y, x)-coords indicating moves into tile numbers,
+    given a starting board configuration.
+
+    Args:
+        board: The initial board we will apply moves to (does not alter board).
+        solution: A list of move coordinates in (y, x) form.
+
+    Returns:
+        A list of ints, which indicate a sequence of tile numbers to move.
+    """
+    board = copy.deepcopy(board)
+    tiles = []
+    empty_pos = get_empty_yx(board)
+    for move in solution:
+        y, x = move
+        tiles.append(board[y][x])
+        swap_tiles(board, empty_pos, move)
+        empty_pos = move
+    return tiles

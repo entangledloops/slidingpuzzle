@@ -31,7 +31,7 @@ def test_newboard():
 def test_print_board():
     print_board(new_board(5, 5))
 
-    
+
 def test_get_empty_yx():
     board = new_board(3, 3)
     assert get_empty_yx(board) == (2, 2)
@@ -170,3 +170,12 @@ def test_heuristic_behavior():
     assert expanded_avg[0] < expanded_avg[2]
     assert expanded_avg[1] < expanded_avg[2]
     assert expanded_avg[2] < expanded_avg[3]
+
+
+def test_solution_as_tiles():
+    h, w = 3, 3
+    b = new_board(h, w)
+    swap_tiles(b, (h-1, w-1), (h-2, w-1))
+    swap_tiles(b, (h-2, w-1), (h-2, w-2))
+    r = search(b)
+    assert [5, 6] == solution_as_tiles(b, r.solution)

@@ -57,6 +57,7 @@ from slidingpuzzle.slidingpuzzle import (
     search,
     shuffle_board,
     shuffle_board_slow,
+    solution_as_tiles,
     swap_tiles,
 )
 
