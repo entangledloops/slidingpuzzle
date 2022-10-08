@@ -118,7 +118,7 @@ def swap_tiles(
     board[y1][x1], board[y2][x2] = board[y2][x2], board[y1][x1]
 
 
-def count_inversions(board) -> int:
+def count_inversions(board: tuple[list[int], ...]) -> int:
     """
     From each tile, count the number of tiles that are out of place.
     Returns the sum of all counts. See :func:`is_solvable`.
