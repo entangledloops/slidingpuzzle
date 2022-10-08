@@ -68,7 +68,7 @@ The boards are just a `tuple` of `list[int]`. The number 0 is reserved for the b
 False
 ```
 
-Not all board configurations are solvable. The [search()][search] routine will validate the board before beginning, and may throw a `ValueError` if the board is illegal.
+Not all board configurations are solvable. The [`search()`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html#slidingpuzzle.slidingpuzzle.search) routine will validate the board before beginning, and may throw a `ValueError` if the board is illegal.
 
 ## Algorithms
 
@@ -77,7 +77,7 @@ Not all board configurations are solvable. The [search()][search] routine will v
 ('a*', 'beam', 'bfs', 'dfs', 'greedy', 'ida*', 'iddfs')
 ```
 
-The available algorithms for [search()][search] are:
+The available algorithms for [`search()`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html#slidingpuzzle.slidingpuzzle.search) are:
 - `"a*"` (default) - [A* search](https://en.wikipedia.org/wiki/A*_search_algorithm)
 - `"beam"` - [Beam search](https://en.wikipedia.org/wiki/Beam_search)
 - `"bfs"` - [Breadth-first search](https://en.wikipedia.org/wiki/Breadth-first_search)
@@ -137,5 +137,3 @@ The available heuristics are:
 - `manhattan_distance` - Count of how many moves it would take each tile to arrive in the correct position, if other tiles could be ignored
 - `random_distance` - This is a random number (but a *consistent* random number for a given board state). It is useful as a baseline.
 - Any heuristic you want! Just pass any function that accepts a board and returns a number. The lower the number, the closer the board is to the goal (lower = better).
-
-[search]: (https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html#slidingpuzzle.slidingpuzzle.search)
