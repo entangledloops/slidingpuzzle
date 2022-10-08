@@ -343,7 +343,8 @@ def search(
     Args:
         board: The initial board state to search.
         algorithm (str): The algorithm to use for search.
-        heuristic: A function to evaluate the board. See :mod:`slidingpuzzle.heuristics`.
+        heuristic: A function to evaluate the board.
+            See :mod:`slidingpuzzle.heuristics`.
 
     Returns:
         Returns a :class:`SearchResult` containing a list of moves to solve the
