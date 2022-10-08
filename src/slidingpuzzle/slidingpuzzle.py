@@ -16,7 +16,7 @@
 A collection of functions for working with sliding tile puzzle boards.
 """
 
-from typing import Callable, Union
+from typing import Callable
 
 import collections
 import copy
@@ -48,7 +48,7 @@ ALGORITHMS = (
 )
 
 
-def new_board(h: int, w: int) -> tuple[list[int]]:
+def new_board(h: int, w: int) -> tuple[list[int], ...]:
     """
     Create a new board in the default solved state.
 
@@ -270,7 +270,7 @@ def print_result(result: SearchResult, file=sys.stdout):
     """
     print(
         (
-            f"solution_len={len(result.solution)}, "
+            f"solution_len={len(result.solution) if result.solution else 'N/A'}, "
             f"generated={result.generated}, "
             f"expanded={result.expanded}, "
             f"unvisited={len(result.unvisited)}, "
@@ -283,7 +283,7 @@ def print_result(result: SearchResult, file=sys.stdout):
 def search(
     board: tuple[list[int], ...],
     algorithm: str = A_STAR,
-    heuristic: Callable[[tuple[list[int], ...]], Union[int, float]] = None,
+    heuristic: Callable[[tuple[list[int], ...]], int | float] = None,
     **kwargs,
 ) -> SearchResult:
     """
