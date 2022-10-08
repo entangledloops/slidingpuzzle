@@ -19,7 +19,7 @@ Each function accepts a puzzle board as input, and returns a numeric value
 that indicates the estimated distance from the goal.
 """
 
-def euclidean_distance(board: tuple[list[int]]) -> int:
+def euclidean_distance(board: tuple[list[int], ...]) -> int:
     w = len(board[0])
     dist = 0
     for y, row in enumerate(board):
@@ -30,7 +30,7 @@ def euclidean_distance(board: tuple[list[int]]) -> int:
     return dist
 
 
-def hamming_distance(board: tuple[list[int]]) -> int:
+def hamming_distance(board: tuple[list[int], ...]) -> int:
     w = len(board[0])
     dist = 0
     for y, row in enumerate(board):
@@ -42,7 +42,7 @@ def hamming_distance(board: tuple[list[int]]) -> int:
     return dist
 
 
-def manhattan_distance(board: tuple[list[int]]) -> int:
+def manhattan_distance(board: tuple[list[int], ...]) -> int:
     w = len(board[0])
     dist = 0
     for y, row in enumerate(board):
@@ -53,6 +53,6 @@ def manhattan_distance(board: tuple[list[int]]) -> int:
     return dist
 
 
-def random_distance(board: tuple[list[int]]) -> int:
+def random_distance(board: tuple[list[int], ...]) -> int:
     frozen_board = tuple(tuple(row) for row in board)
     return hash(frozen_board)
