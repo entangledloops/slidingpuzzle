@@ -347,7 +347,8 @@ def search(
 
     Returns:
         Returns a :class:`SearchResult` containing a list of moves to solve the
-        puzzle from the initial state along with some search statistics.
+        puzzle from the initial state along with some search statistics. Solution
+        may be None if no solution was found.
     """
 
     if not is_solvable(board):
@@ -476,6 +477,9 @@ def search(
             if IDA_STAR == algorithm:
                 next_bound = float("inf")
             unvisited.append(initial_state)
+
+    # if we are here, no solution was found
+    return SearchResult(generated, expanded, unvisited, visited, None)
 
 
 def solution_as_tiles(

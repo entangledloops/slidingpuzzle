@@ -59,7 +59,9 @@ def test_shuffle_board(size):
     h, w = size
     board = new_board(h, w)
     shuffle_board(board)
-    assert None != search(board, algorithm="greedy", heuristic=manhattan_distance)
+    assert (
+        None != search(board, algorithm="greedy", heuristic=manhattan_distance).solution
+    )
 
 
 @pytest.mark.parametrize("size", [(2, 2), (3, 2), (2, 3), (3, 3)])
@@ -68,7 +70,9 @@ def test_shuffle_board_slow(size):
     h, w = size
     board = new_board(h, w)
     shuffle_board_slow(board)
-    assert None != search(board, algorithm="greedy", heuristic=manhattan_distance)
+    assert (
+        None != search(board, algorithm="greedy", heuristic=manhattan_distance).solution
+    )
 
 
 def test_get_possible_moves():
