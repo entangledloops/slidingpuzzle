@@ -68,7 +68,7 @@ The boards are just a `tuple` of `list[int]`. The number 0 is reserved for the b
 False
 ```
 
-Not all board configurations are solvable. The [`search()`][search] routine will validate the board before beginning, and may throw a `ValueError` if the board is illegal.
+Not all board configurations are solvable. The [search()][search] routine will validate the board before beginning, and may throw a `ValueError` if the board is illegal.
 
 ## Algorithms
 
@@ -77,7 +77,7 @@ Not all board configurations are solvable. The [`search()`][search] routine will
 ('a*', 'beam', 'bfs', 'dfs', 'greedy', 'ida*', 'iddfs')
 ```
 
-The available algorithms for [`search()`][search] are:
+The available algorithms for [search()][search] are:
 - `"a*"` (default) - [A* search](https://en.wikipedia.org/wiki/A*_search_algorithm)
 - `"beam"` - [Beam search](https://en.wikipedia.org/wiki/Beam_search)
 - `"bfs"` - [Breadth-first search](https://en.wikipedia.org/wiki/Breadth-first_search)
