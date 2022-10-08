@@ -83,8 +83,8 @@ Some algorithms support additional customization via `algorithm_kwargs`. These a
 
 - `a*: {"weight": default is 1}`
   - This provides support for [Weighted A*](https://en.wikipedia.org/wiki/A*_search_algorithm#Bounded_relaxation)
-- `beam: {"width", default is 2}`
-  - Values beyond 4 have no meaning, since there are a maximum of 4 moves possible. When width is < 4 (as in the default), is possible to never find a solution, although it exists.
+- `beam: {"width", default is 3}`
+  - Values beyond 4 are the same as 4, since there are a maximum of 4 moves possible. When width is < 4 (as in the default), it is possible to never find a solution, although it exists.
 
 Example:
 

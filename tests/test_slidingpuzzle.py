@@ -122,7 +122,7 @@ def test_a_star():
     )
 
 
-@pytest.mark.parametrize("algorithm", ["bfs", "dfs", "greedy", "a*", "beam"])
+@pytest.mark.parametrize("algorithm", ["a*", "beam", "bfs", "dfs", "greedy"])
 @pytest.mark.parametrize(
     "heuristic", [None, euclidean_distance, manhattan_distance, random_distance]
 )
@@ -167,7 +167,7 @@ def test_heuristic_behavior():
 
     # we compute avg expanded nodes over multiple runs to confirm that
     # heuristic behavior is in line with expectations
-    num_runs = 10
+    num_runs = 20
     expanded_avg = [0 for _ in range(len(heuristics))]
     for i, heuristic in enumerate(heuristics):
         for _ in range(num_runs):

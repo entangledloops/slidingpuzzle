@@ -315,7 +315,7 @@ def search(
 
     # prepare initial state
     a_star_weight = algorithm_kwargs.get("weight", 1)
-    beam_width = algorithm_kwargs.get("width", 2)
+    beam_width = algorithm_kwargs.get("width", 3)
     # there can only ever be 4 moves possible, so anything larger reduces to 4
     if beam_width > 4:
         beam_width = 4
