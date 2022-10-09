@@ -62,7 +62,6 @@ from slidingpuzzle.slidingpuzzle import (
     is_solvable,
     new_board,
     print_board,
-    print_result,
     search,
     shuffle_board,
     shuffle_board_slow,

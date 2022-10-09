@@ -201,12 +201,15 @@ def is_solvable(board: tuple[list[int], ...]) -> bool:
     return False
 
 
-def shuffle_board(board: tuple[list[int], ...]) -> None:
+def shuffle_board(board: tuple[list[int], ...]) -> tuple[list[int], ...]:
     """
-    Shuffles a board in place and validates that the result is solvable.
+    Shuffles a board (in place) and validates that the result is solvable.
 
     Args:
         board: The board to shuffle.
+
+    Returns:
+        The same board for chaining convience.
     """
     h, w = len(board), len(board[0])
     while True:
@@ -219,15 +222,21 @@ def shuffle_board(board: tuple[list[int], ...]) -> None:
 
         if is_solvable(board):
             break
+    return board
 
 
-def shuffle_board_slow(board: tuple[list[int], ...], num_moves: int = None) -> None:
+def shuffle_board_slow(
+    board: tuple[list[int], ...], num_moves: int = None
+) -> tuple[list[int], ...]:
     """
     Shuffles a board in place by making random legal moves.
 
     Args:
         num_moves (int): Number of random moves to make.
             If ``None``, ``(h * w) ** 2`` will be used.
+
+    Returns:
+        The same board for chaining convience.
     """
     h, w = len(board), len(board[0])
     if num_moves is None:
@@ -239,6 +248,7 @@ def shuffle_board_slow(board: tuple[list[int], ...], num_moves: int = None) -> N
         next_move = next_moves.pop()
         swap_tiles(board, empty_pos, next_move)
         empty_pos = next_move
+    return board
 
 
 def get_next_states(state: State) -> list[State]:
@@ -258,26 +268,6 @@ def get_next_states(state: State) -> list[State]:
         next_state = State(next_board, move, next_history)
         next_states.append(next_state)
     return next_states
-
-
-def print_result(result: SearchResult, file=sys.stdout):
-    """
-    Convenience function for printing a search result summary.
-
-    Args:
-        result (SearchResult): The result from :func:`search`.
-        file: The target output file. Defaults to stdout.
-    """
-    print(
-        (
-            f"solution_len={len(result.solution) if result.solution else 'N/A'}, "
-            f"generated={result.generated}, "
-            f"expanded={result.expanded}, "
-            f"unvisited={len(result.unvisited)}, "
-            f"visited={len(result.visited)}"
-        ),
-        file=file,
-    )
 
 
 def search(
@@ -392,11 +382,12 @@ def search(
             return heuristic(state.board)
 
     # prepare initial state
+    board = copy.deepcopy(board)  # don't modify or point to orig board
     goal = new_board(len(board), len(board[0]))
     empty_pos = get_empty_yx(board)
     expanded = 0
     generated = 0
-    initial_state = State(copy.deepcopy(board), empty_pos, [])
+    initial_state = State(board, empty_pos, [])
     visited = set()  # closed states
     if algorithm in (BEAM, BFS):
         unvisited = collections.deque([initial_state])
@@ -452,7 +443,7 @@ def search(
             # goal check
             if state.board == goal:
                 return SearchResult(
-                    generated, expanded, list(unvisited), visited, state.history
+                    board, generated, expanded, list(unvisited), visited, state.history
                 )
 
             # compute value of next states
@@ -480,7 +471,7 @@ def search(
             unvisited.append(initial_state)
 
     # if we are here, no solution was found
-    return SearchResult(generated, expanded, list(unvisited), visited, None)
+    return SearchResult(board, generated, expanded, list(unvisited), visited, None)
 
 
 def solution_as_tiles(

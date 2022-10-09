@@ -18,6 +18,8 @@ Provides some convience classes to track search state and results.
 
 import dataclasses
 
+import slidingpuzzle
+
 
 @dataclasses.dataclass(order=True)
 class State:
@@ -50,6 +52,7 @@ class SearchResult:
     heuristics.
 
     Args:
+        board: The original input board.
         generated: The number of states generated during search.
         expanded: The number of states evaluated during search.
         unvisited: The list of states that were never reached.
@@ -62,8 +65,27 @@ class SearchResult:
         function ``open`` would collide, so they have been renamed.
     """
 
+    board: tuple[list[int], ...]
     generated: int
     expanded: int
     unvisited: list[State]
     visited: set[tuple[tuple[int, ...], ...]]
     solution: list[tuple[int, int]] | None
+
+    def __repr__(self) -> str:
+        solution = (
+            slidingpuzzle.solution_as_tiles(self.board, self.solution)
+            if self.solution
+            else "N/A"
+        )
+        return (
+            f"solution={solution}\n"
+            f"solution_len={len(self.solution) if self.solution else 'N/A'}, "
+            f"generated={self.generated}, "
+            f"expanded={self.expanded}, "
+            f"unvisited={len(self.unvisited)}, "
+            f"visited={len(self.visited)}"
+        )
+
+    def __str__(self) -> str:
+        return repr(self)

@@ -35,29 +35,33 @@ https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html
 7 8
 >>> shuffle_board(b)
 >>> print_board(b)
-4 5
-6 7 2
-1 8 3
+1 6 7
+4   8
+5 3 2
 >>> r = search(b)
 >>> print_result(r)
-solution_len=20, generated=144704, expanded=103615, unvisited=41090, visited=54466
+solution=[3, 2, 8, 3, 6, 7, 3, 6, 7, 1, 4, 7, 2, 5, 7, 4, 1, 2, 5, 8]
+solution_len=20, generated=165616, expanded=120653, unvisited=44964, visited=62277
 >>> r = search(b, "greedy", heuristic=manhattan_distance)
->>> print_result(r)
-solution_len=36, generated=409, expanded=299, unvisited=111, visited=153
+>>> r
+solution=[8, 2, 3, 8, 2, 7, 6, 2, 7, 3, 8, 5, 4, 7, 5, 4, 7, 5, 3, 6, 2, 3, 4, 8, 6, 2, 3, 1, 5, 4, 2, 6, 8, 7, 4, 5, 1, 2, 5, 4, 7, 8]
+solution_len=42, generated=711, expanded=490, unvisited=222, visited=258
 ```
+
+As expected, greedy search finds a solution must faster but is of lower quality than the optimal solution found by breadth-first search (the default).
 
 Solutions are stored as a list of (y, x)-coords of moves, indicating which tile is to be moved next.
 
 ```python
 >>> r.solution
-[(1, 2), (2, 2), (2, 1), (1, 1), (0, 1), (0, 0), (1, 0), (2, 0), (2, 1), (1, 1), (0, 1), (0, 0), (1, 0), (1, 1), (0, 1), (0, 2), (1, 2), (1, 1), (2, 1), (2, 2)]
+[(1, 2), (2, 2), (2, 1), (1, 1), (1, 2), (0, 2), (0, 1), (1, 1), (1, 2), (2, 2), (2, 1), (2, 0), (1, 0), (1, 1), (2, 1), (2, 0), (1, 0), (1, 1), (1, 2), (0, 2), (0, 1), (1, 1), (2, 1), (2, 2), (1, 2), (0, 2), (0, 1), (0, 0), (1, 0), (1, 1), (1, 2), (2, 2), (2, 1), (2, 0), (1, 0), (0, 0), (0, 1), (1, 1), (1, 0), (2, 0), (2, 1), (2, 2)]
 ```
 
-If you are working with a physical puzzle and actual tile numbers would be easier to read, you can obtain them:
+If you are working with a physical puzzle and actual tile numbers would be easier to read, you can obtain them the same way as `repr(r)` / `str(r)`:
 
 ```python
->>> solution_as_tiles(b, r.solution)
-[2, 3, 8, 7, 5, 4, 6, 1, 7, 5, 4, 6, 1, 4, 6, 2, 3, 6, 5, 8]
+>>> solution_as_tiles(r.board, r.solution)
+[8, 2, 3, 8, 2, 7, 6, 2, 7, 3, 8, 5, 4, 7, 5, 4, 7, 5, 3, 6, 2, 3, 4, 8, 6, 2, 3, 1, 5, 4, 2, 6, 8, 7, 4, 5, 1, 2, 5, 4, 7, 8]
 ```
 
 The boards are just a `tuple` of `list[int]`. The number `0` is reserved for the blank. You can easily build your own board:
@@ -135,7 +139,7 @@ may miss the goal, even thought the board is solvable.
 
 Heuristics are most relevant for `"greedy"`, `"a*"`, and `"ida*"` as they are used to sort all known moves before selecting the next action.
 
-For other algorithms, the heuristic is only used to sort the local nodes. For example, when the `N` nearby available moves are examined, the algorithm will first sort those `N` next board states using the heuristic.
+For other algorithms, the heuristic is only used to sort the local nodes. For example, when the `2 <= N <= 4` nearby available moves are generated they will be immediately sorted using the heuristic.
 
 The available heuristics are:
 - `euclidean_distance` - The straight line distance in Euclidean space between two tiles. This is essentially the hypotenuse of a right triangle. (The square root is not used as it does not affect the sorting order.)
