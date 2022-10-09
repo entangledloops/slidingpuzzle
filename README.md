@@ -26,9 +26,6 @@ https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html
 
 ## Examples
 
-All submodule code is imported into the parent namespace, so there is no need
-to explicitly refer to submodules.
-
 ```python
 >>> from slidingpuzzle import *
 >>> b = new_board(3, 3)
@@ -87,9 +84,9 @@ Not all board configurations are solvable. The [`search()`](https://slidingtilep
 ```
 
 The available algorithms for [`search()`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html#slidingpuzzle.slidingpuzzle.search) are:
-- `"a*"` (default) - [A* search](https://en.wikipedia.org/wiki/A*_search_algorithm)
+- `"a*"` - [A* search](https://en.wikipedia.org/wiki/A*_search_algorithm)
 - `"beam"` - [Beam search](https://en.wikipedia.org/wiki/Beam_search)
-- `"bfs"` - [Breadth-first search](https://en.wikipedia.org/wiki/Breadth-first_search)
+- `"bfs"` (*default*) - [Breadth-first search](https://en.wikipedia.org/wiki/Breadth-first_search)
 - `"dfs"` - [Depth-first search](https://en.wikipedia.org/wiki/Depth-first_search)
 - `"greedy"` - [Greedy best-first search](https://en.wikipedia.org/wiki/Best-first_search#Greedy_BFS)
 - `"ida*"` - [Iterative deepening A*](https://en.wikipedia.org/wiki/Iterative_deepening_A*)

@@ -282,7 +282,7 @@ def print_result(result: SearchResult, file=sys.stdout):
 
 def search(
     board: tuple[list[int], ...],
-    algorithm: str = A_STAR,
+    algorithm: str = BFS,
     heuristic: Callable[[tuple[list[int], ...]], int | float] = None,
     **kwargs,
 ) -> SearchResult:
