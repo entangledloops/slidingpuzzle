@@ -1,5 +1,7 @@
 [flake8]
+# single var names used are clear
 ignore = F401
+# match black line length
 max-line-length = 88
 per-file-ignores =
     # star imports okay in tests
