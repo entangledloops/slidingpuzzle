@@ -39,7 +39,7 @@ https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html
 4   8
 5 3 2
 >>> r = search(b)
->>> print_result(r)
+>>> r
 solution=[3, 2, 8, 3, 6, 7, 3, 6, 7, 1, 4, 7, 2, 5, 7, 4, 1, 2, 5, 8]
 solution_len=20, generated=165616, expanded=120653, unvisited=44964, visited=62277
 >>> r = search(b, "greedy", heuristic=manhattan_distance)
