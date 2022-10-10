@@ -38,12 +38,12 @@ https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html
 1 6 7
 4   8
 5 3 2
->>> r = search(b)
->>> r
+>>> result = search(b)
+>>> result
 solution=[3, 2, 8, 3, 6, 7, 3, 6, 7, 1, 4, 7, 2, 5, 7, 4, 1, 2, 5, 8]
 solution_len=20, generated=165616, expanded=120653, unvisited=44964, visited=62277
->>> r = search(b, "greedy", heuristic=manhattan_distance)
->>> r
+>>> result = search(b, "greedy", heuristic=manhattan_distance)
+>>> result
 solution=[8, 2, 3, 8, 2, 7, 6, 2, 7, 3, 8, 5, 4, 7, 5, 4, 7, 5, 3, 6, 2, 3, 4, 8, 6, 2, 3, 1, 5, 4, 2, 6, 8, 7, 4, 5, 1, 2, 5, 4, 7, 8]
 solution_len=42, generated=711, expanded=490, unvisited=222, visited=258
 ```
@@ -53,14 +53,14 @@ As expected, greedy search finds a solution must faster but the solution is of l
 Solutions are stored as a list of (y, x)-coords of moves, indicating which tile is to be moved next.
 
 ```python
->>> r.solution
+>>> result.solution
 [(1, 2), (2, 2), (2, 1), (1, 1), (1, 2), (0, 2), (0, 1), (1, 1), (1, 2), (2, 2), (2, 1), (2, 0), (1, 0), (1, 1), (2, 1), (2, 0), (1, 0), (1, 1), (1, 2), (0, 2), (0, 1), (1, 1), (2, 1), (2, 2), (1, 2), (0, 2), (0, 1), (0, 0), (1, 0), (1, 1), (1, 2), (2, 2), (2, 1), (2, 0), (1, 0), (0, 0), (0, 1), (1, 1), (1, 0), (2, 0), (2, 1), (2, 2)]
 ```
 
 If you are working with a physical puzzle and actual tile numbers would be easier to read, you can obtain them the same way as `repr(SearchResult)` / `str(SearchResult)`:
 
 ```python
->>> solution_as_tiles(r.board, r.solution)
+>>> solution_as_tiles(result.board, result.solution)
 [8, 2, 3, 8, 2, 7, 6, 2, 7, 3, 8, 5, 4, 7, 5, 4, 7, 5, 3, 6, 2, 3, 4, 8, 6, 2, 3, 1, 5, 4, 2, 6, 8, 7, 4, 5, 1, 2, 5, 4, 7, 8]
 ```
 
