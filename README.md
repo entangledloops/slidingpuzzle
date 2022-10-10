@@ -48,7 +48,7 @@ solution=[8, 2, 3, 8, 2, 7, 6, 2, 7, 3, 8, 5, 4, 7, 5, 4, 7, 5, 3, 6, 2, 3, 4, 8
 solution_len=42, generated=711, expanded=490, unvisited=222, visited=258
 ```
 
-As expected, greedy search finds a solution must faster but is of lower quality than the optimal solution found by breadth-first search (the default).
+As expected, greedy search finds a solution must faster but the solution is of lower quality than the optimal solution found by breadth-first search (the default).
 
 Solutions are stored as a list of (y, x)-coords of moves, indicating which tile is to be moved next.
 
@@ -57,7 +57,7 @@ Solutions are stored as a list of (y, x)-coords of moves, indicating which tile 
 [(1, 2), (2, 2), (2, 1), (1, 1), (1, 2), (0, 2), (0, 1), (1, 1), (1, 2), (2, 2), (2, 1), (2, 0), (1, 0), (1, 1), (2, 1), (2, 0), (1, 0), (1, 1), (1, 2), (0, 2), (0, 1), (1, 1), (2, 1), (2, 2), (1, 2), (0, 2), (0, 1), (0, 0), (1, 0), (1, 1), (1, 2), (2, 2), (2, 1), (2, 0), (1, 0), (0, 0), (0, 1), (1, 1), (1, 0), (2, 0), (2, 1), (2, 2)]
 ```
 
-If you are working with a physical puzzle and actual tile numbers would be easier to read, you can obtain them the same way as `repr(r)` / `str(r)`:
+If you are working with a physical puzzle and actual tile numbers would be easier to read, you can obtain them the same way as `repr(SearchResult)` / `str(SearchResult)`:
 
 ```python
 >>> solution_as_tiles(r.board, r.solution)
@@ -73,7 +73,7 @@ The boards are just a `tuple` of `list[int]`. The number `0` is reserved for the
 7 8
 1 2 3
 >>> manhattan_distance(b)
-12
+11
 >>> is_solvable(b)
 False
 ```
