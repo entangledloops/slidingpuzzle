@@ -6,3 +6,4 @@ max-line-length = 88
 per-file-ignores =
     # star imports okay in tests
     test_slidingpuzzle.py: F403, F405
+    test_nn.py: F403, F405

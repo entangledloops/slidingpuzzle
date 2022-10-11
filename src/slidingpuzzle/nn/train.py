@@ -48,35 +48,58 @@ def load_checkpoint(model, optimizer) -> int:
 
 def save_checkpoint(model: nn.Module, optimizer: optim.Optimizer, epoch: int) -> None:
     checkpoint_path = get_checkpoint_path(model.h, model.w)
-    torch.save(
-        {
-            "model_state_dict": model.state_dict(),
-            "optimizer_state_dict": optimizer.state_dict(),
-            "epoch": epoch,
-            "board_height": model.h,
-            "board_width": model.w,
-        },
-        str(checkpoint_path),
-    )
+    state = {
+        "model_state_dict": model.state_dict(),
+        "optimizer_state_dict": optimizer.state_dict(),
+        "epoch": epoch,
+        "board_height": model.h,
+        "board_width": model.w,
+    }
+    # save epoch labeled, and also save unlabeled "latest"
+    torch.save(state, str(checkpoint_path) + f"_epoch_{epoch}")
+    torch.save(state, str(checkpoint_path))
 
 
-def launch_tensorboard(dirname=TENSORBOARD_DIR):
+def launch_tensorboard(dirname: str) -> None:
+    """
+    Launches tensorboard in the specified directory.
+    """
     tb = tensorboard.program.TensorBoard()
     tb.configure(argv=[None, "--logdir", dirname])
     url = tb.launch()
     print(f"Tensorboard launched: {url}")
 
 
-def train(h, w, num_epochs=30, batch_size=1):
+def train(
+    h, w, num_epochs=30, batch_size=1, dataset=None, tensorboard_dir=TENSORBOARD_DIR
+) -> nn.Module:
+    """
+    Trains a model until ``num_epochs`` has been reached. If no puzzle database is
+    found, first one will be built. Will automatically launch tensorboard and store
+    a checkpoint every epoch.
+
+    Args:
+        h: Height of board to train the model for
+        w: Width of the board to train the model for
+        num_epochs: Total number of epochs model should be trained for
+        batch_size: Batch size to use for training
+        dataset: Dataset to use. If none is provided, one will be loaded. If none can
+            be loaded, one will be built from scratch first.
+        tensorboard_dir: Directory to store tensorboard logs
+
+    Returns:
+        The trained model. May be loaded on GPU if GPU is available. The model is also
+        saved to disk before returning in the checkpoints directory.
+    """
     # prepare tensorboard to record training
     tensorboard_path = get_tensorboard_path(h, w)
-    launch_tensorboard()
+    launch_tensorboard(tensorboard_dir)
     comment = f"EPOCHS_{num_epochs}_BS_{batch_size}"
     writer = SummaryWriter(tensorboard_path, comment=comment)
 
     # prepare dataset and model
     device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
-    ds = load_dataset(h, w)
+    dataset = load_dataset(h, w) if dataset is None else dataset
     model = Model_v1(h, w)
     model.to(device)
     optimizer = optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
@@ -88,7 +111,7 @@ def train(h, w, num_epochs=30, batch_size=1):
         running_loss = 0.0
 
         for batch, expected in iter(
-            DataLoader(ds, batch_size=batch_size, shuffle=True)
+            DataLoader(dataset, batch_size=batch_size, shuffle=True)
         ):
             batch = batch.to(device)
             expected = expected.to(device)
@@ -100,8 +123,9 @@ def train(h, w, num_epochs=30, batch_size=1):
             running_loss += loss.item()
 
         save_checkpoint(model, optimizer, epoch)
-        running_loss /= len(ds)
+        running_loss /= len(dataset)
         writer.add_scalar("training_loss", running_loss, epoch)
         running_loss = 0.0
 
     save_checkpoint(model, optimizer, epoch)
+    return model

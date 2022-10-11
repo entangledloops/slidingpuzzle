@@ -11,3 +11,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from slidingpuzzle import *
+from slidingpuzzle.nn import *
+
+
+def test_make_examples():
+    examples = make_examples(3, 3, 100)
+    assert len(examples) == 100

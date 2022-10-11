@@ -28,7 +28,18 @@ def get_board_size_str(h: int, w: int) -> str:
     return f"{h}x{w}"
 
 
-def get_path(dirname, filename) -> pathlib.Path:
+def get_path(dirname: str, filename: str) -> pathlib.Path:
+    """
+    Creates intermediate directorys for dirname and returns the full path from dirname
+    to filename.
+
+    Args:
+        dirname: A directory or path to a directory.
+        filename: The filename the path will point to.
+
+    Returns:
+        The path object.
+    """
     dirpath = pathlib.Path(dirname)
     dirpath.mkdir(exist_ok=True, parents=True)
     return dirpath / filename
