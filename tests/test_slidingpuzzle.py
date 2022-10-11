@@ -28,13 +28,30 @@ def test_newboard():
     assert new_board(3, 2) == ground_truth
 
 
+def test_freezeboard():
+    b = new_board(3, 3)
+    s = set()
+    frozen = freeze_board(b)
+    s.add(frozen)
+
+
 def test_print_board():
     print_board(new_board(5, 5))
+
+
+def test_get_yx():
+    board = new_board(3, 3)
+    tile = 1
+    for y, row in enumerate(board):
+        for x in range(len(row) - 1):
+            assert tile == board[y][x]
+            tile += 1
 
 
 def test_get_empty_yx():
     board = new_board(3, 3)
     assert get_empty_yx(board) == (2, 2)
+    assert get_yx(board, EMPTY_TILE) == get_empty_yx(board)
 
     tmp = board[2][2]
     board[2][2] = board[0][1]
@@ -49,6 +66,17 @@ def test_swap_tiles():
     orig_pos1 = board[pos1[0]][pos1[1]]
     orig_pos2 = board[pos2[0]][pos2[1]]
     swap_tiles(board, pos1, pos2)
+    assert orig_pos1 == board[pos2[0]][pos2[1]]
+    assert orig_pos2 == board[pos1[0]][pos1[1]]
+
+
+def test_apply_move():
+    board = new_board(5, 5)
+    pos1 = (2, 2)
+    pos2 = get_empty_yx(board)
+    orig_pos1 = board[pos1[0]][pos1[1]]
+    orig_pos2 = board[pos2[0]][pos2[1]]
+    apply_move(board, pos1)
     assert orig_pos1 == board[pos2[0]][pos2[1]]
     assert orig_pos2 == board[pos1[0]][pos1[1]]
 

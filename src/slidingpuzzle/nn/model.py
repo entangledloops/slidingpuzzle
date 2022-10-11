@@ -35,5 +35,5 @@ class Model_v1(nn.Module):
         x = self.flatten(x)
         x = torch.relu(self.linear1(x))
         x = torch.relu(self.linear2(x))
-        x = torch.sigmoid(self.linear3(x))
+        x = self.linear3(x)
         return x

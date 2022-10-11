@@ -19,7 +19,6 @@ A collection of functions for working with sliding tile puzzle boards.
 from typing import Callable
 
 import collections
-import copy
 import heapq
 import random
 import sys
@@ -64,6 +63,19 @@ def new_board(h: int, w: int) -> tuple[list[int], ...]:
     return board
 
 
+def freeze_board(board: tuple[list[int], ...]) -> tuple[tuple[int, ...], ...]:
+    """
+    Obtain a frozen copy of the board that is hashable.
+
+    Args:
+        board: The board to freeze.
+
+    Returns:
+        A tuple of tuple[int].
+    """
+    return tuple(tuple(row) for row in board)
+
+
 def print_board(board: tuple[list[int], ...], file=sys.stdout) -> None:
     """
     Convienance function for printing a formatted board.
@@ -84,6 +96,24 @@ def print_board(board: tuple[list[int], ...], file=sys.stdout) -> None:
         print(file=file)
 
 
+def get_yx(board: tuple[list[int], ...], tile: int) -> tuple[int, int]:
+    """
+    Given a tile number, find the (y, x)-coord on the board.
+
+    Args:
+        board: The puzzle board.
+        move: The
+
+    Returns:
+        The tile position or None if
+    """
+    for y, row in enumerate(board):
+        for x in range(len(row)):
+            if board[y][x] == tile:
+                return y, x
+    raise ValueError(f'There is no tile "{tile}" on the board.')
+
+
 def get_empty_yx(board: tuple[list[int], ...]) -> tuple[int, int]:
     """
     Locate the empty tile's (y, x)-coord.
@@ -94,11 +124,7 @@ def get_empty_yx(board: tuple[list[int], ...]) -> tuple[int, int]:
     Returns:
         The (y, x)-coord of the empty tile.
     """
-    for y, row in enumerate(board):
-        for x, tile in enumerate(row):
-            if tile == EMPTY_TILE:
-                return y, x
-    raise ValueError("No empty tile found.")
+    return get_yx(board, EMPTY_TILE)
 
 
 def get_next_moves(
@@ -137,10 +163,14 @@ def swap_tiles(
         board: The board to modify.
         pos1: The first tile position.
         pos2: The second tile position.
+
+    Return:
+        The modified board, for conveience chaining calls.
     """
     y1, x1 = pos1
     y2, x2 = pos2
     board[y1][x1], board[y2][x2] = board[y2][x2], board[y1][x1]
+    return board
 
 
 def count_inversions(board: tuple[list[int], ...]) -> int:
@@ -166,6 +196,29 @@ def count_inversions(board: tuple[list[int], ...]) -> int:
             if t2 < t1:
                 inversions += 1
     return inversions
+
+
+def apply_move(
+    board: tuple[list[int], ...],
+    move: tuple[int, int] | int,
+    empty_pos: tuple[int, int] = None,
+) -> tuple[list[int], ...]:
+    """
+    Applies a move to the board in place.
+
+    Args:
+        board: The puzzle board.
+        move: The move to apply. Can be a (y, x)-coord or a tile int.
+        empty_pos: The position of the empty tile. Will be found if not provided.
+
+    Returns:
+        The modified board, for convience chaining calls.
+    """
+    if isinstance(move, int):
+        move = get_yx(move)
+    if empty_pos is None:
+        empty_pos = get_empty_yx(board)
+    return swap_tiles(board, move, empty_pos)
 
 
 def is_solvable(board: tuple[list[int], ...]) -> bool:
@@ -259,10 +312,10 @@ def get_next_states(state: State) -> list[State]:
     next_states = []
     for move in moves:
         # construct new altered board
-        next_board = copy.deepcopy(state.board)
+        next_board = tuple(row.copy() for row in state.board)
         swap_tiles(next_board, state.empty_pos, move)
         # record history
-        next_history = copy.deepcopy(state.history)
+        next_history = state.history.copy()
         next_history.append(move)
         # after moving, the move_pos is now the empty_pos
         next_state = State(next_board, move, next_history)
@@ -382,7 +435,7 @@ def search(
             return heuristic(state.board)
 
     # prepare initial state
-    board = copy.deepcopy(board)  # don't modify or point to orig board
+    board = tuple(row.copy() for row in board)  # don't modify orig board
     goal = new_board(len(board), len(board[0]))
     empty_pos = get_empty_yx(board)
     expanded = 0
@@ -435,7 +488,7 @@ def search(
 
             # most algorithms check for duplicate states
             if algorithm not in (IDA_STAR, IDDFS):
-                frozen_board = tuple(tuple(row) for row in state.board)
+                frozen_board = freeze_board(state.board)
                 if frozen_board in visited:
                     continue
                 visited.add(frozen_board)
@@ -488,7 +541,7 @@ def solution_as_tiles(
     Returns:
         A list of ints, which indicate a sequence of tile numbers to move.
     """
-    board = copy.deepcopy(board)
+    board = tuple(row.copy() for row in board)
     tiles = []
     empty_pos = get_empty_yx(board)
     for move in solution:

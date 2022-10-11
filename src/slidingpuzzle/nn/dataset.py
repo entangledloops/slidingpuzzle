@@ -16,27 +16,116 @@
 Utilities for creating, saving, and loading board datasets.
 """
 
-import pickle
+import json
 
 import torch
 import torch.utils
+import tqdm
+
+from slidingpuzzle.slidingpuzzle import (
+    apply_move,
+    freeze_board,
+    new_board,
+    search,
+    shuffle_board,
+)
+from slidingpuzzle.heuristics import euclidean_distance, manhattan_distance
+from slidingpuzzle.nn.paths import get_examples_path
 
 
-def make_dataset(h, w) -> torch.utils.data.Dataset:
-    return None
+class SlidingPuzzleDataset(torch.utils.data.Dataset):
+    def __init__(self, examples) -> None:
+        super().__init__()
+        self.examples = examples
+
+    def __len__(self):
+        return len(self.examples)
+
+    def __getitem__(self, idx):
+        x, y = self.examples[idx]
+        return (
+            torch.tensor(x, dtype=torch.float32),
+            torch.tensor([y], dtype=torch.float32),
+        )
+
+
+def make_examples(h, w, num_examples=10_000) -> list[tuple]:
+    """
+    Constructs a list of training examples, which are tuples of:
+        (board, num_moves_to_goal)
+
+    Args:
+        h: Height of board.
+        w: Width of board.
+        num_examples: Number of examples to produce.
+
+    Returns:
+        The list of training examples.
+    """
+    examples = []
+    visited = set()
+
+    def visit(board) -> bool:
+        """
+        Helper to check if this state already exists. Otherwise, record it.
+
+        Returns:
+            True if we've been here before.
+        """
+        frozen_board = freeze_board(board)
+        if frozen_board in visited:
+            return True
+        visited.add(frozen_board)
+        return False
+
+    # if the board is large, we need to weight a* to obtain solutions this century
+    if h * w < 16:
+        weight = 1
+    else:
+        weight = 2
+
+    pbar = tqdm.tqdm(total=num_examples)
+    while len(examples) < num_examples:
+        board = shuffle_board(new_board(h, w))
+        if visit(board):
+            continue
+
+        # find a path to use as an accurate training reference
+        result = search(board, "a*", manhattan_distance, weight=weight)
+
+        # we can use all intermediate boards as examples
+        while len(examples) < num_examples:
+            distance = len(result.solution)
+            examples.append((board, distance))
+            pbar.update(1)
+            if not len(result.solution):
+                break
+            move = result.solution.pop(0)
+            apply_move(board, move)
+    pbar.close()
+
+    return examples
+
+
+def load_examples(h, w) -> list:
+    examples_file = get_examples_path(h, w)
+    with open(examples_file, "rt") as fp:
+        return json.load(fp)
+
+
+def save_examples(h, w, examples) -> None:
+    examples_file = get_examples_path(h, w)
+    with open(examples_file, "wt") as fp:
+        json.dump(examples, fp)
 
 
 def load_dataset(h, w) -> torch.utils.data.Dataset:
     print("Loading dataset...")
-    board_size_str = f"{h}x{w}"
-    board_db_file = f"board_{board_size_str}.db"
-
     try:
-        with open(board_db_file, "rb") as fp:
-            db = pickle.load(fp)
+        examples = load_examples(h, w)
     except FileNotFoundError:
-        db = make_dataset(h, w)
-        with open(board_db_file, "wb") as fp:
-            pickle.dump(db, fp)
+        print("Failed. Building new dataset...")
+        examples = make_examples(h, w)
+        save_examples(h, w, examples)
 
-    return db
+    return SlidingPuzzleDataset(examples)

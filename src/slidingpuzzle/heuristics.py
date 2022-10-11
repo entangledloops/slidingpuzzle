@@ -19,6 +19,8 @@ Each function accepts a puzzle board as input, and returns a numeric value
 that indicates the estimated distance from the goal.
 """
 
+import math
+
 import slidingpuzzle
 
 
@@ -31,7 +33,7 @@ def euclidean_distance(board: tuple[list[int], ...]) -> int:
                 continue
             a = abs(y - (tile - 1) // w)
             b = abs(x - (tile - 1) % w)
-            dist += a**2 + b**2  # ignore sqrt to save time
+            dist += math.sqrt(a**2 + b**2)
     return dist
 
 
