@@ -26,7 +26,7 @@ classifiers = [
 target-version = ["py310"]
 
 [tool.pytest.ini_options]
-addopts = "-v"
+addopts = "-v --ignore tests/test_nn.py"
 minversion = "6.0"
 pythonpath = [
     "src",
