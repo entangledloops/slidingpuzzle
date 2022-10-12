@@ -279,14 +279,18 @@ def shuffle_board(board: tuple[list[int], ...]) -> tuple[list[int], ...]:
 
 
 def shuffle_board_slow(
-    board: tuple[list[int], ...], num_moves: int = None
+    board: tuple[list[int], ...], num_moves: int = None, moves: list = None
 ) -> tuple[list[int], ...]:
     """
     Shuffles a board in place by making random legal moves.
+    Each move is first checked to avoid repeated states, although
+    this does not guarantee the
 
     Args:
+        board: The board to shuffle.
         num_moves (int): Number of random moves to make.
             If ``None``, ``(h * w) ** 2`` will be used.
+        moves: If a list is provided, the moves made will be appended.
 
     Returns:
         The same board for chaining convience.
@@ -295,11 +299,31 @@ def shuffle_board_slow(
     if num_moves is None:
         num_moves = (h * w) ** 2
     empty_pos = get_empty_yx(board)
+    visited = set()
     for _ in range(num_moves):
         next_moves = get_next_moves(board, empty_pos)
         random.shuffle(next_moves)
-        next_move = next_moves.pop()
-        swap_tiles(board, empty_pos, next_move)
+        new_move = False  # tracks if this is a new move
+        # try to find a new move
+        while next_moves:
+            next_move = next_moves.pop()
+            swap_tiles(board, empty_pos, next_move)
+            # have we been here before?
+            if visit(visited, board):
+                swap_tiles(board, empty_pos, next_move)  # undo move
+            else:
+                new_move = True
+                break
+
+        # if we couldn't find a new move, we're done
+        if not new_move:
+            return board
+
+        # if we're tracking which moves we made, record this move
+        if moves is not None:
+            moves.append(next_move)
+
+        # update empty_pos
         empty_pos = next_move
     return board
 
@@ -323,9 +347,30 @@ def get_next_states(state: State) -> list[State]:
     return next_states
 
 
+def visit(
+    visited: set[tuple[tuple[int, ...], ...]], board: tuple[list[int], ...]
+) -> bool:
+    """
+    Helper to check if this state already exists. Otherwise, record it.
+    Returns True if we have already been here, False otherwise.
+
+    Args:
+        visited: Set of boards already seen.
+        board: The current board.
+
+    Returns:
+        True if we've been here before.
+    """
+    frozen_board = freeze_board(board)
+    if frozen_board in visited:
+        return True
+    visited.add(frozen_board)
+    return False
+
+
 def search(
     board: tuple[list[int], ...],
-    algorithm: str = BFS,
+    algorithm: str = A_STAR,
     heuristic: Callable[[tuple[list[int], ...]], int | float] = None,
     **kwargs,
 ) -> SearchResult:
@@ -345,7 +390,7 @@ def search(
 
     If "greedy" or "a*" is used, the entire open list is sorted. The "greedy"
     algorithm sorts only on the heuristic, while "a*" uses heuristic + length
-    of the solution.
+    of the solution. Default heuristics are listed in the table below.
 
     Of the provided algorithms, only beam search is incomplete. This means it
     may miss the goal, even thought the board is solvable.
@@ -358,29 +403,35 @@ def search(
         a*: {
             "bound": default is float("inf"),
                 restricts search to f-values < bound
+            "heuristic": default is manhattan_distance
             "weight": default is 1
         }
         beam: {
             "bound": default is float("inf"),
                 restricts search to f-values < bound
+            "heuristic": default is manhattan_distance
             "width", default is 3
         }
         bfs: {
             "bound": default is float("inf"),
                 restricts search to depth < bound
+            "heuristic": None
         }
         dfs: {
             "bound": default is float("inf"),
                 restricts search to depth < bound
+            "heuristic": None
         }
         ida*: {
             "bound", default is manhattan_distance(board),
                 restricts search to f-values < bound
+            "heuristic": default is manhattan_distance
             "weight": default is 1
         }
         iddfs: {
             "bound", default is manhattan_distance(board),
                 restricts search to depth < bound
+            "heuristic": None
         }
 
     Args:
@@ -401,17 +452,18 @@ def search(
     if algorithm not in ALGORITHMS:
         raise ValueError(f'Unknown algorithm: "{algorithm}"')
     if heuristic is None:
-
-        # if no heuristic is provided, treat all nodes equally
-        def heuristic(*_):
-            return 0
+        if algorithm in (A_STAR, BEAM, IDA_STAR):
+            heuristic = manhattan_distance
+        else:
+            # if no heuristic is provided, treat all nodes equally
+            def heuristic(*_):
+                return 0
 
     # only relevant for some algorithms
     a_star_weight = kwargs.get("weight", 1)
     beam_width = kwargs.get("width", 3)
-    # there can only ever be 4 moves possible, so anything larger reduces to 4
-    if beam_width > 4:
-        beam_width = 4
+    if beam_width <= 0:
+        raise ValueError("Beam width <= 0 is impossible.")
 
     if algorithm in (IDA_STAR, IDDFS):
         # initial upper bound for ida* is the minimum number of moves possible
@@ -488,10 +540,8 @@ def search(
 
             # most algorithms check for duplicate states
             if algorithm not in (IDA_STAR, IDDFS):
-                frozen_board = freeze_board(state.board)
-                if frozen_board in visited:
+                if visit(visited, state.board):
                     continue
-                visited.add(frozen_board)
 
             # goal check
             if state.board == goal:

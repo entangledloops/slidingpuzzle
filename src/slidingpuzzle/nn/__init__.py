@@ -32,7 +32,7 @@ from slidingpuzzle.nn.paths import (
     TENSORBOARD_DIR,
     get_checkpoint_path,
     get_examples_path,
-    get_tensorboard_path,
+    get_log_dir,
 )
 
 from slidingpuzzle.nn.train import (

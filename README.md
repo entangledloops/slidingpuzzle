@@ -39,30 +39,6 @@ https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html
 1 6 7
 4   8
 5 3 2
->>> result = search(b)
->>> result
-solution=[3, 2, 8, 3, 6, 7, 3, 6, 7, 1, 4, 7, 2, 5, 7, 4, 1, 2, 5, 8]
-solution_len=20, generated=165616, expanded=120653, unvisited=44964, visited=62277
->>> result = search(b, "greedy", heuristic=manhattan_distance)
->>> result
-solution=[8, 2, 3, 8, 2, 7, 6, 2, 7, 3, 8, 5, 4, 7, 5, 4, 7, 5, 3, 6, 2, 3, 4, 8, 6, 2, 3, 1, 5, 4, 2, 6, 8, 7, 4, 5, 1, 2, 5, 4, 7, 8]
-solution_len=42, generated=711, expanded=490, unvisited=222, visited=258
-```
-
-As expected, greedy search finds a solution must faster but the solution is of lower quality than the optimal solution found by breadth-first search (the default).
-
-Solutions are stored as a list of (y, x)-coords of moves, indicating which tile is to be moved next.
-
-```python
->>> result.solution
-[(1, 2), (2, 2), (2, 1), (1, 1), (1, 2), (0, 2), (0, 1), (1, 1), (1, 2), (2, 2), (2, 1), (2, 0), (1, 0), (1, 1), (2, 1), (2, 0), (1, 0), (1, 1), (1, 2), (0, 2), (0, 1), (1, 1), (2, 1), (2, 2), (1, 2), (0, 2), (0, 1), (0, 0), (1, 0), (1, 1), (1, 2), (2, 2), (2, 1), (2, 0), (1, 0), (0, 0), (0, 1), (1, 1), (1, 0), (2, 0), (2, 1), (2, 2)]
-```
-
-If you are working with a physical puzzle and actual tile numbers would be easier to read, you can obtain them the same way as `repr(SearchResult)` / `str(SearchResult)`:
-
-```python
->>> solution_as_tiles(result.board, result.solution)
-[8, 2, 3, 8, 2, 7, 6, 2, 7, 3, 8, 5, 4, 7, 5, 4, 7, 5, 3, 6, 2, 3, 4, 8, 6, 2, 3, 1, 5, 4, 2, 6, 8, 7, 4, 5, 1, 2, 5, 4, 7, 8]
 ```
 
 The boards are just a `tuple` of `list[int]`. The number `0` is reserved for the blank. You can easily build your own board:
@@ -80,6 +56,42 @@ False
 ```
 
 Not all board configurations are solvable. The [`search()`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html#slidingpuzzle.slidingpuzzle.search) routine will validate the board before beginning, and may throw a `ValueError` if the board is illegal.
+
+```python
+>>> search(b, "bfs")
+solution=[3, 2, 8, 3, 6, 7, 3, 6, 7, 1, 4, 7, 2, 5, 7, 4, 1, 2, 5, 8]
+solution_len=20, generated=165616, expanded=120653, unvisited=44964, visited=62277
+>>> search(b, "greedy")
+solution=[8, 2, 3, 8, 2, 7, 6, 2, 7, 3, 8, 5, 4, 7, 5, 4, 7, 5, 3, 6, 2, 3, 4, 8, 6, 2, 3, 1, 5, 4, 2, 6, 8, 7, 4, 5, 1, 2, 5, 4, 7, 8]
+solution_len=42, generated=711, expanded=490, unvisited=222, visited=258
+```
+
+As expected, greedy search finds a solution must faster than BFS, but the solution is of lower quality.
+
+The default search is `A*` with `manhattan_distance` as the heuristic:
+
+```python
+>>> search(b)
+solution=[3, 2, 8, 3, 6, 7, 3, 6, 7, 1, 4, 7, 2, 5, 7, 4, 1, 2, 5, 8]
+solution_len=20, generated=829, expanded=518, unvisited=312, visited=313
+```
+
+In this case, it finds the optimal solution almost as quickly as greedy search.
+
+The solutions are actually stored as a list of (y, x)-coords of moves, indicating which tile is to be moved next:
+
+```python
+>>> result = search(b)
+>>> result.solution
+[(2, 1), (2, 2), (1, 2), (1, 1), (0, 1), (0, 2), (1, 2), (1, 1), (0, 1), (0, 0), (1, 0), (1, 1), (2, 1), (2, 0), (1, 0), (0, 0), (0, 1), (1, 1), (2, 1), (2, 2)]
+```
+
+If you are working with a physical puzzle and actual tile numbers would be easier to read, you can obtain them the same way `str(SearchResult)` does internally:
+
+```python
+>>> solution_as_tiles(result.board, result.solution)
+[8, 2, 3, 8, 2, 7, 6, 2, 7, 3, 8, 5, 4, 7, 5, 4, 7, 5, 3, 6, 2, 3, 4, 8, 6, 2, 3, 1, 5, 4, 2, 6, 8, 7, 4, 5, 1, 2, 5, 4, 7, 8]
+```
 
 ## Algorithms
 
@@ -130,8 +142,28 @@ Some algorithms support additional customization via `kwargs`. These are:
 Example:
 
 ```python
-result = search(board, "beam", manhattan_distance, width=3)
+>>> for weight in range(1, 16):
+...     r = search(b, weight=weight)
+...     print(f"weight: {weight}, solution_len: {len(r.solution)}, expanded: {r.expanded}")
+...
+weight: 1, solution_len: 27, expanded: 1086
+weight: 2, solution_len: 35, expanded: 1026
+weight: 3, solution_len: 35, expanded: 814
+weight: 4, solution_len: 43, expanded: 640
+weight: 5, solution_len: 45, expanded: 531
+weight: 6, solution_len: 45, expanded: 563
+weight: 7, solution_len: 43, expanded: 407
+weight: 8, solution_len: 43, expanded: 578
+weight: 9, solution_len: 43, expanded: 648
+weight: 10, solution_len: 43, expanded: 689
+weight: 11, solution_len: 43, expanded: 764
+weight: 12, solution_len: 43, expanded: 601
+weight: 13, solution_len: 43, expanded: 786
+weight: 14, solution_len: 43, expanded: 733
+weight: 15, solution_len: 43, expanded: 782
 ```
+
+With the default parameters, we see that A* finds the optimal solution after expanding `1086` states. If we are willing to sacrifice optimality of the solution, we can try different weights to tradeoff solution quality for search time. Note that for a given problem and quality criteria, there will be an optimal weight. Beyond a certain point, the weight will have no positive effect. In the example above, using weights beyond `~38` produces further change in neither solution quality nor nodes expanded.
 
 Of the provided algorithms, only beam search is incomplete. This means it
 may miss the goal, even thought the board is solvable.

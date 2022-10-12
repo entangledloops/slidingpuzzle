@@ -27,13 +27,15 @@ class Model_v1(nn.Module):
         self.w = w
         size = h * w
         self.flatten = nn.Flatten()
-        self.linear1 = nn.Linear(size, size * size, dtype=torch.float32)
-        self.linear2 = nn.Linear(size * size, size, dtype=torch.float32)
-        self.linear3 = nn.Linear(size, 1, dtype=torch.float32)
+        self.linear1 = nn.Linear(size, size * 4, dtype=torch.float32)
+        self.linear2 = nn.Linear(size * 4, size * 2, dtype=torch.float32)
+        self.linear3 = nn.Linear(size * 2, size, dtype=torch.float32)
+        self.linear4 = nn.Linear(size, 1, dtype=torch.float32)
 
     def forward(self, x):
         x = self.flatten(x)
         x = torch.relu(self.linear1(x))
         x = torch.relu(self.linear2(x))
-        x = self.linear3(x)
+        x = torch.relu(self.linear3(x))
+        x = self.linear4(x)
         return x

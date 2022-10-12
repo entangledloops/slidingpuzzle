@@ -15,3 +15,22 @@
 """
 Module used to evaluate model performance vs. other heuristics.
 """
+
+import torch
+import torch.utils
+
+
+def evaluate(
+    model: torch.nn.Module, criterion, dataset: torch.utils.data.Dataset, device=None
+) -> float:
+    if device is None:
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    loss = 0.0
+    dataloader = torch.utils.data.DataLoader(dataset)
+    model.eval()
+    with torch.no_grad():
+        for batch, expected in iter(dataloader):
+            predicted = model(batch.to(device))
+            expected = expected.to(device)
+            loss += criterion(predicted, expected).item()
+    return loss / len(dataset)

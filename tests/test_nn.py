@@ -19,3 +19,11 @@ from slidingpuzzle.nn import *
 def test_make_examples():
     examples = make_examples(3, 3, 100)
     assert len(examples) == 100
+
+
+def test_make_examples2():
+    prior_examples = [([[1, 2, 3], [4, 5, 6]], 0)]
+    examples = make_examples(2, 3, 4, prior_examples)
+    assert len(prior_examples) == 1
+    assert len(examples) == 4
+    assert examples[0] == prior_examples[0]

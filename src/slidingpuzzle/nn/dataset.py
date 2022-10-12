@@ -29,6 +29,7 @@ from slidingpuzzle.slidingpuzzle import (
     new_board,
     search,
     shuffle_board,
+    visit,
 )
 from slidingpuzzle.heuristics import euclidean_distance, manhattan_distance
 from slidingpuzzle.nn.paths import get_examples_path
@@ -50,7 +51,7 @@ class SlidingPuzzleDataset(torch.utils.data.Dataset):
         )
 
 
-def make_examples(h, w, num_examples) -> list[tuple]:
+def make_examples(h, w, num_examples, prior_examples=None) -> list[tuple]:
     """
     Constructs a list of training examples, which are tuples of:
         (board, num_moves_to_goal)
@@ -59,25 +60,17 @@ def make_examples(h, w, num_examples) -> list[tuple]:
         h: Height of board.
         w: Width of board.
         num_examples: Number of examples to produce.
+        prior_examples: Previous examples that we should avoid reproducing.
 
     Returns:
         The list of training examples.
     """
-    examples = []
-    visited = set()
+    examples = [] if prior_examples is None else list(prior_examples)
 
-    def visit(board) -> bool:
-        """
-        Helper to check if this state already exists. Otherwise, record it.
-
-        Returns:
-            True if we've been here before.
-        """
-        frozen_board = freeze_board(board)
-        if frozen_board in visited:
-            return True
-        visited.add(frozen_board)
-        return False
+    if prior_examples is None:
+        visited = set()
+    else:
+        visited = set(freeze_board(example[0]) for example in prior_examples)
 
     # if the board is large, we need weighted a* to obtain solutions this century
     weight = max(1, math.floor(math.sqrt(h * w) - 2))
@@ -85,21 +78,23 @@ def make_examples(h, w, num_examples) -> list[tuple]:
     pbar = tqdm.tqdm(total=num_examples)
     while len(examples) < num_examples:
         board = shuffle_board(new_board(h, w))
-        if visit(board):
+        if visit(visited, board):
             continue
 
         # find a path to use as an accurate training reference
-        result = search(board, "a*", manhattan_distance, weight=weight)
+        result = search(board, "a*", weight=weight)
 
         # we can use all intermediate boards as examples
         while len(examples) < num_examples:
             distance = len(result.solution)
-            examples.append((board, distance))
+            examples.append((freeze_board(board), distance))
             pbar.update(1)
             if not len(result.solution):
                 break
             move = result.solution.pop(0)
             apply_move(board, move)
+            if visit(visited, board):
+                break
     pbar.close()
 
     return examples
@@ -126,17 +121,24 @@ def save_examples(h: int, w: int, examples, examples_file: str = None) -> None:
 
 
 def load_dataset(
-    h: int, w: int, examples_file=None, num_examples=1000
+    h: int,
+    w: int,
+    num_examples: int,
+    examples_file=None,
 ) -> torch.utils.data.Dataset:
     """
     Loads examples, constructs a SlidingPuzzleDataset from them, and returns it.
-    If no examples are found, it will first build an examples database.
+    If there is a mismatch between the requested num_examples and the provided
+    dataset, examples may be truncated or new examples may be constructed and
+    saved to the dataset.
 
     Args:
         h: The height of the board to locate a dataset for
         w: The width of the board to locate a dataset for
+        num_examples: The total number of examples desired. If there are too many,
+            examples will be truncated. If there are too few, new examples will be
+            constructed.
         examples_file: The name of the examples file to save or load.
-        num_examples: If no examples are found, the number to construct.
 
     Returns:
         A dataset for the requested puzzle size.
@@ -144,9 +146,18 @@ def load_dataset(
     print("Loading dataset...")
     try:
         examples = load_examples(h, w, examples_file)
+        print(f"Dataset loaded with {len(examples)} examples.")
     except FileNotFoundError:
-        print("Failed. Building new dataset...")
-        examples = make_examples(h, w, num_examples)
+        print("No dataset found.")
+        examples = []
+
+    if len(examples) > num_examples:
+        examples = examples[:num_examples]
+    if len(examples) < num_examples:
+        new_examples = num_examples - len(examples)
+        print(f"Constructing {new_examples} new examples...")
+        new_examples = make_examples(h, w, new_examples)
+        examples.append(new_examples)
         save_examples(h, w, examples, examples_file)
 
     return SlidingPuzzleDataset(examples)

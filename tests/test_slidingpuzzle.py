@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
+import math
 import random
 
 import pytest
@@ -43,7 +43,9 @@ def test_get_yx():
     board = new_board(3, 3)
     tile = 1
     for y, row in enumerate(board):
-        for x in range(len(row) - 1):
+        for x in range(len(row)):
+            if board[y][x] == EMPTY_TILE:
+                continue
             assert tile == board[y][x]
             tile += 1
 
@@ -141,7 +143,8 @@ def test_euclidean():
     assert euclidean_distance(board) == 0
 
     swap_tiles(board, (1, 2), (0, 0))
-    assert euclidean_distance(board) == 10
+    c = math.sqrt((2 * 1) ** 2 + (2 * 2) ** 2)
+    assert euclidean_distance(board) == c
 
 
 def test_a_star():
