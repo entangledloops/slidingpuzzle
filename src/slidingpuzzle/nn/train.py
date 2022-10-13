@@ -45,7 +45,7 @@ def load_checkpoint(
         which are expected to be present.
 
     Returns:
-        The epoch number found in the checkpoint.
+        The epoch number found in the checkpoint. Default is 1.
     """
     checkpoint_path = paths.get_checkpoint_path(model.h, model.w, epoch)
     try:
@@ -56,7 +56,7 @@ def load_checkpoint(
         return checkpoint["epoch"]
     except FileNotFoundError:
         print("No model checkpoint found.")
-        return 0
+        return 1
 
 
 def save_checkpoint(model: nn.Module, optimizer: optim.Optimizer, epoch: int) -> None:
@@ -88,11 +88,12 @@ def train(
     model: nn.Module,
     num_examples: int = 10_000,
     train_fraction: float = 0.95,
-    num_epochs: int = 50_000,
+    num_epochs: int = 10_000,
     batch_size: int = 64,
     device: str = None,
     dataset: torch.utils.data.Dataset = None,
     tensorboard_dir: str = paths.TENSORBOARD_DIR,
+    seed: int = 0,
 ) -> nn.Module:
     """
     Trains a model for ``num_epochs``. If no prior model is found, a new one is
@@ -116,11 +117,13 @@ def train(
         batch_size: Batch size to use for training
         dataset: A custom dataset to use.
         tensorboard_dir: The root tensorboard dir for logs. Default is "tensorboard".
+        seed: Seed used for torch random utilities for reproducibility.
 
     Returns:
         The trained model. May be loaded on GPU if GPU is available. The model is also
         saved to disk before returning in the checkpoints directory.
     """
+    torch.manual_seed(seed)
     h, w = model.h, model.w
 
     # prepare tensorboard to record training
@@ -137,7 +140,7 @@ def train(
     train_size = math.floor(len(dataset) * train_fraction)
     test_size = len(dataset) - train_size
     train_dataset, test_dataset = torch.utils.data.random_split(
-        dataset, [train_size, test_size], generator=torch.Generator().manual_seed(0)
+        dataset, [train_size, test_size], generator=torch.Generator().manual_seed(seed)
     )
 
     # prepare model
@@ -146,9 +149,9 @@ def train(
     epoch = load_checkpoint(model, optimizer)
     criterion = nn.MSELoss()
 
-    print(f"initial epoch={epoch}, batch_size={batch_size}")
+    print(f"initial epoch={epoch}/{num_epochs}, batch_size={batch_size}")
     try:
-        for epoch in tqdm.tqdm(range(epoch, num_epochs)):
+        for epoch in tqdm.tqdm(range(epoch, num_epochs + 1)):
             model.train()  # every epoch b/c eval happens every epoch
             running_loss = 0.0
 
@@ -169,12 +172,12 @@ def train(
             test_loss = evaluate(model, criterion, test_dataset, device)
             writer.add_scalar("test_loss", test_loss, epoch)
 
-            if epoch % 100 == 99:
+            if epoch % 50 == 0:
+                save_checkpoint(model, optimizer, epoch)
+            if epoch % 100 == 0:
                 print(
                     f"training_loss: {running_loss:0.5f}, test_loss: {test_loss:0.5f}"
                 )
-                save_checkpoint(model, optimizer, epoch)
-                writer.flush()
 
             running_loss = 0.0
     except KeyboardInterrupt:

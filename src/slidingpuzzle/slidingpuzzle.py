@@ -278,7 +278,7 @@ def shuffle_board(board: tuple[list[int], ...]) -> tuple[list[int], ...]:
     return board
 
 
-def shuffle_board_slow(
+def shuffle_board_lazy(
     board: tuple[list[int], ...], num_moves: int = None, moves: list = None
 ) -> tuple[list[int], ...]:
     """
@@ -289,7 +289,7 @@ def shuffle_board_slow(
     Args:
         board: The board to shuffle.
         num_moves (int): Number of random moves to make.
-            If ``None``, ``(h * w) ** 2`` will be used.
+            If ``None``, ``(h + w) * 2`` will be used.
         moves: If a list is provided, the moves made will be appended.
 
     Returns:
@@ -297,7 +297,7 @@ def shuffle_board_slow(
     """
     h, w = len(board), len(board[0])
     if num_moves is None:
-        num_moves = (h * w) ** 2
+        num_moves = (h + w) * 2
     empty_pos = get_empty_yx(board)
     visited = set()
     for _ in range(num_moves):
@@ -602,30 +602,53 @@ def solution_as_tiles(
     return tiles
 
 
+def evaluate_heuristic(
+    h: int,
+    w: int,
+    heuristic,
+    num_iters: int = 50,
+    algorithm=A_STAR,
+    **kwargs,
+) -> float:
+    """
+    Runs search on ``num_iters`` random boards. Returns the average number of nodes
+    expanded.
+
+    Returns:
+        The average number of states expanded.
+    """
+    total = 0
+    for _ in range(num_iters):
+        board = new_board(h, w)
+        shuffle_board(board)
+        result = search(board, algorithm=algorithm, heuristic=heuristic, **kwargs)
+        total += result.expanded
+    return total / num_iters
+
+
 def compare_heuristics(
     h: int,
     w: int,
     heuristic_a,
     heuristic_b=manhattan_distance,
-    num_iters: int = 30,
+    num_iters: int = 50,
     algorithm=A_STAR,
     **kwargs,
-):
+) -> tuple[float, float]:
     """
-    Runs search on ``num_iters`` random boards, first using A* with the heuristic A,
-    heuristic and then again on the same board on heuristic B. Returns the average
-    number of nodes expanded for both.
+    Runs search on ``num_iters`` random boards, trying both heuristics on each board.
+    Returns the average number of states expanded for both.
 
     Returns:
         A tuple containing (avg. expanded A, avg. expanded B),
         where "heuristic" is your provided heuristic.
     """
-    avg_a, avg_b = 0, 0
+    total_a, total_b = 0, 0
     for _ in range(num_iters):
         board = new_board(h, w)
         shuffle_board(board)
         result = search(board, algorithm=algorithm, heuristic=heuristic_a, **kwargs)
-        avg_a += result.expanded
+        total_a += result.expanded
         result = search(board, algorithm=algorithm, heuristic=heuristic_b, **kwargs)
-        avg_b += result.expanded
-    return avg_a / num_iters, avg_b / num_iters
+        total_b += result.expanded
+    return total_a / num_iters, total_b / num_iters

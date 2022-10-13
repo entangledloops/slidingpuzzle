@@ -58,6 +58,7 @@ from slidingpuzzle.slidingpuzzle import (
     apply_move,
     compare_heuristics,
     count_inversions,
+    evaluate_heuristic,
     freeze_board,
     get_empty_yx,
     get_yx,
@@ -68,7 +69,7 @@ from slidingpuzzle.slidingpuzzle import (
     print_board,
     search,
     shuffle_board,
-    shuffle_board_slow,
+    shuffle_board_lazy,
     solution_as_tiles,
     swap_tiles,
 )

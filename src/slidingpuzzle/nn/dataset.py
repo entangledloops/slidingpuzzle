@@ -28,7 +28,7 @@ from slidingpuzzle.slidingpuzzle import (
     freeze_board,
     new_board,
     search,
-    shuffle_board,
+    shuffle_board_lazy,
     visit,
 )
 import slidingpuzzle.nn.paths as paths
@@ -71,17 +71,14 @@ def make_examples(h, w, num_examples, prior_examples=None) -> list[tuple]:
     else:
         visited = set(freeze_board(example[0]) for example in prior_examples)
 
-    # if the board is large, we need weighted a* to obtain solutions this century
-    weight = max(1, math.floor(math.sqrt(h * w) - 2))
-
     pbar = tqdm.tqdm(total=num_examples)
     while len(examples) < num_examples:
-        board = shuffle_board(new_board(h, w))
+        board = shuffle_board_lazy(new_board(h, w), h * w * 2)
         if visit(visited, board):
             continue
 
         # find a path to use as an accurate training reference
-        result = search(board, "a*", weight=weight)
+        result = search(board)
 
         # we can use all intermediate boards as examples
         while len(examples) < num_examples:
@@ -153,10 +150,9 @@ def load_dataset(
     if len(examples) > num_examples:
         examples = examples[:num_examples]
     if len(examples) < num_examples:
-        new_examples = num_examples - len(examples)
-        print(f"Constructing {new_examples} new examples...")
-        new_examples = make_examples(h, w, new_examples)
-        examples.append(new_examples)
+        num_new_examples = num_examples - len(examples)
+        print(f"Constructing {num_new_examples} new examples...")
+        examples = make_examples(h, w, num_new_examples)
         save_examples(h, w, examples, examples_file)
 
     return SlidingPuzzleDataset(examples)

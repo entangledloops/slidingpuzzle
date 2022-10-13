@@ -40,24 +40,33 @@ class Model_v1(nn.Module):
         self.w = w  # required
         size = h * w
         self.flatten = nn.Flatten()
-        self.linear1 = nn.Linear(size, size * 4, dtype=torch.float32)
-        self.linear2 = nn.Linear(size * 4, size * 4, dtype=torch.float32)
-        self.linear3 = nn.Linear(size * 4, size, dtype=torch.float32)
-        self.linear4 = nn.Linear(size, 1, dtype=torch.float32)
+        self.linear1 = nn.Linear(size, size * 8, dtype=torch.float32)
+        self.linear2 = nn.Linear(size * 8, size * 8, dtype=torch.float32)
+        self.linear3 = nn.Linear(size * 8, size * 4, dtype=torch.float32)
+        self.linear4 = nn.Linear(size * 4, size, dtype=torch.float32)
+        self.linear5 = nn.Linear(size, 1, dtype=torch.float32)
 
     def forward(self, x):
         x = self.flatten(x)
         x = torch.relu(self.linear1(x))
         x = torch.relu(self.linear2(x))
         x = torch.relu(self.linear3(x))
-        x = self.linear4(x)
+        x = torch.relu(self.linear4(x))
+        x = self.linear5(x)
         return x
 
 
-def save_model(model: nn.Module, device) -> torch.ScriptModule:
+def save_model(model: nn.Module, device: str = None) -> torch.ScriptModule:
     """
     Save a traced version of the model into the "models" dir. Returns the traced model.
+
+    Args:
+        model: The trained model.
+        device: The device the model is currently loaded on. If not provied, it will
+            be guessed.
     """
+    if device is None:
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model.eval()
     board = new_board(model.h, model.w)
     example_inputs = torch.tensor(board, dtype=torch.float32).unsqueeze(0).to(device)
@@ -79,7 +88,7 @@ def load_model(h: int, w: int, version: str = None, device: str = None):
     model = torch.jit.load(str(model_path), map_location=device)
     model.eval()
 
-    def heuristic(board) -> float:
+    def heuristic(board: tuple[list[int], ...]) -> float:
         tensor = torch.tensor(board, dtype=torch.float32).unsqueeze(0).to(device)
         return model(tensor).item()
 

@@ -94,11 +94,11 @@ def test_shuffle_board(size):
 
 
 @pytest.mark.parametrize("size", [(2, 2), (3, 2), (2, 3), (3, 3)])
-def test_shuffle_board_slow(size):
+def test_shuffle_board_lazy(size):
     random.seed(0)
     h, w = size
     board = new_board(h, w)
-    shuffle_board_slow(board)
+    shuffle_board_lazy(board)
     r = search(board, algorithm="greedy", heuristic=manhattan_distance)
     assert r.solution is not None
 
@@ -149,7 +149,7 @@ def test_euclidean():
 
 def test_a_star():
     board = new_board(3, 3)
-    shuffle_board_slow(board, num_moves=10)
+    shuffle_board_lazy(board, num_moves=10)
     assert len(search(board).solution) == len(
         search(board, A_STAR, manhattan_distance).solution
     )
@@ -159,7 +159,7 @@ def test_a_star():
 def test_search_slow(algorithm):
     random.seed(0)
     b = new_board(3, 3)
-    shuffle_board_slow(b, 10)
+    shuffle_board_lazy(b, 10)
     expected_len = len(search(b).solution)
     actual = search(b, algorithm=algorithm, heuristic=manhattan_distance)
     # there should be no history recorded for iterative deepening
@@ -205,31 +205,23 @@ def test_search_hard():
 def test_heuristic_behavior():
     random.seed(0)
 
-    # ordered from best -> worst
-    heuristics = [
-        manhattan_distance,
-        euclidean_distance,
-        hamming_distance,
-        random_distance,
-    ]
-
     # we compute avg expanded nodes over multiple runs to confirm that
     # heuristic behavior is in line with expectations
-    num_runs = 20
-    expanded_avg = [0 for _ in range(len(heuristics))]
-    for i, heuristic in enumerate(heuristics):
-        for _ in range(num_runs):
-            board = new_board(3, 2)  # largest puzzle reasonably solvable with random
-            shuffle_board(board)
-            result = search(board, algorithm="greedy", heuristic=heuristic)
-            expanded_avg[i] += result.expanded
-        expanded_avg[i] /= num_runs
-    print("expanded_avg:", expanded_avg)
+    expanded_avg = compare_heuristics(
+        3, 3, manhattan_distance, hamming_distance, num_iters=20
+    )
+    assert expanded_avg[0] < expanded_avg[1]
 
     # manhattan + euclidean are both good contenders, so we don't compare them
-    assert expanded_avg[0] < expanded_avg[2]
-    assert expanded_avg[1] < expanded_avg[2]
-    assert expanded_avg[2] < expanded_avg[3]
+    expanded_avg = compare_heuristics(
+        3, 3, euclidean_distance, hamming_distance, num_iters=20
+    )
+    assert expanded_avg[0] < expanded_avg[1]
+
+    expanded_avg = compare_heuristics(
+        3, 3, hamming_distance, random_distance, num_iters=20
+    )
+    assert expanded_avg[0] < expanded_avg[1]
 
 
 def test_solution_as_tiles():
