@@ -24,7 +24,13 @@ from slidingpuzzle.nn.dataset import (
     save_examples,
 )
 
-from slidingpuzzle.nn.model import Model_v1
+from slidingpuzzle.nn.heuristics import v1_distance
+
+from slidingpuzzle.nn.model import (
+    Model_v1,
+    load_model,
+    save_model,
+)
 
 from slidingpuzzle.nn.paths import (
     CHECKPOINT_DIR,
@@ -36,8 +42,8 @@ from slidingpuzzle.nn.paths import (
 )
 
 from slidingpuzzle.nn.train import (
+    launch_tensorboard,
     load_checkpoint,
     save_checkpoint,
-    launch_tensorboard,
     train,
 )

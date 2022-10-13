@@ -31,13 +31,16 @@ import tqdm
 
 from slidingpuzzle.nn.dataset import load_dataset
 from slidingpuzzle.nn.eval import evaluate
-from slidingpuzzle.nn.paths import get_checkpoint_path, get_log_dir
+from slidingpuzzle.nn.paths import (
+    get_checkpoint_path,
+    get_log_dir,
+)
 from slidingpuzzle.nn.model import Model_v1
 from slidingpuzzle.nn.paths import TENSORBOARD_DIR
 
 
 def load_checkpoint(
-    model: nn.Module, optimizer: optim.Optimizer, epoch: int = None
+    model: nn.Module, optimizer: optim.Optimizer = None, epoch: int = None
 ) -> int:
     """
     Loads a model and optimizer state from the specified epoch.
@@ -54,7 +57,8 @@ def load_checkpoint(
     try:
         checkpoint = torch.load(str(checkpoint_path))
         model.load_state_dict(checkpoint["model_state_dict"])
-        optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
+        if optimizer is not None:
+            optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
         return checkpoint["epoch"]
     except FileNotFoundError:
         print("No model checkpoint found.")
@@ -74,23 +78,26 @@ def save_checkpoint(model: nn.Module, optimizer: optim.Optimizer, epoch: int) ->
     torch.save(state, str(get_checkpoint_path(model.h, model.w, epoch)))
 
 
-def launch_tensorboard(dirname: str) -> None:
+def launch_tensorboard(dirname: str) -> str:
     """
     Launches tensorboard in the specified directory.
+
+    Returns:
+        The launch URL.
     """
     tb = tensorboard.program.TensorBoard()
     tb.configure(argv=[None, "--logdir", dirname])
-    url = tb.launch()
-    print(f"Tensorboard launched: {url}")
+    return tb.launch()
 
 
 def train(
-    h,
-    w,
+    h: int,
+    w: int,
     num_examples: int = 10_000,
     train_fraction: float = 0.95,
     num_epochs: int = 50_000,
     batch_size: int = 64,
+    device: str = None,
     dataset: torch.utils.data.Dataset = None,
     tensorboard_dir: str = TENSORBOARD_DIR,
 ) -> nn.Module:
@@ -112,6 +119,7 @@ def train(
         num_examples: Total number of examples to use for training / test. Ignored
             if ``dataset`` is provided.
         num_epochs: Total number of epochs model should be trained for
+        device: Device to train on. Default will autodetect CUDA or use CPU.
         batch_size: Batch size to use for training
         dataset: A custom dataset to use.
         tensorboard_dir: The root tensorboard dir for logs. Default is "tensorboard".
@@ -121,13 +129,15 @@ def train(
         saved to disk before returning in the checkpoints directory.
     """
     # prepare tensorboard to record training
-    launch_tensorboard(tensorboard_dir)
+    url = launch_tensorboard(tensorboard_dir)
+    print(f"tensorboard launched: {url}")
     log_dir = get_log_dir(tensorboard_dir, h, w)
-    comment = f"EPOCHS_{num_epochs}_BS_{batch_size}"
+    comment = f"EXAMPLES_{num_examples}_BS_{batch_size}"
     writer = SummaryWriter(log_dir, comment=comment)
 
     # prepare dataset
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    if device is None:
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     dataset = load_dataset(h, w, num_examples) if dataset is None else dataset
     train_size = math.floor(len(dataset) * train_fraction)
     test_size = len(dataset) - train_size
@@ -174,7 +184,9 @@ def train(
 
             running_loss = 0.0
     except KeyboardInterrupt:
-        print("Training interrupted.")
+        print("training interrupted")
 
+    # save final state
     save_checkpoint(model, optimizer, epoch)
+
     return model

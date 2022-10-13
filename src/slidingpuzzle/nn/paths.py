@@ -21,6 +21,7 @@ import pathlib
 
 CHECKPOINT_DIR = "checkpoints"
 DATASET_DIR = "datasets"
+MODELS_DIR = "models"
 TENSORBOARD_DIR = "tensorboard"
 
 
@@ -55,6 +56,11 @@ def get_checkpoint_path(h: int, w: int, epoch: int = None) -> pathlib.Path:
 def get_examples_path(h: int, w: int) -> pathlib.Path:
     board_size_str = get_board_size_str(h, w)
     return get_path(DATASET_DIR, f"examples_{board_size_str}.json")
+
+
+def get_model_path(h: int, w: int, version: str) -> pathlib.Path:
+    board_size_str = get_board_size_str(h, w)
+    return get_path(MODELS_DIR, f"{version}_{board_size_str}.pt")
 
 
 def get_log_dir(tensorboard_dir: str, h: int, w: int) -> pathlib.Path:

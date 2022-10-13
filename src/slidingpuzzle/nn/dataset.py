@@ -31,8 +31,7 @@ from slidingpuzzle.slidingpuzzle import (
     shuffle_board,
     visit,
 )
-from slidingpuzzle.heuristics import euclidean_distance, manhattan_distance
-from slidingpuzzle.nn.paths import get_examples_path
+import slidingpuzzle.nn.paths as paths
 
 
 class SlidingPuzzleDataset(torch.utils.data.Dataset):
@@ -105,7 +104,7 @@ def load_examples(h: int, w: int, examples_file: str = None) -> list:
     Loads examples from a JSON file.
     """
     if examples_file is None:
-        examples_file = get_examples_path(h, w)
+        examples_file = paths.get_examples_path(h, w)
     with open(examples_file, "rt") as fp:
         return json.load(fp)
 
@@ -115,7 +114,7 @@ def save_examples(h: int, w: int, examples, examples_file: str = None) -> None:
     Save a list of examples to disk as JSON.
     """
     if examples_file is None:
-        examples_file = get_examples_path(h, w)
+        examples_file = paths.get_examples_path(h, w)
     with open(examples_file, "wt") as fp:
         json.dump(examples, fp)
 

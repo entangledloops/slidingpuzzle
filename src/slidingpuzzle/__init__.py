@@ -56,6 +56,7 @@ from slidingpuzzle.slidingpuzzle import (
     IDDFS,
     ALGORITHMS,
     apply_move,
+    compare_heuristics,
     count_inversions,
     freeze_board,
     get_empty_yx,

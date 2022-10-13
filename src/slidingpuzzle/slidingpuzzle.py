@@ -600,3 +600,31 @@ def solution_as_tiles(
         swap_tiles(board, empty_pos, move)
         empty_pos = move
     return tiles
+
+
+def compare_heuristics(
+    h: int,
+    w: int,
+    heuristic_a,
+    heuristic_b=manhattan_distance,
+    num_iters: int = 30,
+    **kwargs,
+):
+    """
+    Runs search on ``num_iters`` random boards, first using A* with the heuristic A,
+    heuristic and then again on the same board on heuristic B. Returns the average
+    number of nodes expanded for both.
+
+    Returns:
+        A tuple containing (avg. expanded A, avg. expanded B),
+        where "heuristic" is your provided heuristic.
+    """
+    avg_a, avg_b = 0, 0
+    for _ in range(num_iters):
+        board = new_board(h, w)
+        shuffle_board(board)
+        result = search(board, "a*", heuristic_a, **kwargs)
+        avg_a += result.expanded
+        result = search(board, "a*", heuristic_b, **kwargs)
+        avg_b += result.expanded
+    return avg_a / num_iters, avg_b / num_iters

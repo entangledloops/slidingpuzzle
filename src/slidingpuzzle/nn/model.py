@@ -19,12 +19,25 @@ Defines a PyTorch model to evaluate sliding puzzle boards.
 import torch
 import torch.nn as nn
 
+import slidingpuzzle.nn.heuristics as heuristics
+import slidingpuzzle.nn.paths as paths
+from slidingpuzzle.slidingpuzzle import new_board
+
+
+VERSION_1 = "v1"
+
 
 class Model_v1(nn.Module):
+    """
+    A model that takes a sliding puzzle board as input and outputs the estimated
+    distance to the goal.
+    """
+
     def __init__(self, h, w) -> None:
         super().__init__()
-        self.h = h
-        self.w = w
+        self.version = VERSION_1  # required
+        self.h = h  # required
+        self.w = w  # required
         size = h * w
         self.flatten = nn.Flatten()
         self.linear1 = nn.Linear(size, size * 4, dtype=torch.float32)
@@ -39,3 +52,38 @@ class Model_v1(nn.Module):
         x = torch.relu(self.linear3(x))
         x = self.linear4(x)
         return x
+
+
+def save_model(model: nn.Module, device) -> torch.ScriptModule:
+    """
+    Save a traced version of the model into the "models" dir. Returns the traced model.
+    """
+    model.eval()
+    board = new_board(model.h, model.w)
+    example_inputs = torch.tensor(board, dtype=torch.float32).unsqueeze(0).to(device)
+    traced_model = torch.jit.trace(model, example_inputs)
+    traced_path = paths.get_model_path(model.h, model.w, model.version)
+    traced_model.save(str(traced_path))
+    return traced_model
+
+
+def load_model(h: int, w: int, version: str = None, device: str = None):
+    """
+    Reload a pre-trained traced model.
+    """
+    if version is None:
+        version = VERSION_1
+    if device is None:
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+    model_path = paths.get_model_path(h, w, version)
+    model = torch.jit.load(str(model_path), map_location=device)
+    model.eval()
+
+    def heuristic(board) -> float:
+        tensor = torch.tensor(board, dtype=torch.float32).unsqueeze(0).to(device)
+        return model(tensor).item()
+
+    # store the wrapped model for later use during search
+    heuristics.set_heuristic(h, w, version, heuristic)
+
+    return model

@@ -21,10 +21,8 @@ import torch.utils
 
 
 def evaluate(
-    model: torch.nn.Module, criterion, dataset: torch.utils.data.Dataset, device=None
+    model: torch.nn.Module, criterion, dataset: torch.utils.data.Dataset, device
 ) -> float:
-    if device is None:
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     loss = 0.0
     dataloader = torch.utils.data.DataLoader(dataset)
     model.eval()
