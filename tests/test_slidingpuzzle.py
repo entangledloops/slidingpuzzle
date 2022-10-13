@@ -159,7 +159,7 @@ def test_a_star():
 def test_search_slow(algorithm):
     random.seed(0)
     b = new_board(3, 3)
-    shuffle_board_slow(b, 20)
+    shuffle_board_slow(b, 10)
     expected_len = len(search(b).solution)
     actual = search(b, algorithm=algorithm, heuristic=manhattan_distance)
     # there should be no history recorded for iterative deepening

@@ -23,20 +23,14 @@ import math
 import tensorboard
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 import torch.optim as optim
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 import tqdm
 
+import slidingpuzzle.nn.paths as paths
 from slidingpuzzle.nn.dataset import load_dataset
 from slidingpuzzle.nn.eval import evaluate
-from slidingpuzzle.nn.paths import (
-    get_checkpoint_path,
-    get_log_dir,
-)
-from slidingpuzzle.nn.model import Model_v1
-from slidingpuzzle.nn.paths import TENSORBOARD_DIR
 
 
 def load_checkpoint(
@@ -53,7 +47,7 @@ def load_checkpoint(
     Returns:
         The epoch number found in the checkpoint.
     """
-    checkpoint_path = get_checkpoint_path(model.h, model.w, epoch)
+    checkpoint_path = paths.get_checkpoint_path(model.h, model.w, epoch)
     try:
         checkpoint = torch.load(str(checkpoint_path))
         model.load_state_dict(checkpoint["model_state_dict"])
@@ -74,8 +68,8 @@ def save_checkpoint(model: nn.Module, optimizer: optim.Optimizer, epoch: int) ->
         "board_width": model.w,
     }
     # save "latest" model along with epoch labeled checkpoint
-    torch.save(state, str(get_checkpoint_path(model.h, model.w)))
-    torch.save(state, str(get_checkpoint_path(model.h, model.w, epoch)))
+    torch.save(state, str(paths.get_checkpoint_path(model.h, model.w)))
+    torch.save(state, str(paths.get_checkpoint_path(model.h, model.w, epoch)))
 
 
 def launch_tensorboard(dirname: str) -> str:
@@ -98,7 +92,7 @@ def train(
     batch_size: int = 64,
     device: str = None,
     dataset: torch.utils.data.Dataset = None,
-    tensorboard_dir: str = TENSORBOARD_DIR,
+    tensorboard_dir: str = paths.TENSORBOARD_DIR,
 ) -> nn.Module:
     """
     Trains a model for ``num_epochs``. If no prior model is found, a new one is
@@ -132,7 +126,7 @@ def train(
     # prepare tensorboard to record training
     url = launch_tensorboard(tensorboard_dir)
     print(f"tensorboard launched: {url}")
-    log_dir = get_log_dir(tensorboard_dir, h, w)
+    log_dir = paths.get_log_dir(tensorboard_dir, h, w)
     comment = f"EXAMPLES_{num_examples}_BS_{batch_size}"
     writer = SummaryWriter(log_dir, comment=comment)
 
