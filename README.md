@@ -10,6 +10,8 @@
   - [Examples](#examples)
   - [Algorithms](#algorithms)
   - [Heuristics](#heuristics)
+    - [Neural Nets](#neural-nets)
+  - [Custom Models](#custom-models)
   - [Creating a Pull Request](#creating-a-pull-request)
 
 A package for solving and working with sliding tile puzzles.
@@ -67,6 +69,15 @@ solution_len=42, generated=711, expanded=490, unvisited=222, visited=258
 ```
 
 As expected, greedy search finds a solution must faster than BFS, but the solution is of lower quality.
+
+We can get a rough comparison of two heuristics like this:
+```python
+>>> compare_heuristics(3, 3, manhattan_distance, euclidean_distance)
+(1594.8666666666666, 3377.5)
+```
+
+This tells us the average number of states expanded over multiple runs for each heuristic.
+In this case, `manhattan_distance` was superior.
 
 The default search is `A*` with `manhattan_distance` as the heuristic:
 
@@ -181,6 +192,56 @@ The available heuristics are:
 - `random_distance` - This is a random number (but a *consistent* random number for a given board state). It is useful as a baseline.
 - Any heuristic you want! Just pass any function that accepts a board and returns a number. The lower the number, the closer the board is to the goal (lower = better).
 
+### Neural Nets
+
+Well-trained neural networks are generally superior to the other heuristics. Pre-trained nets will be available for download soon. For now, you can follow the steps below to train and use your own net from scratch using the models defined in `slidingpuzzle/nn/models.py`.
+
+```console
+pip install -r requirements-nn.txt
+```
+
+You can then train a new network easily:
+```python
+>>> from slidingpuzzle import *
+>>> import slidingpuzzle.nn as nn
+>>> model = nn.Model_v1(3, 3)
+>>> nn.train(model)
+```
+
+After training, your model will automatically be available for the board size as heuristic:
+- `nn.v1_distance`
+
+For example:
+```python
+>>> board = shuffle_board(new_board(3, 3))
+>>> search(board)
+>>> search(, heuristic=nn.v1_distance)
+[solution=[8, 6, 5, 7, 3, 8, 6, 3, 7, 5, 3, 6, 8, 7, 5, 2, 1, 4, 7, 8]
+solution_len=20, generated=662, expanded=406, unvisited=257, visited=247]
+```
+
+## Custom Models
+
+First define your model somewhere. Your model class must:
+- Have a unique `self.version` string
+- Have `self.h` and `self.w` for the board size it expects
+- Accept the board as an input tensor created by:
+  - `torch.tensor(board, dtype=torch.float32)`
+
+Then train your model as above. You can then define your heuristic like this:
+
+```python
+def my_model_distance(board: tuple[list[int], ...]) -> float:
+    h, w = len(board), len(board[0])
+    heuristic = nn.get_heuristic(h, w, "my_model_version")
+    return heuristic(board)
+```
+
+And use it as normal:
+
+```python
+>>> search(board, "a*", heuristic=my_model_distance)
+```
 
 ## Creating a Pull Request
 
@@ -210,3 +271,5 @@ cd docs
 ```
 
 [`Black`](https://pypi.org/project/black/) and [`flake8`](https://pypi.org/project/flake8/) are used for formatting and linting, but they are automatically run by the pre-commit hooks installed in the Git repo.
+
+If you made changes in the `nn` submodule, you also need to install `requirements-nn.txt` and run `pytest tests/test_nn.py` to validate.

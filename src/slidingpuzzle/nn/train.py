@@ -91,8 +91,7 @@ def launch_tensorboard(dirname: str) -> str:
 
 
 def train(
-    h: int,
-    w: int,
+    model: nn.Module,
     num_examples: int = 10_000,
     train_fraction: float = 0.95,
     num_epochs: int = 50_000,
@@ -128,6 +127,8 @@ def train(
         The trained model. May be loaded on GPU if GPU is available. The model is also
         saved to disk before returning in the checkpoints directory.
     """
+    h, w = model.h, model.w
+
     # prepare tensorboard to record training
     url = launch_tensorboard(tensorboard_dir)
     print(f"tensorboard launched: {url}")
@@ -146,7 +147,6 @@ def train(
     )
 
     # prepare model
-    model = Model_v1(h, w)
     model.to(device)
     optimizer = optim.SGD(model.parameters(), lr=0.0001, momentum=0.9)
     epoch = load_checkpoint(model, optimizer)

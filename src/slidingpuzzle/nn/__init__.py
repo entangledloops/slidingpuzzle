@@ -24,7 +24,7 @@ from slidingpuzzle.nn.dataset import (
     save_examples,
 )
 
-from slidingpuzzle.nn.heuristics import v1_distance
+from slidingpuzzle.nn.heuristics import get_heuristic, set_heuristic, v1_distance
 
 from slidingpuzzle.nn.model import (
     Model_v1,

@@ -608,6 +608,7 @@ def compare_heuristics(
     heuristic_a,
     heuristic_b=manhattan_distance,
     num_iters: int = 30,
+    algorithm=A_STAR,
     **kwargs,
 ):
     """
@@ -623,8 +624,8 @@ def compare_heuristics(
     for _ in range(num_iters):
         board = new_board(h, w)
         shuffle_board(board)
-        result = search(board, "a*", heuristic_a, **kwargs)
+        result = search(board, algorithm=algorithm, heuristic=heuristic_a, **kwargs)
         avg_a += result.expanded
-        result = search(board, "a*", heuristic_b, **kwargs)
+        result = search(board, algorithm=algorithm, heuristic=heuristic_b, **kwargs)
         avg_b += result.expanded
     return avg_a / num_iters, avg_b / num_iters
