@@ -16,7 +16,9 @@
 Defines neural network-guided heuristics.
 """
 
-import slidingpuzzle.nn.model as model
+import torch
+
+import slidingpuzzle.nn.models as models
 import slidingpuzzle.nn.paths as paths
 
 
@@ -28,21 +30,39 @@ def get_heuristic_key(h: int, w: int, version: str):
     return f"{board_size_str}_{version}"
 
 
-def set_heuristic(h, w, version, heuristic):
-    key = get_heuristic_key(h, w, version)
+def make_heuristic(model: torch.nn.Module):
+    device = next(model.parameters()).device
+
+    def heuristic(board: tuple[list[int], ...]) -> float:
+        tensor = torch.tensor(board, dtype=torch.float32).unsqueeze(0).to(device)
+        return model(tensor).item()
+
+    return heuristic
+
+
+def set_heuristic(model: torch.nn.Module):
+    key = get_heuristic_key(model.h, model.w, model.version)
+    heuristic = make_heuristic(model)
     MODEL_HEURISTICS[key] = heuristic
+    return heuristic
 
 
 def get_heuristic(h, w, version):
     key = get_heuristic_key(h, w, version)
     heuristic = MODEL_HEURISTICS.get(key, None)
     if heuristic is None:
-        model.load_model(h, w, version)
-        heuristic = MODEL_HEURISTICS[key]
+        model = models.load_model(h, w, version)
+        heuristic = set_heuristic(model)
     return heuristic
+
+
+##################################################################
+# methods beyond here correspond to predefined model classes
+# you can add your own model heuristics below
+##################################################################
 
 
 def v1_distance(board: tuple[list[int], ...]) -> float:
     h, w = len(board), len(board[0])
-    heuristic = get_heuristic(h, w, model.VERSION_1)
+    heuristic = get_heuristic(h, w, models.VERSION_1)
     return heuristic(board)

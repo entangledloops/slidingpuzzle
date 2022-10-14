@@ -22,8 +22,8 @@ def test_make_examples():
 
 
 def test_make_examples2():
-    prior_examples = [([[1, 2, 3], [4, 5, 6]], 0)]
-    examples = make_examples(2, 3, 4, prior_examples)
-    assert len(prior_examples) == 1
-    assert len(examples) == 4
-    assert examples[0] == prior_examples[0]
+    train_examples = make_examples(3, 3, 1)
+    test_examples = make_examples(3, 3, 1, train_examples)
+    assert len(train_examples) + len(test_examples) == len(
+        set(train_examples) | set(test_examples)
+    )

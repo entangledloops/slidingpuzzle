@@ -19,7 +19,6 @@ Defines a PyTorch model to evaluate sliding puzzle boards.
 import torch
 import torch.nn as nn
 
-import slidingpuzzle.nn.heuristics as heuristics
 import slidingpuzzle.nn.paths as paths
 from slidingpuzzle.slidingpuzzle import new_board
 
@@ -66,8 +65,9 @@ def save_model(model: nn.Module, device: str = None) -> torch.ScriptModule:
             be guessed.
     """
     if device is None:
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        device = "cuda" if torch.cuda.is_available() else "cpu"
     model.eval()
+    model.to(device)
     board = new_board(model.h, model.w)
     example_inputs = torch.tensor(board, dtype=torch.float32).unsqueeze(0).to(device)
     traced_model = torch.jit.trace(model, example_inputs)
@@ -76,23 +76,13 @@ def save_model(model: nn.Module, device: str = None) -> torch.ScriptModule:
     return traced_model
 
 
-def load_model(h: int, w: int, version: str = None, device: str = None):
+def load_model(model: nn.Module, device: str = None) -> torch.ScriptModule:
     """
     Reload a pre-trained traced model.
     """
-    if version is None:
-        version = VERSION_1
     if device is None:
         device = "cuda" if torch.cuda.is_available() else "cpu"
-    model_path = paths.get_model_path(h, w, version)
+    model_path = paths.get_model_path(model.h, model.w, model.version)
     model = torch.jit.load(str(model_path), map_location=device)
     model.eval()
-
-    def heuristic(board: tuple[list[int], ...]) -> float:
-        tensor = torch.tensor(board, dtype=torch.float32).unsqueeze(0).to(device)
-        return model(tensor).item()
-
-    # store the wrapped model for later use during search
-    heuristics.set_heuristic(h, w, version, heuristic)
-
     return model

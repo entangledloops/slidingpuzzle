@@ -606,7 +606,7 @@ def evaluate_heuristic(
     h: int,
     w: int,
     heuristic,
-    num_iters: int = 50,
+    num_iters: int = 64,
     algorithm=A_STAR,
     **kwargs,
 ) -> float:
@@ -631,7 +631,7 @@ def compare_heuristics(
     w: int,
     heuristic_a,
     heuristic_b=manhattan_distance,
-    num_iters: int = 50,
+    num_iters: int = 32,
     algorithm=A_STAR,
     **kwargs,
 ) -> tuple[float, float]:

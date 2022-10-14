@@ -24,9 +24,20 @@ from slidingpuzzle.nn.dataset import (
     save_examples,
 )
 
-from slidingpuzzle.nn.heuristics import get_heuristic, set_heuristic, v1_distance
+from slidingpuzzle.nn.eval import (
+    accuracy,
+    evaluate,
+    evaluate_checkpoint,
+)
 
-from slidingpuzzle.nn.model import (
+from slidingpuzzle.nn.heuristics import (
+    get_heuristic,
+    make_heuristic,
+    set_heuristic,
+    v1_distance,
+)
+
+from slidingpuzzle.nn.models import (
     Model_v1,
     load_model,
     save_model,

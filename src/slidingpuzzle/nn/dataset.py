@@ -17,7 +17,6 @@ Utilities for creating, saving, and loading board datasets.
 """
 
 import json
-import math
 
 import torch
 import torch.utils
@@ -28,6 +27,7 @@ from slidingpuzzle.slidingpuzzle import (
     freeze_board,
     new_board,
     search,
+    shuffle_board,
     shuffle_board_lazy,
     visit,
 )
@@ -64,16 +64,24 @@ def make_examples(h, w, num_examples, prior_examples=None) -> list[tuple]:
     Returns:
         The list of training examples.
     """
-    examples = [] if prior_examples is None else list(prior_examples)
-
-    if prior_examples is None:
-        visited = set()
-    else:
-        visited = set(freeze_board(example[0]) for example in prior_examples)
+    visited = set()
+    examples = []
+    if prior_examples is not None:
+        dupe_found = False
+        for board, _ in prior_examples:
+            if visit(visited, board):
+                dupe_found = True
+        if dupe_found:
+            print("WARNING: Duplicate found in prior examples.")
 
     pbar = tqdm.tqdm(total=num_examples)
     while len(examples) < num_examples:
-        board = shuffle_board_lazy(new_board(h, w), h * w * 2)
+        board = new_board(h, w)
+        # we use the lazy shuffle b/c truly randomly sampled boards can be very
+        # difficult to solve, and we need to produce enough examples. these boards
+        # will be lower quality than shuffle_board, but the hope is that there is
+        # still enough info to learn a general high quality heuristic
+        shuffle_board_lazy(board, h * w * 2)
         if visit(visited, board):
             continue
 
@@ -106,7 +114,7 @@ def load_examples(h: int, w: int, examples_file: str = None) -> list:
         return json.load(fp)
 
 
-def save_examples(h: int, w: int, examples, examples_file: str = None) -> None:
+def save_examples(h: int, w: int, examples: list, examples_file: str = None) -> None:
     """
     Save a list of examples to disk as JSON.
     """
@@ -116,17 +124,28 @@ def save_examples(h: int, w: int, examples, examples_file: str = None) -> None:
         json.dump(examples, fp)
 
 
+def get_examples(h: int, w: int, num_examples: int, prior_examples: list):
+    examples = list(prior_examples)
+    if len(examples) > num_examples:
+        examples = examples[:num_examples]
+    if len(examples) < num_examples:
+        num_new_examples = num_examples - len(prior_examples)
+        print(f"Constructing {num_new_examples} new examples...")
+        examples.extend(make_examples(h, w, num_new_examples, prior_examples))
+    return examples
+
+
 def load_dataset(
     h: int,
     w: int,
     num_examples: int,
-    examples_file=None,
+    examples_file: str = None,
 ) -> torch.utils.data.Dataset:
     """
     Loads examples, constructs a SlidingPuzzleDataset from them, and returns it.
-    If there is a mismatch between the requested num_examples and the provided
-    dataset, examples may be truncated or new examples may be constructed and
-    saved to the dataset.
+    If there is a mismatch between the requested num_examples and the loaded
+    examples file, examples may be truncated or new examples may be constructed and
+    saved to the dataset. No duplicates are allowed in the dataset.
 
     Args:
         h: The height of the board to locate a dataset for
@@ -147,12 +166,13 @@ def load_dataset(
         print("No dataset found.")
         examples = []
 
-    if len(examples) > num_examples:
-        examples = examples[:num_examples]
-    if len(examples) < num_examples:
-        num_new_examples = num_examples - len(examples)
-        print(f"Constructing {num_new_examples} new examples...")
-        examples = make_examples(h, w, num_new_examples)
-        save_examples(h, w, examples, examples_file)
+    # if we were asked for a different number of examples than we have on hand
+    if len(examples) != num_examples:
+        new_examples = get_examples(h, w, num_examples, examples)
+        # if we made new examples, save them for next time
+        if len(new_examples) > len(examples):
+            save_examples(h, w, new_examples, examples_file)
+            print("Dataset saved.")
+        examples = new_examples
 
     return SlidingPuzzleDataset(examples)

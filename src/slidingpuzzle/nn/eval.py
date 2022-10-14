@@ -20,15 +20,53 @@ import torch
 import torch.utils
 
 
+def accuracy(expected, predicted) -> float:
+    diff = torch.abs(expected - torch.abs(predicted))
+    diff /= 1 + diff
+    diff = torch.nan_to_num(diff, nan=0, posinf=0, neginf=0)
+    diff = 1 - diff
+    return torch.sum(diff).item()
+
+
 def evaluate(
-    model: torch.nn.Module, criterion, dataset: torch.utils.data.Dataset, device
-) -> float:
-    loss = 0.0
-    dataloader = torch.utils.data.DataLoader(dataset)
+    model: torch.nn.Module, criterion, dataset: torch.utils.data.Dataset
+) -> tuple[float, float]:
+    """
+    Runs the model on provided datatset computing average loss and accuracy.
+    """
     model.eval()
+    device = next(model.parameters()).device
+    running_loss = 0.0
+    running_accuracy = 0.0
+    dataloader = torch.utils.data.DataLoader(dataset)
     with torch.no_grad():
         for batch, expected in iter(dataloader):
             predicted = model(batch.to(device))
             expected = expected.to(device)
-            loss += criterion(predicted, expected).item()
-    return loss / len(dataset)
+            running_loss += criterion(predicted, expected).item()
+            running_accuracy += accuracy(expected, predicted)
+    return running_loss / len(dataset), running_accuracy / len(dataset)
+
+
+def evaluate_checkpoint(
+    model: torch.nn.Module, epoch: int = None, num_iters: int = None, device: str = None
+) -> float:
+    """
+    Loads the provided model from the checkpoint at ``epoch`` and runs
+    ``evaluate_heuristic``, returning the result. If ``epoch`` is not provided, the
+    latest checkpoint is used.
+    """
+    from ..slidingpuzzle import evaluate_heuristic
+    from slidingpuzzle.nn.train import load_checkpoint
+    from slidingpuzzle.nn.heuristics import set_heuristic
+
+    if device is None:
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+
+    load_checkpoint(model, epoch=epoch)
+    model.to(device)
+    heuristic = set_heuristic(model)
+    if num_iters is None:
+        return evaluate_heuristic(model.h, model.w, heuristic)
+    else:
+        return evaluate_heuristic(model.h, model.w, heuristic, num_iters)

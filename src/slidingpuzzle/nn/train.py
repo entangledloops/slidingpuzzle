@@ -19,7 +19,9 @@ The models compute h(board) -> [0, 1], where
 """
 
 import math
+import random
 
+import numpy as np
 import tensorboard
 import torch
 import torch.nn as nn
@@ -29,8 +31,13 @@ from torch.utils.tensorboard import SummaryWriter
 import tqdm
 
 import slidingpuzzle.nn.paths as paths
-from slidingpuzzle.nn.dataset import load_dataset
-from slidingpuzzle.nn.eval import evaluate
+from slidingpuzzle.nn.dataset import (
+    SlidingPuzzleDataset,
+    load_dataset,
+    load_examples,
+    make_examples,
+)
+from slidingpuzzle.nn.eval import accuracy, evaluate
 
 
 def load_checkpoint(
@@ -86,14 +93,15 @@ def launch_tensorboard(dirname: str) -> str:
 
 def train(
     model: nn.Module,
-    num_examples: int = 10_000,
+    num_examples: int = 32768,
     train_fraction: float = 0.95,
-    num_epochs: int = 10_000,
-    batch_size: int = 64,
+    num_epochs: int = 50_000,
+    batch_size: int = 128,
     device: str = None,
     dataset: torch.utils.data.Dataset = None,
     tensorboard_dir: str = paths.TENSORBOARD_DIR,
     seed: int = 0,
+    checkpoint_freq: int = 50,
 ) -> nn.Module:
     """
     Trains a model for ``num_epochs``. If no prior model is found, a new one is
@@ -111,18 +119,21 @@ def train(
         h: Height of board to train the model for
         w: Width of the board to train the model for
         num_examples: Total number of examples to use for training / test. Ignored
-            if ``dataset`` is provided.
+            if ``dataset`` is provided
         num_epochs: Total number of epochs model should be trained for
-        device: Device to train on. Default will autodetect CUDA or use CPU.
+        device: Device to train on. Default will autodetect CUDA or use CPU
         batch_size: Batch size to use for training
-        dataset: A custom dataset to use.
+        dataset: A custom dataset to use
         tensorboard_dir: The root tensorboard dir for logs. Default is "tensorboard".
-        seed: Seed used for torch random utilities for reproducibility.
+        seed: Seed used for torch random utilities for reproducibility
+        checkpoint_freq: Model will be checkpointed every time this many epochs elapses
 
     Returns:
         The trained model. May be loaded on GPU if GPU is available. The model is also
         saved to disk before returning in the checkpoints directory.
     """
+    random.seed(seed)
+    np.random.seed(seed)
     torch.manual_seed(seed)
     h, w = model.h, model.w
 
@@ -132,18 +143,29 @@ def train(
     log_dir = paths.get_log_dir(tensorboard_dir, h, w)
     comment = f"EXAMPLES_{num_examples}_BS_{batch_size}"
     writer = SummaryWriter(log_dir, comment=comment)
+    layout = {
+        model.version: {
+            "loss": ["Multiline", ["loss/train", "loss/test"]],
+            "accuracy": ["Multiline", ["accuracy/train", "accuracy/test"]],
+        }
+    }
+    writer.add_custom_scalars(layout)
 
     # prepare dataset
-    if device is None:
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    train_size = math.floor(num_examples * train_fraction)
+    test_size = num_examples - train_size
     dataset = load_dataset(h, w, num_examples) if dataset is None else dataset
-    train_size = math.floor(len(dataset) * train_fraction)
-    test_size = len(dataset) - train_size
     train_dataset, test_dataset = torch.utils.data.random_split(
         dataset, [train_size, test_size], generator=torch.Generator().manual_seed(seed)
     )
+    # test_examples = make_examples(h, w, test_size)
+    # test_dataset = SlidingPuzzleDataset(test_examples)
+    # train_examples = make_examples(h, w, train_size, test_examples)
+    # train_dataset = SlidingPuzzleDataset(train_examples)
 
     # prepare model
+    if device is None:
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model.to(device)
     optimizer = optim.SGD(model.parameters(), lr=0.0001, momentum=0.9)
     epoch = load_checkpoint(model, optimizer)
@@ -154,32 +176,41 @@ def train(
         for epoch in tqdm.tqdm(range(epoch, num_epochs + 1)):
             model.train()  # every epoch b/c eval happens every epoch
             running_loss = 0.0
+            running_accuracy = 0.0
+            num_train_examples = 0
 
             for batch, expected in iter(
                 DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
             ):
+                num_train_examples += batch_size
                 batch = batch.to(device)
                 expected = expected.to(device)
                 optimizer.zero_grad()
-                outputs = model(batch)
-                loss = criterion(outputs, expected)
+                predicted = model(batch)
+                loss = criterion(predicted, expected)
                 loss.backward()
                 optimizer.step()
                 running_loss += loss.item()
+                running_accuracy += accuracy(expected, predicted)
 
-            running_loss /= train_size / batch_size
-            writer.add_scalar("training_loss", running_loss, epoch)
-            test_loss = evaluate(model, criterion, test_dataset, device)
-            writer.add_scalar("test_loss", test_loss, epoch)
+            # need to normalize loss and acc for the examples we actually saw
+            running_loss /= num_train_examples
+            running_accuracy /= num_train_examples
+            test_loss, test_accuracy = evaluate(model, criterion, test_dataset)
+            writer.add_scalar("loss/training", running_loss, epoch)
+            writer.add_scalar("accuracy/training", running_accuracy, epoch)
+            writer.add_scalar("loss/test", test_loss, epoch)
+            writer.add_scalar("accuracy/test", test_accuracy, epoch)
 
-            if epoch % 50 == 0:
+            if epoch % checkpoint_freq == 0:
                 save_checkpoint(model, optimizer, epoch)
             if epoch % 100 == 0:
                 print(
-                    f"training_loss: {running_loss:0.5f}, test_loss: {test_loss:0.5f}"
+                    f"training/loss: {running_loss:0.5f}, "
+                    f"test/loss: {test_loss:0.5f}, "
+                    f"training/acc: {running_accuracy:0.5f}, "
+                    f"test/acc: {test_accuracy:0.5f}"
                 )
-
-            running_loss = 0.0
     except KeyboardInterrupt:
         print("training interrupted")
 

@@ -31,3 +31,10 @@ slidingpuzzle.state module
 .. automodule:: slidingpuzzle.state
    :members:
    :undoc-members:
+
+slidingpuzzle.nn module
+--------------------------
+
+.. automodule:: slidingpuzzle.state
+   :members:
+   :undoc-members:

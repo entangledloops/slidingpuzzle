@@ -201,17 +201,21 @@ pip install -r requirements-nn.txt
 ```
 
 You can then train a new network easily:
+
 ```python
 >>> import slidingpuzzle.nn as nn
 >>> model = nn.Model_v1(3, 3)
 >>> nn.train(model)
->>> nn.save_model(model)
->>> evaluate_heuristic(3, 3, nn.v1_distance)
 ```
 
-After saving, your model will automatically be available for the board size it was trained for as the heuristic `nn.v1_distance` (unless you register a custom model as described below).
+Now that your model is trained, you can register it for use:
 
-For example:
+```python
+>>> nn.set_heuristic(model)
+```
+
+Your heuristic is now available as `nn.v1_distance`. (These are associated behind the scenes via the `model.version` string.)
+
 ```python
 >>> board = shuffle_board(new_board(3, 3))
 >>> search(board)
@@ -222,30 +226,57 @@ solution_len=20, generated=1350, expanded=864, unvisited=487, visited=503]
 solution_len=20, generated=662, expanded=406, unvisited=257, visited=247]
 ```
 
+You can save your model to disk to be used automatically as the default for `nn.v1_distance`.
+
+```python
+>>> nn.save_model(model)
+```
+
+Training automatically uses GPU if available and falls back to CPU otherwise.
+
 ## Custom Models
 
 First define your `torch.nn.Module` somewhere.
 Your model class must:
-- have a unique `self.version` string,
-- have `self.h` and `self.w` indicating the board size it expects,
-- accept the board as a tensor constructed by:
+- have a unique `self.version` string that is safe to use in filenames (e.g. `"my_model_v1"`)
+- have `self.h` and `self.w` indicating the input board dimensions it expects,
+- have a `forward()` that accepts board as a tensor constructed by:
   - `torch.tensor(board, dtype=torch.float32)`
+  - (The tensor above does not include the batch dimension.)
+  - For example, expect: `model(board)`
 
-(The tensor above does not include the batch dimension.)
-Then train your model as above and you can then define your heuristic function like this:
+Train and save your model as above.
+
+You can now copy-paste the model-based heuristic function below:
 
 ```python
-def my_model_distance(board: tuple[list[int], ...]) -> float:
+def my_model_distance(board) -> float:
     h, w = len(board), len(board[0])
     heuristic = nn.get_heuristic(h, w, "my_model_version")
     return heuristic(board)
 ```
 
-Example use:
+Just change `"my_model_version` to the string you used in your model class.
+
+And you use it as expected:
 
 ```python
 >>> search(board, "a*", heuristic=my_model_distance)
 ```
+
+You can add your `my_model_distance()` function to the bottom of `nn/heuristics.py` to make it permanently available.
+
+During training, tensorboard will show your training/test loss and accuracy.
+After training is complete, you can also evaluate each checkpoint for comparison.
+
+For example, to run each checkpoint on 10 random boards starting from epoch 650:
+
+```python
+>>> nn.evaluate_checkpoint(model, epoch)
+```
+
+The call to `evaluate_checkpoint()` will automatically load the model weights from the checkpoint file for `epoch` and run `evaluate_heuristic()`.
+
 
 ## Creating a Pull Request
 
