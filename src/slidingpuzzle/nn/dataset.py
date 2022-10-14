@@ -62,7 +62,7 @@ def make_examples(h, w, num_examples, prior_examples=None) -> list[tuple]:
     if prior_examples is not None:
         dupe_found = False
         for board, _ in prior_examples:
-            if board.visit(visited, board):
+            if board_.visit(visited, board):
                 dupe_found = True
         if dupe_found:
             print("WARNING: Duplicate found in prior examples.")
