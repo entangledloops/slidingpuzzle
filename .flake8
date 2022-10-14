@@ -5,5 +5,6 @@ ignore = F401
 max-line-length = 88
 per-file-ignores =
     # star imports okay in tests
-    test_slidingpuzzle.py: F403, F405
+    test_algorithms.py: F403, F405
+    test_board.py: F403, F405
     test_nn.py: F403, F405

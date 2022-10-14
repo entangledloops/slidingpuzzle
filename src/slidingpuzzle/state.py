@@ -40,7 +40,9 @@ class State:
 
     board: tuple[list[int], ...] = dataclasses.field(compare=False)
     empty_pos: tuple[int, int] = dataclasses.field(compare=False)
-    history: list[tuple[int, int]] = dataclasses.field(compare=False)
+    history: list[tuple[int, int]] = dataclasses.field(
+        compare=False, default_factory=list
+    )
     f: int | float = 0
 
 

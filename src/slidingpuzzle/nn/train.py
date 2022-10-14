@@ -93,9 +93,9 @@ def launch_tensorboard(dirname: str) -> str:
 
 def train(
     model: nn.Module,
-    num_examples: int = 32768,
+    num_examples: int = 2**14,
     train_fraction: float = 0.95,
-    num_epochs: int = 50_000,
+    num_epochs: int = 100_000,
     batch_size: int = 128,
     device: str = None,
     dataset: torch.utils.data.Dataset = None,

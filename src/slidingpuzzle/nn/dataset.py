@@ -23,6 +23,7 @@ import torch.utils
 import tqdm
 
 from slidingpuzzle.slidingpuzzle import (
+    IDA_STAR,
     apply_move,
     freeze_board,
     new_board,
@@ -82,6 +83,7 @@ def make_examples(h, w, num_examples, prior_examples=None) -> list[tuple]:
         # will be lower quality than shuffle_board, but the hope is that there is
         # still enough info to learn a general high quality heuristic
         shuffle_board_lazy(board, h * w * 2)
+        # shuffle_board(board)
         if visit(visited, board):
             continue
 

@@ -123,31 +123,54 @@ The available algorithms for [`search()`](https://slidingtilepuzzle.readthedocs.
 Some algorithms support additional customization via `kwargs`. These are:
 
     a*: {
-        "bound": default is float("inf"),
+        "depth_bound": default is float("inf"),
+            restrict search to depth < depth_bound
+        "detect_dupes": default is True,
+            if False, will trade time for memory savings
+        "f_bound": default is float("inf"),
             restricts search to f-values < bound
+        "heuristic": default is manhattan_distance
         "weight": default is 1
     }
     beam: {
-        "bound": default is float("inf"),
+        "depth_bound": default is float("inf"),
+            restrict search to depth < depth_bound
+        "detect_dupes": default is True,
+            if False, will trade time for memory savings
+        "f_bound": default is float("inf"),
             restricts search to f-values < bound
+        "heuristic": default is manhattan_distance
         "width", default is 3
     }
     bfs: {
-        "bound": default is float("inf"),
-            restricts search to depth < bound
+        "depth_bound": default is float("inf"),
+            restrict search to depth < depth_bound
+        "detect_dupes": default is True,
+            if False, will trade time for memory savings
     }
     dfs: {
-        "bound": default is float("inf"),
-            restricts search to depth < bound
+        "depth_bound": default is float("inf")
+            restrict search to depth < depth_bound
+        "detect_dupes": default is True,
+            if False, will trade time for memory savings
+    }
+    greedy: {
+        "depth_bound": default is float("inf"),
+            restrict search to depth < depth_bound
+        "f_bound": default is float("inf"),
+            restricts search to f-values < bound
     }
     ida*: {
-        "bound", default is manhattan_distance(board),
-            restricts search to f-values < bound
+        "depth_bound": default is float("inf")
+            restrict search to depth < depth_bound
+        "detect_dupes": default is True,
+            if False, will trade time for memory savings
+        "heuristic": default is manhattan_distance
         "weight": default is 1
     }
     iddfs: {
-        "bound", default is manhattan_distance(board),
-            restricts search to depth < bound
+        "detect_dupes": default is True,
+            if False, will trade time for memory savings
     }
 
 Example:

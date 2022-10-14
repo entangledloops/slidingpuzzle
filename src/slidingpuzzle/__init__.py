@@ -45,8 +45,23 @@ from slidingpuzzle.heuristics import (
     random_distance,
 )
 
-from slidingpuzzle.slidingpuzzle import (
+from slidingpuzzle.board import (
     EMPTY_TILE,
+    apply_move,
+    count_inversions,
+    freeze_board,
+    get_empty_yx,
+    get_next_moves,
+    get_yx,
+    is_solvable,
+    new_board,
+    print_board,
+    shuffle_board,
+    shuffle_board_lazy,
+    solution_as_tiles,
+)
+
+from slidingpuzzle.algorithms import (
     A_STAR,
     BEAM,
     BFS,
@@ -55,22 +70,10 @@ from slidingpuzzle.slidingpuzzle import (
     IDA_STAR,
     IDDFS,
     ALGORITHMS,
-    apply_move,
-    compare_heuristics,
-    count_inversions,
+    compare,
     evaluate_heuristic,
-    freeze_board,
-    get_empty_yx,
-    get_yx,
-    get_next_moves,
     get_next_states,
-    is_solvable,
-    new_board,
-    print_board,
     search,
-    shuffle_board,
-    shuffle_board_lazy,
-    solution_as_tiles,
     swap_tiles,
 )
 
