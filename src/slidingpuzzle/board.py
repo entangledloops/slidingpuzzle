@@ -275,7 +275,7 @@ def shuffle_board_lazy(
     if num_moves is None:
         num_moves = (h + w) * 2
     empty_pos = get_empty_yx(board)
-    visited: tuple[tuple[int, ...], ...] = set()
+    visited = set()
     for _ in range(num_moves):
         next_moves = get_next_moves(board, empty_pos)
         random.shuffle(next_moves)
