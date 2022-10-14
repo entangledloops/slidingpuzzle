@@ -20,7 +20,7 @@ import torch
 import torch.nn as nn
 
 import slidingpuzzle.nn.paths as paths
-from slidingpuzzle.slidingpuzzle import new_board
+import slidingpuzzle.board as board_
 
 
 VERSION_1 = "v1"
@@ -68,7 +68,7 @@ def save_model(model: nn.Module, device: str = None) -> torch.ScriptModule:
         device = "cuda" if torch.cuda.is_available() else "cpu"
     model.eval()
     model.to(device)
-    board = new_board(model.h, model.w)
+    board = board_.new_board(model.h, model.w)
     example_inputs = torch.tensor(board, dtype=torch.float32).unsqueeze(0).to(device)
     traced_model = torch.jit.trace(model, example_inputs)
     traced_path = paths.get_model_path(model.h, model.w, model.version)

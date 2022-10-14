@@ -56,7 +56,7 @@ def evaluate_checkpoint(
     ``evaluate_heuristic``, returning the result. If ``epoch`` is not provided, the
     latest checkpoint is used.
     """
-    from ..slidingpuzzle import evaluate_heuristic
+    from slidingpuzzle.algorithms import evaluate_heuristic
     from slidingpuzzle.nn.train import load_checkpoint
     from slidingpuzzle.nn.heuristics import set_heuristic
 

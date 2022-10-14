@@ -22,16 +22,8 @@ import torch
 import torch.utils
 import tqdm
 
-from slidingpuzzle.slidingpuzzle import (
-    IDA_STAR,
-    apply_move,
-    freeze_board,
-    new_board,
-    search,
-    shuffle_board,
-    shuffle_board_lazy,
-    visit,
-)
+import slidingpuzzle.algorithms as algorithms
+import slidingpuzzle.board as board_
 import slidingpuzzle.nn.paths as paths
 
 
@@ -70,36 +62,36 @@ def make_examples(h, w, num_examples, prior_examples=None) -> list[tuple]:
     if prior_examples is not None:
         dupe_found = False
         for board, _ in prior_examples:
-            if visit(visited, board):
+            if board.visit(visited, board):
                 dupe_found = True
         if dupe_found:
             print("WARNING: Duplicate found in prior examples.")
 
     pbar = tqdm.tqdm(total=num_examples)
     while len(examples) < num_examples:
-        board = new_board(h, w)
+        board = board_.new_board(h, w)
         # we use the lazy shuffle b/c truly randomly sampled boards can be very
         # difficult to solve, and we need to produce enough examples. these boards
         # will be lower quality than shuffle_board, but the hope is that there is
         # still enough info to learn a general high quality heuristic
-        shuffle_board_lazy(board, h * w * 2)
+        board_.shuffle_board_lazy(board, h * w * 2)
         # shuffle_board(board)
-        if visit(visited, board):
+        if board_.visit(visited, board):
             continue
 
         # find a path to use as an accurate training reference
-        result = search(board)
+        result = algorithms.search(board)
 
         # we can use all intermediate boards as examples
         while len(examples) < num_examples:
             distance = len(result.solution)
-            examples.append((freeze_board(board), distance))
+            examples.append((board_.freeze_board(board), distance))
             pbar.update(1)
             if not len(result.solution):
                 break
             move = result.solution.pop(0)
-            apply_move(board, move)
-            if visit(visited, board):
+            board_.apply_move(board, move)
+            if board_.visit(visited, board):
                 break
     pbar.close()
 
