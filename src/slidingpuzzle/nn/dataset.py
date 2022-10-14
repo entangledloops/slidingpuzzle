@@ -67,33 +67,33 @@ def make_examples(h, w, num_examples, prior_examples=None) -> list[tuple]:
         if dupe_found:
             print("WARNING: Duplicate found in prior examples.")
 
-    pbar = tqdm.tqdm(total=num_examples)
-    while len(examples) < num_examples:
-        board = board_.new_board(h, w)
-        # we use the lazy shuffle b/c truly randomly sampled boards can be very
-        # difficult to solve, and we need to produce enough examples. these boards
-        # will be lower quality than shuffle_board, but the hope is that there is
-        # still enough info to learn a general high quality heuristic
-        board_.shuffle_board_lazy(board, h * w * 2)
-        # shuffle_board(board)
-        if board_.visit(visited, board):
-            continue
-
-        # find a path to use as an accurate training reference
-        result = algorithms.search(board)
-
-        # we can use all intermediate boards as examples
+    with tqdm.tqdm(total=num_examples) as pbar:
         while len(examples) < num_examples:
-            distance = len(result.solution)
-            examples.append((board_.freeze_board(board), distance))
-            pbar.update(1)
-            if not len(result.solution):
-                break
-            move = result.solution.pop(0)
-            board_.apply_move(board, move)
+            board = board_.new_board(h, w)
+            # we use the lazy shuffle b/c truly randomly sampled boards can be very
+            # difficult to solve, and we need to produce enough examples. these boards
+            # will be lower quality than shuffle_board, but the hope is that there is
+            # still enough info to learn a general high quality heuristic
+            # board_.shuffle_board_lazy(board, h * w * 2)
+            board_.shuffle_board(board)
+            # shuffle_board(board)
             if board_.visit(visited, board):
-                break
-    pbar.close()
+                continue
+
+            # find a path to use as an accurate training reference
+            result = algorithms.search(board)
+
+            # we can use all intermediate boards as examples
+            while len(examples) < num_examples:
+                distance = len(result.solution)
+                examples.append((board_.freeze_board(board), distance))
+                pbar.update(1)
+                if not len(result.solution):
+                    break
+                move = result.solution.pop(0)
+                board_.apply_move(board, move)
+                if board_.visit(visited, board):
+                    break
 
     return examples
 

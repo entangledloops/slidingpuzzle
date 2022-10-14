@@ -46,11 +46,11 @@ def get_path(dirname: str, filename: str) -> pathlib.Path:
     return dirpath / filename
 
 
-def get_checkpoint_path(h: int, w: int, epoch: int = None) -> pathlib.Path:
-    board_size_str = get_board_size_str(h, w)
-    if epoch is not None:
-        board_size_str = f"{board_size_str}_epoch_{epoch}"
-    return get_path(CHECKPOINT_DIR, f"checkpoint_{board_size_str}")
+def get_checkpoint_path(h: int, w: int, tag: str = None) -> pathlib.Path:
+    checkpoint_name = get_board_size_str(h, w)
+    if tag is not None:
+        checkpoint_name = f"{checkpoint_name}_{tag}"
+    return get_path(CHECKPOINT_DIR, f"checkpoint_{checkpoint_name}")
 
 
 def get_examples_path(h: int, w: int) -> pathlib.Path:

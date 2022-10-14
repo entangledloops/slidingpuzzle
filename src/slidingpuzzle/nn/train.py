@@ -31,18 +31,25 @@ from torch.utils.tensorboard import SummaryWriter
 import tqdm
 
 import slidingpuzzle.nn.paths as paths
-from slidingpuzzle.nn.dataset import (
-    SlidingPuzzleDataset,
-    load_dataset,
-    load_examples,
-    make_examples,
-)
+from slidingpuzzle.nn.dataset import load_dataset
 from slidingpuzzle.nn.eval import accuracy, evaluate
 
 
+def get_state_dict(model: nn.Module, optimizer: optim.Optimizer, epoch: int) -> dict:
+    return {
+        "model_state_dict": model.state_dict(),
+        "optimizer_state_dict": optimizer.state_dict(),
+        "epoch": epoch,
+        "board_height": model.h,
+        "board_width": model.w,
+    }
+
+
 def load_checkpoint(
-    model: nn.Module, optimizer: optim.Optimizer = None, epoch: int = None
-) -> int:
+    model: nn.Module,
+    optimizer: optim.Optimizer = None,
+    tag: str = None,
+) -> dict:
     """
     Loads a model and optimizer state from the specified epoch.
     If no epoch provided, latest trained model is used.
@@ -52,31 +59,25 @@ def load_checkpoint(
         which are expected to be present.
 
     Returns:
-        The epoch number found in the checkpoint. Default is 1.
+        The checkpoint.
     """
-    checkpoint_path = paths.get_checkpoint_path(model.h, model.w, epoch)
+    checkpoint_path = paths.get_checkpoint_path(model.h, model.w, tag)
     try:
         checkpoint = torch.load(str(checkpoint_path))
         model.load_state_dict(checkpoint["model_state_dict"])
         if optimizer is not None:
             optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
-        return checkpoint["epoch"]
+        return checkpoint
     except FileNotFoundError:
         print("No model checkpoint found.")
-        return 1
+        return {"epoch": 0}
 
 
-def save_checkpoint(model: nn.Module, optimizer: optim.Optimizer, epoch: int) -> None:
-    state = {
-        "model_state_dict": model.state_dict(),
-        "optimizer_state_dict": optimizer.state_dict(),
-        "epoch": epoch,
-        "board_height": model.h,
-        "board_width": model.w,
-    }
-    # save "latest" model along with epoch labeled checkpoint
-    torch.save(state, str(paths.get_checkpoint_path(model.h, model.w)))
-    torch.save(state, str(paths.get_checkpoint_path(model.h, model.w, epoch)))
+def save_checkpoint(state: dict, tag: str = None) -> None:
+    h = state["board_height"]
+    w = state["board_width"]
+    checkpoint_path = paths.get_checkpoint_path(h, w, tag)
+    torch.save(state, str(checkpoint_path))
 
 
 def launch_tensorboard(dirname: str) -> str:
@@ -102,7 +103,7 @@ def train(
     tensorboard_dir: str = paths.TENSORBOARD_DIR,
     seed: int = 0,
     checkpoint_freq: int = 50,
-) -> nn.Module:
+) -> None:
     """
     Trains a model for ``num_epochs``. If no prior model is found, a new one is
     created. If a prior model is found, training will be resumed. If no dataset is
@@ -127,10 +128,6 @@ def train(
         tensorboard_dir: The root tensorboard dir for logs. Default is "tensorboard".
         seed: Seed used for torch random utilities for reproducibility
         checkpoint_freq: Model will be checkpointed every time this many epochs elapses
-
-    Returns:
-        The trained model. May be loaded on GPU if GPU is available. The model is also
-        saved to disk before returning in the checkpoints directory.
     """
     random.seed(seed)
     np.random.seed(seed)
@@ -158,22 +155,20 @@ def train(
     train_dataset, test_dataset = torch.utils.data.random_split(
         dataset, [train_size, test_size], generator=torch.Generator().manual_seed(seed)
     )
-    # test_examples = make_examples(h, w, test_size)
-    # test_dataset = SlidingPuzzleDataset(test_examples)
-    # train_examples = make_examples(h, w, train_size, test_examples)
-    # train_dataset = SlidingPuzzleDataset(train_examples)
 
     # prepare model
     if device is None:
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model.to(device)
     optimizer = optim.SGD(model.parameters(), lr=0.0001, momentum=0.9)
-    epoch = load_checkpoint(model, optimizer)
+    epoch = load_checkpoint(model, optimizer, "latest")["epoch"]
     criterion = nn.MSELoss()
+    highest_acc = float("-inf")
 
     print(f"initial epoch={epoch}/{num_epochs}, batch_size={batch_size}")
+    pbar = tqdm.tqdm(total=num_epochs, position=epoch)
     try:
-        for epoch in tqdm.tqdm(range(epoch, num_epochs + 1)):
+        for epoch in range(epoch, num_epochs):
             model.train()  # every epoch b/c eval happens every epoch
             running_loss = 0.0
             running_accuracy = 0.0
@@ -201,10 +196,19 @@ def train(
             writer.add_scalar("accuracy/training", running_accuracy, epoch)
             writer.add_scalar("loss/test", test_loss, epoch)
             writer.add_scalar("accuracy/test", test_accuracy, epoch)
+            pbar.set_description(f"test_accuracy: {test_accuracy:0.5f}")
+            pbar.update(1)
 
-            if epoch % checkpoint_freq == 0:
-                save_checkpoint(model, optimizer, epoch)
-            if epoch % 100 == 0:
+            if test_accuracy > highest_acc:
+                # save a tagged checkpoint for highest acc
+                highest_acc = test_accuracy
+                state = get_state_dict(model, optimizer, epoch)
+                save_checkpoint(state, "acc")
+            if (epoch + 1) % checkpoint_freq == 0:
+                # save latest model state + epoch labeled checkpoint
+                state = get_state_dict(model, optimizer, epoch)
+                save_checkpoint(state, f"epoch_{epoch}")
+            if epoch % 100 == 99:
                 print(
                     f"training/loss: {running_loss:0.5f}, "
                     f"test/loss: {test_loss:0.5f}, "
@@ -213,8 +217,9 @@ def train(
                 )
     except KeyboardInterrupt:
         print("training interrupted")
+    finally:
+        pbar.close()
 
-    # save final state
-    save_checkpoint(model, optimizer, epoch)
-
-    return model
+    # save final state in case we were interrupted
+    state = get_state_dict(model, optimizer, epoch)
+    save_checkpoint(state, "latest")

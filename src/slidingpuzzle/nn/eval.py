@@ -49,7 +49,11 @@ def evaluate(
 
 
 def evaluate_checkpoint(
-    model: torch.nn.Module, epoch: int = None, num_iters: int = None, device: str = None
+    model: torch.nn.Module,
+    epoch: int = None,
+    num_iters: int = None,
+    device: str = None,
+    **kwargs,
 ) -> float:
     """
     Loads the provided model from the checkpoint at ``epoch`` and runs
@@ -67,6 +71,8 @@ def evaluate_checkpoint(
     model.to(device)
     heuristic = set_heuristic(model)
     if num_iters is None:
-        return evaluate_heuristic(model.h, model.w, heuristic)
+        return evaluate_heuristic(model.h, model.w, heuristic=heuristic, **kwargs)
     else:
-        return evaluate_heuristic(model.h, model.w, heuristic, num_iters)
+        return evaluate_heuristic(
+            model.h, model.w, heuristic=heuristic, num_iters=num_iters, **kwargs
+        )
