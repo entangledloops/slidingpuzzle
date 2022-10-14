@@ -11,6 +11,22 @@ Sliding Puzzle Documentation
 Submodules
 ----------
 
+slidingpuzzle.algorithms module
+----------------------------------
+
+.. automodule:: slidingpuzzle.algorithms
+   :members:
+   :undoc-members:
+
+
+slidingpuzzle.board module
+----------------------------------
+
+.. automodule:: slidingpuzzle.board
+   :members:
+   :undoc-members:
+
+
 slidingpuzzle.heuristics module
 -------------------------------
 
@@ -18,12 +34,6 @@ slidingpuzzle.heuristics module
    :members:
    :undoc-members:
 
-slidingpuzzle.slidingpuzzle module
-----------------------------------
-
-.. automodule:: slidingpuzzle.slidingpuzzle
-   :members:
-   :undoc-members:
 
 slidingpuzzle.state module
 --------------------------
@@ -35,6 +45,6 @@ slidingpuzzle.state module
 slidingpuzzle.nn module
 --------------------------
 
-.. automodule:: slidingpuzzle.state
+.. automodule:: slidingpuzzle.nn
    :members:
    :undoc-members:

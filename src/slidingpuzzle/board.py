@@ -131,7 +131,7 @@ def get_next_moves(
 
 def swap_tiles(
     board: tuple[list[int], ...], pos1: tuple[int, int], pos2: tuple[int, int]
-) -> None:
+) -> tuple[list[int], ...]:
     """
     Mutates the board by swapping a pair of tiles.
 
@@ -191,7 +191,7 @@ def apply_move(
         The modified board, for convience chaining calls.
     """
     if isinstance(move, int):
-        move = get_yx(move)
+        move = get_yx(board, move)
     if empty_pos is None:
         empty_pos = get_empty_yx(board)
     return swap_tiles(board, move, empty_pos)
@@ -275,7 +275,7 @@ def shuffle_board_lazy(
     if num_moves is None:
         num_moves = (h + w) * 2
     empty_pos = get_empty_yx(board)
-    visited = set()
+    visited: tuple[tuple[int, ...], ...] = set()
     for _ in range(num_moves):
         next_moves = get_next_moves(board, empty_pos)
         random.shuffle(next_moves)
