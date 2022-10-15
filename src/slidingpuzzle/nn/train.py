@@ -101,6 +101,7 @@ def train(
     tensorboard_dir: str = paths.TENSORBOARD_DIR,
     seed: int = 0,
     checkpoint_freq: int = 50,
+    early_quit_epoch: int = 500,
 ) -> None:
     """
     Trains a model for ``num_epochs``. If no prior model is found, a new one is
@@ -126,6 +127,9 @@ def train(
         tensorboard_dir: The root tensorboard dir for logs. Default is "tensorboard".
         seed: Seed used for torch random utilities for reproducibility
         checkpoint_freq: Model will be checkpointed every time this many epochs elapses
+        early_quit_epoch: If this many epochs have passed without improving accuracy
+            on the test data, quit early. If 0, doesn't quit until num_epochs have
+            completed.
     """
     random.seed(seed)
     np.random.seed(seed)
@@ -162,6 +166,7 @@ def train(
     epoch = load_checkpoint(model, optimizer, "latest")["epoch"]
     criterion = nn.MSELoss()
     highest_acc = float("-inf")
+    highest_acc_epoch = 0
 
     print(f"initial epoch={epoch}/{num_epochs}, batch_size={batch_size}")
     pbar = tqdm.tqdm(total=num_epochs, position=epoch)
@@ -200,9 +205,10 @@ def train(
             if test_accuracy > highest_acc:
                 # save a tagged checkpoint for highest acc
                 highest_acc = test_accuracy
+                highest_acc_epoch = epoch
                 state = get_state_dict(model, optimizer, epoch)
                 save_checkpoint(state, "acc")
-            if (epoch + 1) % checkpoint_freq == 0:
+            if epoch % checkpoint_freq == checkpoint_freq - 1:
                 # save latest model state + epoch labeled checkpoint
                 state = get_state_dict(model, optimizer, epoch)
                 save_checkpoint(state, f"epoch_{epoch}")
@@ -213,6 +219,10 @@ def train(
                     f"training/acc: {running_accuracy:0.5f}, "
                     f"test/acc: {test_accuracy:0.5f}"
                 )
+            if early_quit_epoch > 0 and epoch - highest_acc_epoch > early_quit_epoch:
+                print(f"Early quit threshold reached at epoch {epoch}.")
+                break
+
     except KeyboardInterrupt:
         print("training interrupted")
     finally:
