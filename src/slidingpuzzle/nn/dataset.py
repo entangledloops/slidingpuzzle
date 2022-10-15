@@ -43,7 +43,7 @@ class SlidingPuzzleDataset(torch.utils.data.Dataset):
         )
 
 
-def make_examples(h, w, num_examples, prior_examples=None) -> list[tuple]:
+def make_examples(h, w, num_examples, ignore_examples=None, **kwargs) -> list[tuple]:
     """
     Constructs a list of training examples, which are tuples of:
         (board, num_moves_to_goal)
@@ -52,16 +52,18 @@ def make_examples(h, w, num_examples, prior_examples=None) -> list[tuple]:
         h: Height of board.
         w: Width of board.
         num_examples: Number of examples to produce.
-        prior_examples: Previous examples that we should avoid reproducing.
+        ignore_examples: If any example produced matches one in ``ignore_examples``,
+            it will be discarded.
+        kwargs: Args to pass to the search algorithm used to find board solutions.
 
     Returns:
         The list of training examples.
     """
     visited = set()
     examples = []
-    if prior_examples is not None:
+    if ignore_examples is not None:
         dupe_found = False
-        for board, _ in prior_examples:
+        for board, _ in ignore_examples:
             if board_.visit(visited, board):
                 dupe_found = True
         if dupe_found:
@@ -70,18 +72,12 @@ def make_examples(h, w, num_examples, prior_examples=None) -> list[tuple]:
     with tqdm.tqdm(total=num_examples) as pbar:
         while len(examples) < num_examples:
             board = board_.new_board(h, w)
-            # we use the lazy shuffle b/c truly randomly sampled boards can be very
-            # difficult to solve, and we need to produce enough examples. these boards
-            # will be lower quality than shuffle_board, but the hope is that there is
-            # still enough info to learn a general high quality heuristic
-            # board_.shuffle_board_lazy(board, h * w * 2)
             board_.shuffle_board(board)
-            # shuffle_board(board)
             if board_.visit(visited, board):
                 continue
 
             # find a path to use as an accurate training reference
-            result = algorithms.search(board)
+            result = algorithms.search(board, **kwargs)
 
             # we can use all intermediate boards as examples
             while len(examples) < num_examples:
@@ -118,28 +114,33 @@ def save_examples(h: int, w: int, examples: list, examples_file: str = None) -> 
         json.dump(examples, fp)
 
 
-def get_examples(h: int, w: int, num_examples: int, prior_examples: list):
+def get_examples(h: int, w: int, num_examples: int, prior_examples: list, **kwargs):
+    """
+    Returns ``num_examples`` total unique examples, starting with ``prior_examples`` if
+    they are provided. May truncate or produce new examples as necessary.
+    """
     examples = list(prior_examples)
     if len(examples) > num_examples:
         examples = examples[:num_examples]
     if len(examples) < num_examples:
         num_new_examples = num_examples - len(prior_examples)
         print(f"Constructing {num_new_examples} new examples...")
-        examples.extend(make_examples(h, w, num_new_examples, prior_examples))
+        examples.extend(make_examples(h, w, num_new_examples, prior_examples, **kwargs))
     return examples
 
 
-def load_dataset(
+def load_or_build_dataset(
     h: int,
     w: int,
     num_examples: int,
     examples_file: str = None,
+    **kwargs,
 ) -> torch.utils.data.Dataset:
     """
     Loads examples, constructs a SlidingPuzzleDataset from them, and returns it.
     If there is a mismatch between the requested num_examples and the loaded
     examples file, examples may be truncated or new examples may be constructed and
-    saved to the dataset. No duplicates are allowed in the dataset.
+    saved to disk. No duplicate examples are produced.
 
     Args:
         h: The height of the board to locate a dataset for
@@ -148,6 +149,7 @@ def load_dataset(
             examples will be truncated. If there are too few, new examples will be
             constructed.
         examples_file: The name of the examples file to save or load.
+        kwargs: Will be forwaded to :func:`make_examples` if it is called.
 
     Returns:
         A dataset for the requested puzzle size.
@@ -162,7 +164,7 @@ def load_dataset(
 
     # if we were asked for a different number of examples than we have on hand
     if len(examples) != num_examples:
-        new_examples = get_examples(h, w, num_examples, examples)
+        new_examples = get_examples(h, w, num_examples, examples, **kwargs)
         # if we made new examples, save them for next time
         if len(new_examples) > len(examples):
             save_examples(h, w, new_examples, examples_file)

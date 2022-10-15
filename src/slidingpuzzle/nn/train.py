@@ -29,7 +29,7 @@ from torch.utils.tensorboard import SummaryWriter
 import tqdm
 
 import slidingpuzzle.nn.paths as paths
-from slidingpuzzle.nn.dataset import load_dataset
+from slidingpuzzle.nn.dataset import load_or_build_dataset
 from slidingpuzzle.nn.eval import accuracy, evaluate
 
 
@@ -101,7 +101,8 @@ def train(
     tensorboard_dir: str = paths.TENSORBOARD_DIR,
     seed: int = 0,
     checkpoint_freq: int = 50,
-    early_quit_epoch: int = 500,
+    early_quit_epochs: int = 500,
+    **kwargs,
 ) -> None:
     """
     Trains a model for ``num_epochs``. If no prior model is found, a new one is
@@ -127,9 +128,12 @@ def train(
         tensorboard_dir: The root tensorboard dir for logs. Default is "tensorboard".
         seed: Seed used for torch random utilities for reproducibility
         checkpoint_freq: Model will be checkpointed every time this many epochs elapses
-        early_quit_epoch: If this many epochs have passed without improving accuracy
+        early_quit_epochs: If this many epochs have passed without improving accuracy
             on the test data, quit early. If 0, doesn't quit until num_epochs have
             completed.
+        kwargs: Additional args that may be passed to :ref:`make_examples` when
+            generating a new dataset. Can be used to customize the search algorithm
+            used to find training examples if, for example, it is taking too long.
     """
     random.seed(seed)
     np.random.seed(seed)
@@ -153,7 +157,8 @@ def train(
     # prepare dataset
     train_size = math.floor(num_examples * train_fraction)
     test_size = num_examples - train_size
-    dataset = load_dataset(h, w, num_examples) if dataset is None else dataset
+    if dataset is None:
+        dataset = load_or_build_dataset(h, w, num_examples, **kwargs)
     train_dataset, test_dataset = torch.utils.data.random_split(
         dataset, [train_size, test_size], generator=torch.Generator().manual_seed(seed)
     )
@@ -219,7 +224,7 @@ def train(
                     f"training/acc: {running_accuracy:0.5f}, "
                     f"test/acc: {test_accuracy:0.5f}"
                 )
-            if early_quit_epoch > 0 and epoch - highest_acc_epoch > early_quit_epoch:
+            if early_quit_epochs > 0 and epoch - highest_acc_epoch > early_quit_epochs:
                 print(f"Early quit threshold reached at epoch {epoch}.")
                 break
 

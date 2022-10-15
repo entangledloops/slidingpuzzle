@@ -18,7 +18,7 @@ Neural networks for guiding heuristic search.
 
 from slidingpuzzle.nn.dataset import (
     SlidingPuzzleDataset,
-    load_dataset,
+    load_or_build_dataset,
     load_examples,
     make_examples,
     save_examples,
