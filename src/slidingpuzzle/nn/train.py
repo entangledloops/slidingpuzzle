@@ -127,7 +127,8 @@ def train(
         dataset: A custom dataset to use
         tensorboard_dir: The root tensorboard dir for logs. Default is "tensorboard".
         seed: Seed used for torch random utilities for reproducibility
-        checkpoint_freq: Model will be checkpointed every time this many epochs elapses
+        checkpoint_freq: Model will be checkpointed every time this many epochs
+            complete. If 0, no epoch checkpointint will be used.
         early_quit_epochs: If this many epochs have passed without improving accuracy
             on the test data, quit early. If 0, doesn't quit until num_epochs have
             completed.
@@ -204,7 +205,7 @@ def train(
             writer.add_scalar("accuracy/training", running_accuracy, epoch)
             writer.add_scalar("loss/test", test_loss, epoch)
             writer.add_scalar("accuracy/test", test_accuracy, epoch)
-            pbar.set_description(f"test_accuracy: {test_accuracy:0.5f}")
+            pbar.set_description(f"test/acc: {test_accuracy:0.5f}")
             pbar.update(1)
 
             if test_accuracy > highest_acc:
@@ -213,17 +214,10 @@ def train(
                 highest_acc_epoch = epoch
                 state = get_state_dict(model, optimizer, epoch)
                 save_checkpoint(state, "acc")
-            if epoch % checkpoint_freq == checkpoint_freq - 1:
+            if checkpoint_freq > 0 and epoch % checkpoint_freq == checkpoint_freq - 1:
                 # save latest model state + epoch labeled checkpoint
                 state = get_state_dict(model, optimizer, epoch)
                 save_checkpoint(state, f"epoch_{epoch}")
-            if epoch % 100 == 99:
-                print(
-                    f"training/loss: {running_loss:0.5f}, "
-                    f"test/loss: {test_loss:0.5f}, "
-                    f"training/acc: {running_accuracy:0.5f}, "
-                    f"test/acc: {test_accuracy:0.5f}"
-                )
             if early_quit_epochs > 0 and epoch - highest_acc_epoch > early_quit_epochs:
                 print(f"Early quit threshold reached at epoch {epoch}.")
                 break
