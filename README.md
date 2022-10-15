@@ -35,9 +35,7 @@ https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html
 1 2 3
 4 5 6
 7 8
->>> shuffle_board(b)
-([1, 6, 7], [4, 0, 8], [5, 3, 2])
->>> print_board(b)
+>>> print_board(shuffle_board(b))
 1 6 7
 4   8
 5 3 2

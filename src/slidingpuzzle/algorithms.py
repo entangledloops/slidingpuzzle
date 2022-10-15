@@ -485,6 +485,8 @@ def search(
         greedy: {
             "depth_bound": default is float("inf"),
                 restrict search to depth < depth_bound
+            "detect_dupes": default is True,
+                if False, will trade time for memory savings
             "f_bound": default is float("inf"),
                 restricts search to f-values < bound
         }
