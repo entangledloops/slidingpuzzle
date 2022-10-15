@@ -551,7 +551,7 @@ def compare(
     hb=manhattan_distance,
     alga=A_STAR,
     algb=A_STAR,
-    num_iters: int = 4,
+    num_iters: int = 8,
     **kwargs,
 ) -> tuple[float, float]:
     """

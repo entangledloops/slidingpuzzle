@@ -72,9 +72,17 @@ As expected, greedy search finds a solution must faster than BFS, but the soluti
 
 We can get a rough comparison of two heuristics like this:
 ```python
->>> compare_heuristics(3, 3, manhattan_distance, euclidean_distance)
+>>> compare(3, 3, ha=manhattan_distance, hb=euclidean_distance)
 (1594.8666666666666, 3377.5)
 ```
+
+Or two algorithms:
+```python
+>>> compare(3, 3, alga="a*", algb="greedy")
+(2907.5, 618.0)
+```
+
+Or any combination of above.
 
 This tells us the average number of states expanded over multiple runs for each heuristic.
 In this case, `manhattan_distance` was superior.
