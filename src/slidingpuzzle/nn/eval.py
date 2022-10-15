@@ -50,7 +50,7 @@ def evaluate(
 
 def evaluate_checkpoint(
     model: torch.nn.Module,
-    epoch: int = None,
+    tag: str = None,
     num_iters: int = None,
     device: str = None,
     **kwargs,
@@ -66,8 +66,7 @@ def evaluate_checkpoint(
 
     if device is None:
         device = "cuda" if torch.cuda.is_available() else "cpu"
-
-    load_checkpoint(model, epoch=epoch)
+    load_checkpoint(model, tag=tag)
     model.to(device)
     heuristic = set_heuristic(model)
     if num_iters is None:
