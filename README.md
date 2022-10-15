@@ -76,16 +76,13 @@ We can get a rough comparison of two heuristics like this:
 (1594.8666666666666, 3377.5)
 ```
 
+The numbers are the average number of states expanded over `num_iters` runs for each heuristic.
+
 Or two algorithms:
 ```python
 >>> compare(3, 3, alga="a*", algb="greedy")
 (2907.5, 618.0)
 ```
-
-Or any combination of above.
-
-This tells us the average number of states expanded over multiple runs for each heuristic.
-In this case, `manhattan_distance` was superior.
 
 The default search is `A*` with `manhattan_distance` as the heuristic:
 
@@ -94,8 +91,6 @@ The default search is `A*` with `manhattan_distance` as the heuristic:
 solution=[3, 2, 8, 3, 6, 7, 3, 6, 7, 1, 4, 7, 2, 5, 7, 4, 1, 2, 5, 8]
 solution_len=20, generated=829, expanded=518, unvisited=312, visited=313
 ```
-
-In this case, it finds the optimal solution almost as quickly as greedy search.
 
 The solutions are actually stored as a list of (y, x)-coords of moves, indicating which tile is to be moved next:
 
@@ -272,12 +267,14 @@ You can save your model to disk to be used automatically as the default for `nn.
 >>> nn.save_model(model)
 ```
 
-Training automatically uses GPU if available and falls back to CPU otherwise.
+Your model will now be available whenever you import `slidingpuzzle.nn`.
 
 ```python
 >>> compare(3, 3, ha=manhattan_distance, hb=nn.v1_distance, num_iters=128, weight=7)
 (542.3671875, 85.203125)
 ```
+
+Training uses GPU if available and falls back to CPU otherwise.
 
 ## Custom Models
 

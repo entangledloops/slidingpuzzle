@@ -88,7 +88,7 @@ def test_shuffle_board(size):
     h, w = size
     board = new_board(h, w)
     shuffle_board(board)
-    r = search(board, algorithm="greedy", heuristic=manhattan_distance)
+    r = search(board, alg="greedy", heuristic=manhattan_distance)
     assert r.solution is not None
 
 
@@ -98,7 +98,7 @@ def test_shuffle_board_lazy(size):
     h, w = size
     board = new_board(h, w)
     shuffle_board_lazy(board)
-    r = search(board, algorithm="greedy", heuristic=manhattan_distance)
+    r = search(board, alg="greedy", heuristic=manhattan_distance)
     assert r.solution is not None
 
 

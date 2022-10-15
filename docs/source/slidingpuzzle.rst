@@ -1,18 +1,23 @@
-.. toctree::
-   :maxdepth: 1
-
-Sliding Puzzle Documentation
-============================
+slidingpuzzle package
+=====================
 
 .. automodule:: slidingpuzzle
    :members:
    :undoc-members:
 
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 1
+
+   slidingpuzzle.nn
+
 Submodules
 ----------
 
 slidingpuzzle.algorithms module
-----------------------------------
+-------------------------------
 
 .. automodule:: slidingpuzzle.algorithms
    :members:
@@ -20,12 +25,11 @@ slidingpuzzle.algorithms module
 
 
 slidingpuzzle.board module
-----------------------------------
+--------------------------
 
 .. automodule:: slidingpuzzle.board
    :members:
    :undoc-members:
-
 
 slidingpuzzle.heuristics module
 -------------------------------
@@ -34,7 +38,6 @@ slidingpuzzle.heuristics module
    :members:
    :undoc-members:
 
-
 slidingpuzzle.state module
 --------------------------
 
@@ -42,9 +45,3 @@ slidingpuzzle.state module
    :members:
    :undoc-members:
 
-slidingpuzzle.nn module
---------------------------
-
-.. automodule:: slidingpuzzle.nn
-   :members:
-   :undoc-members:

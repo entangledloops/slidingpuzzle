@@ -33,7 +33,7 @@ Examples:
     >>> r = search(b)
     >>> print_result(r)
     solution_len=20, generated=144704, expanded=103615, unvisited=41090, visited=54466
-    >>> r = search(b, algorithm="greedy", heuristic=manhattan_distance)
+    >>> r = search(b, "greedy" heuristic=manhattan_distance)
     >>> print_result(r)
     solution_len=36, generated=409, expanded=299, unvisited=111, visited=153
 """

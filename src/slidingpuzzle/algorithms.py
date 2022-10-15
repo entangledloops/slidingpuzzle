@@ -421,14 +421,14 @@ ALGORITHMS_MAP = {
 
 def search(
     board: tuple[list[int], ...],
-    algorithm: str = A_STAR,
+    alg: str = A_STAR,
     **kwargs,
 ) -> SearchResult:
     """
     Searches for a set of moves that take the provided board state to the
     solved state.
 
-    Requested algorithm may be one of:
+    Requested ``alg`` may be one of:
         "a*", "beam", "bfs", "dfs", "greedy", "ida*", "iddfs"
 
     See :mod:`heuristics` for heuristic functions or provide your own.
@@ -514,10 +514,10 @@ def search(
 
     if not is_solvable(board):
         raise ValueError("The provided board is not solvable.")
-    algorithm = algorithm.strip().lower()
-    if algorithm not in ALGORITHMS:
-        raise ValueError(f'Unknown algorithm: "{algorithm}"')
-    return ALGORITHMS_MAP[algorithm](board, **kwargs)
+    alg = alg.strip().lower()
+    if alg not in ALGORITHMS:
+        raise ValueError(f'Unknown algorithm: "{alg}"')
+    return ALGORITHMS_MAP[alg](board, **kwargs)
 
 
 def evaluate_heuristic(
@@ -539,7 +539,7 @@ def evaluate_heuristic(
     for _ in range(num_iters):
         board = new_board(h, w)
         shuffle_board(board)
-        result = search(board, algorithm=algorithm, heuristic=heuristic, **kwargs)
+        result = search(board, alg=algorithm, heuristic=heuristic, **kwargs)
         total += result.expanded
     return total / num_iters
 
@@ -566,8 +566,8 @@ def compare(
     for _ in range(num_iters):
         board = new_board(h, w)
         shuffle_board(board)
-        result = search(board, algorithm=alga, heuristic=ha, **kwargs)
+        result = search(board, alg=alga, heuristic=ha, **kwargs)
         total_a += result.expanded
-        result = search(board, algorithm=algb, heuristic=hb, **kwargs)
+        result = search(board, alg=algb, heuristic=hb, **kwargs)
         total_b += result.expanded
     return total_a / num_iters, total_b / num_iters

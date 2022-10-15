@@ -59,7 +59,7 @@ def test_search_slow(algorithm):
     b = new_board(3, 3)
     shuffle_board_lazy(b, 10)
     expected_len = len(search(b).solution)
-    actual = search(b, algorithm=algorithm, heuristic=manhattan_distance)
+    actual = search(b, alg=algorithm, heuristic=manhattan_distance)
     # best solution should be found (using default args)
     actual_len = len(actual.solution)
     assert expected_len == actual_len
@@ -73,7 +73,7 @@ def test_search(algorithm, heuristic):
     weight = 1
     result = search(
         board,
-        algorithm=algorithm,
+        alg=algorithm,
         heuristic=heuristic,
         weight=weight,
         width=4,
@@ -90,7 +90,7 @@ def test_search_hard():
     board = tuple([[8, 6, 7], [3, 5, 1], [2, 0, 4]])
     result = search(
         board,
-        algorithm=A_STAR,
+        alg=A_STAR,
         heuristic=manhattan_distance,
         weight=1,
     )
