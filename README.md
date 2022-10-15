@@ -275,8 +275,8 @@ You can save your model to disk to be used automatically as the default for `nn.
 Training automatically uses GPU if available and falls back to CPU otherwise.
 
 ```python
->>> compare(3, 3, ha=manhattan_distance, hb=nn.v1_distance, weight=5)
-(449.5, 57.75)
+>>> compare(3, 3, ha=manhattan_distance, hb=nn.v1_distance, num_iters=128, weight=7)
+(586.03125, 98.265625)
 ```
 
 ## Custom Models
