@@ -53,7 +53,7 @@ class Model_v1(nn.Module):
         return x
 
 
-def save_model(model: nn.Module, device: str = None) -> torch.ScriptModule:
+def save_model(model: nn.Module, device: str = None) -> None:
     """
     Save a traced version of the model into the "models" dir. Returns the traced model.
 
@@ -71,7 +71,6 @@ def save_model(model: nn.Module, device: str = None) -> torch.ScriptModule:
     traced_model = torch.jit.trace(model, example_inputs)
     traced_path = paths.get_model_path(model.h, model.w, model.version)
     traced_model.save(str(traced_path))
-    return traced_model
 
 
 def load_model(model: nn.Module, device: str = None) -> torch.ScriptModule:

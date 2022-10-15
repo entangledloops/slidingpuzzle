@@ -236,13 +236,25 @@ You can then train a new network easily:
 >>> nn.train(model)
 ```
 
-Now that your model is trained, you can register it for use:
+You will now have various model checkpoints available from training.
+To load a specific epoch:
+
+The model with highest accuracy on the test data is tagged `"acc"`.
+
+```python
+>>> checkpoint = nn.load_checkpoint(model, tag="acc")
+>>> checkpoint["epoch"]
+3540
+```
+
+(See the `checkpoints` directory for all trained models available to load by `tag`.)
+You can then register the model:
 
 ```python
 >>> nn.set_heuristic(model)
 ```
 
-Your heuristic is now available as `nn.v1_distance`. (These are associated behind the scenes via the `model.version` string.)
+Your model is now available as `nn.v1_distance`. (These are associated behind the scenes via the `model.version` string.)
 
 ```python
 >>> board = shuffle_board(new_board(3, 3))
@@ -261,6 +273,11 @@ You can save your model to disk to be used automatically as the default for `nn.
 ```
 
 Training automatically uses GPU if available and falls back to CPU otherwise.
+
+```python
+>>> compare(3, 3, ha=manhattan_distance, hb=nn.v1_distance, weight=5)
+(449.5, 57.75)
+```
 
 ## Custom Models
 
