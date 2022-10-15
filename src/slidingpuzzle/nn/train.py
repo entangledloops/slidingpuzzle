@@ -14,8 +14,6 @@
 
 """
 Utilities for training a new sliding tile puzzle model for computing heuristic value.
-
-The models compute h(board) -> [0, 1], where
 """
 
 import math
