@@ -204,15 +204,12 @@ may miss the goal, even thought the board is solvable.
 
 ## Heuristics
 
-Heuristics are most relevant for `"greedy"`, `"a*"`, and `"ida*"` as they are used to sort all known moves before selecting the next action.
-
-For other algorithms, the heuristic is only used to sort the local nodes. For example, when the `2 <= N <= 4` nearby available moves are generated they will be immediately sorted using the heuristic.
-
 The available heuristics are:
 - `euclidean_distance` - The straight line distance in Euclidean space between two tiles. This is essentially the hypotenuse of a right triangle. (The square root is not used as it does not affect the sorting order.)
 - `hamming_distance` - Count of how many tiles are in the correct position
 - `manhattan_distance` - Count of how many moves it would take each tile to arrive in the correct position, if other tiles could be ignored
 - `random_distance` - This is a random number (but a *consistent* random number for a given board state). It is useful as a baseline.
+- Neural net heuristics from `slidingpuzzle.nn` submodule (see section below)
 - Any heuristic you want! Just pass any function that accepts a board and returns a number. The lower the number, the closer the board is to the goal (lower = better).
 
 ### Neural Nets
