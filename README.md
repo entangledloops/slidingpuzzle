@@ -276,7 +276,7 @@ Training automatically uses GPU if available and falls back to CPU otherwise.
 
 ```python
 >>> compare(3, 3, ha=manhattan_distance, hb=nn.v1_distance, num_iters=128, weight=7)
-(586.03125, 98.265625)
+(542.3671875, 85.203125)
 ```
 
 ## Custom Models
