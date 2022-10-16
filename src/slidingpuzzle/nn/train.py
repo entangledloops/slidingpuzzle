@@ -253,14 +253,15 @@ def train(
                     model, optimizer, epoch=epoch, test_accuracy=test_accuracy
                 )
                 save_checkpoint(state, f"epoch_{epoch}")
-            # if we are using early quitting, check the trendline
             if early_quit_epochs > 0 and len(test_acc_window) == early_quit_epochs:
+                # if we are using early quitting, check the trendline
                 if linear_regression_beta(test_acc_window) < 0:
                     log.info(f"Early quit threshold reached at epoch {epoch}.")
                     break
 
     except KeyboardInterrupt:
-        log.error("Training interrupted.")
+        pbar.close()
+        log.info("Training interrupted.")
     finally:
         pbar.close()
 
