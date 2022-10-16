@@ -30,7 +30,7 @@ def get_heuristic_key(h: int, w: int, version: str):
     return f"{board_size_str}_{version}"
 
 
-def make_heuristic(model: torch.nn.Module):
+def make_heuristic(model: torch.nn.Module | torch.ScriptModule):
     device = next(model.parameters()).device
 
     def heuristic(board: tuple[list[int], ...]) -> float:
@@ -52,7 +52,9 @@ def get_heuristic(h, w, version):
     heuristic = MODEL_HEURISTICS.get(key, None)
     if heuristic is None:
         model = models.load_model(h, w, version)
-        heuristic = set_heuristic(model)
+        key = get_heuristic_key(h, w, version)
+        heuristic = make_heuristic(model)
+        MODEL_HEURISTICS[key] = heuristic
     return heuristic
 
 

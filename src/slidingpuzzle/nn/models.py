@@ -79,13 +79,13 @@ def save_model(model: nn.Module, device: str = None) -> None:
     traced_model.save(str(traced_path))
 
 
-def load_model(model: nn.Module, device: str = None) -> torch.ScriptModule:
+def load_model(h: int, w: int, version: str, device: str = None) -> torch.ScriptModule:
     """
     Reload a pre-trained traced model.
     """
     if device is None:
         device = "cuda" if torch.cuda.is_available() else "cpu"
-    model_path = paths.get_model_path(model.h, model.w, model.version)
+    model_path = paths.get_model_path(h, w, version)
     model = torch.jit.load(str(model_path), map_location=device)
     model.eval()
     return model

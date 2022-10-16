@@ -249,17 +249,7 @@ You can then register the model:
 
 Your model is now available as `nn.v1_distance`. (These are associated behind the scenes via the `model.version` string.)
 
-```python
->>> board = shuffle_board(new_board(3, 3))
->>> search(board)
-[solution=[8, 7, 3, 8, 7, 6, 5, 3, 8, 7, 6, 5, 3, 2, 1, 4, 7, 8, 5, 6]
-solution_len=20, generated=1350, expanded=864, unvisited=487, visited=503]
->>> search(board, heuristic=nn.v1_distance)
-[solution=[8, 6, 5, 7, 3, 8, 6, 3, 7, 5, 3, 6, 8, 7, 5, 2, 1, 4, 7, 8]
-solution_len=20, generated=662, expanded=406, unvisited=257, visited=247]
-```
-
-You can save your model to disk to be used automatically as the default for `nn.v1_distance`.
+You can save your model to disk to be used automatically anytime you use this package as the default for `nn.v1_distance`:
 
 ```python
 >>> nn.save_model(model)
