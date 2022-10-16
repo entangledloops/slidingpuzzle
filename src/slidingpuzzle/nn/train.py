@@ -74,7 +74,7 @@ def load_checkpoint(
         return checkpoint
     except FileNotFoundError:
         log.info("No model checkpoint found.")
-        return {"epoch": 0}
+        return {"epoch": 0, "test_accuracy": float("-inf")}
 
 
 def save_checkpoint(state: dict, tag: str = None) -> None:
@@ -126,7 +126,7 @@ def train(
     tensorboard_dir: str = paths.TENSORBOARD_DIR,
     seed: int = 0,
     checkpoint_freq: int = 50,
-    early_quit_epochs: int = 2000,
+    early_quit_epochs: int = 4000,
     **kwargs,
 ) -> None:
     """
@@ -158,7 +158,8 @@ def train(
         early_quit_epochs: We will hold an ``early_quit_epochs``-sized window of test
             accuracy values. If the linear regression slope is downward, we will
             terminate training early. Use 0 to disable this feature and always run
-            until ``num_epochs`` of training have completed.
+            until ``num_epochs`` of training have completed. If both this and
+            ``num_epochs`` are 0, training will run until interrupted.
         kwargs: Additional args that may be passed to :ref:`make_examples` when
             generating a new dataset. Can be used to customize the search algorithm
             used to find training examples if, for example, it is taking too long.
@@ -196,9 +197,9 @@ def train(
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model.to(device)
     optimizer = optim.SGD(model.parameters(), lr=0.0001, momentum=0.9)
-    epoch = load_checkpoint(model, optimizer, "latest")["epoch"]
+    highest_acc = load_checkpoint(model, optimizer, tag="acc")["test_accuracy"]
+    epoch = load_checkpoint(model, optimizer, tag="latest")["epoch"]
     criterion = nn.MSELoss()
-    highest_acc = float("-inf")
     test_acc_window = collections.deque(maxlen=early_quit_epochs)
 
     # prepare training loop
@@ -206,10 +207,15 @@ def train(
         log.info(f"initial epoch={epoch}, batch_size={batch_size}")
         epoch_iter = itertools.count(start=epoch)
     else:
-        log.info(f"initial epoch={epoch}/{num_epochs}, batch_size={batch_size}")
+        log.info(
+            f"initial epoch={epoch}/{num_epochs}, "
+            f"batch_size={batch_size}, "
+            f"highest_acc={highest_acc}"
+        )
         epoch_iter = range(epoch, num_epochs)
 
-    pbar = tqdm.tqdm(total=num_epochs if num_epochs else None, initial=epoch)
+    total_epochs = num_epochs if num_epochs else None
+    pbar = tqdm.tqdm(total=total_epochs, initial=epoch)
     try:
         for epoch in epoch_iter:
             model.train()  # every epoch b/c eval happens every epoch

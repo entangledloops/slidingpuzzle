@@ -40,11 +40,11 @@ class Model_v1(nn.Module):
         size = h * w
         self.flatten = nn.Flatten()
         self.linear1 = nn.Linear(size, size * 8, dtype=torch.float32)
-        self.dropout1 = nn.Dropout1d(0.1)
+        self.dropout1 = nn.Dropout1d(0.5)
         self.linear2 = nn.Linear(size * 8, size * 4, dtype=torch.float32)
-        self.dropout2 = nn.Dropout1d(0.1)
+        self.dropout2 = nn.Dropout1d(0.5)
         self.linear3 = nn.Linear(size * 4, size, dtype=torch.float32)
-        self.dropout3 = nn.Dropout1d(0.1)
+        self.dropout3 = nn.Dropout1d(0.5)
         self.linear4 = nn.Linear(size, 1, dtype=torch.float32)
 
     def forward(self, x):
