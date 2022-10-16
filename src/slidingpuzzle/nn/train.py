@@ -91,7 +91,7 @@ def launch_tensorboard(dirname: str) -> str:
     Returns:
         The launch URL.
     """
-    tensorboard.program.logger.setLevel("ERROR")
+    tensorboard.program.logger.setLevel(logging.ERROR)
     tb = tensorboard.program.TensorBoard()
     tb.configure(argv=[None, "--logdir", dirname])
     url = tb.launch()
