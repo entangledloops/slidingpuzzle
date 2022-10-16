@@ -229,6 +229,16 @@ You can then train a new network easily:
 >>> nn.train(model)
 ```
 
+**Note**: Unless you are providing your own dataset, for model sizes larger than `3 x 3` you probably need to pass `kwargs` to `train()` so that the search algorithm used for generating training example can find solutions in a reasonable timeframe. For example:
+
+```python
+>>> import slidingpuzzle.nn as nn
+>>> model = nn.Model_v1(4, 4, weight=2)  # use Weighted A* with weight of 2; all kwargs forwarded to search()
+>>> nn.train(model)
+```
+
+The default behavior of `train()` runs until it appears test accuracy has been declining for "a while". See the docs for `train()` for details.
+
 You will now have various model checkpoints available from training.
 To load a specific epoch:
 

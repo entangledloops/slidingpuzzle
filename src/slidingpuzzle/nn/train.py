@@ -126,7 +126,8 @@ def train(
     tensorboard_dir: str = paths.TENSORBOARD_DIR,
     seed: int = 0,
     checkpoint_freq: int = 50,
-    early_quit_epochs: int = 4000,
+    early_quit_epochs: int = 6000,
+    max_epochs: int = 0,
     **kwargs,
 ) -> None:
     """
@@ -156,10 +157,11 @@ def train(
         checkpoint_freq: Model will be checkpointed every time this many epochs
             complete. If 0, no epoch checkpointint will be used.
         early_quit_epochs: We will hold an ``early_quit_epochs``-sized window of test
-            accuracy values. If the linear regression slope is downward, we will
-            terminate training early. Use 0 to disable this feature and always run
-            until ``num_epochs`` of training have completed. If both this and
-            ``num_epochs`` are 0, training will run until interrupted.
+            accuracy values. If the linear regression slope of these data points is
+            < 0, we will terminate training early. Use 0 to disable this feature and
+            always run until ``num_epochs`` of training have completed. If both this
+            and ``num_epochs`` are 0, training will run until interrupted.
+        max_epochs: If non-0 and ``max_epochs`` is reached, training will be terminated
         kwargs: Additional args that may be passed to :ref:`make_examples` when
             generating a new dataset. Can be used to customize the search algorithm
             used to find training examples if, for example, it is taking too long.
@@ -265,8 +267,14 @@ def train(
             if early_quit_epochs > 0 and len(test_acc_window) == early_quit_epochs:
                 # if we are using early quitting, check the trendline
                 if linear_regression_beta(test_acc_window) < 0:
-                    log.info(f"Early quit threshold reached at epoch {epoch}.")
+                    log.info(
+                        f"Early quit threshold reached at epoch {epoch}, "
+                        f"highest_acc={highest_acc}"
+                    )
                     break
+            if max_epochs and epoch == max_epochs - 1:
+                log.info("Max epochs reached.")
+                break
 
     except KeyboardInterrupt:
         pbar.close()
