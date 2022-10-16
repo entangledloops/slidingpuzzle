@@ -94,7 +94,10 @@ def launch_tensorboard(dirname: str) -> str:
     tensorboard.program.logger.setLevel("ERROR")
     tb = tensorboard.program.TensorBoard()
     tb.configure(argv=[None, "--logdir", dirname])
-    return tb.launch()
+    url = tb.launch()
+    werkzeug = logging.getLogger("werkzeug")
+    werkzeug.setLevel(logging.ERROR)
+    return url
 
 
 def linear_regression_beta(data):
