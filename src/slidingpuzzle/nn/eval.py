@@ -48,7 +48,7 @@ def evaluate(
     return running_loss / len(dataset), running_accuracy / len(dataset)
 
 
-def evaluate_checkpoint(
+def eval_checkpoint(
     model: torch.nn.Module,
     tag: str = None,
     num_iters: int = None,
@@ -60,7 +60,7 @@ def evaluate_checkpoint(
     ``evaluate_heuristic``, returning the result. If ``epoch`` is not provided, the
     latest checkpoint is used.
     """
-    from slidingpuzzle.algorithms import evaluate_heuristic
+    from slidingpuzzle.algorithms import eval_heuristic
     from slidingpuzzle.nn.train import load_checkpoint
     from slidingpuzzle.nn.heuristics import set_heuristic
 
@@ -70,8 +70,8 @@ def evaluate_checkpoint(
     model.to(device)
     heuristic = set_heuristic(model)
     if num_iters is None:
-        return evaluate_heuristic(model.h, model.w, heuristic=heuristic, **kwargs)
+        return eval_heuristic(model.h, model.w, heuristic=heuristic, **kwargs)
     else:
-        return evaluate_heuristic(
+        return eval_heuristic(
             model.h, model.w, heuristic=heuristic, num_iters=num_iters, **kwargs
         )

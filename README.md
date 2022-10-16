@@ -268,8 +268,8 @@ You can save your model to disk to be used automatically as the default for `nn.
 Your model will now be available whenever you import `slidingpuzzle.nn`.
 
 ```python
->>> compare(3, 3, ha=manhattan_distance, hb=nn.v1_distance, num_iters=128, weight=7)
-(542.3671875, 85.203125)
+>>> compare(3, 3, ha=nn.v1_distance, hb=manhattan_distance, num_iters=128, weight=7)
+(73.375, 514.1328125)
 ```
 
 Training uses GPU if available and falls back to CPU otherwise.
@@ -309,13 +309,25 @@ You can add your `my_model_distance()` function to the bottom of `nn/heuristics.
 During training, tensorboard will show your training/test loss and accuracy.
 After training is complete, you can also evaluate each checkpoint for comparison.
 
-For example, to run each checkpoint on 10 random boards starting from epoch 650:
+For example, to evaluate a specific epoch:
 
 ```python
->>> nn.evaluate_checkpoint(model, epoch)
+>>> nn.eval_checkpoint(model, tag="epoch_649")
 ```
 
-The call to `evaluate_checkpoint()` will automatically load the model weights from the checkpoint file for `epoch` and run `evaluate_heuristic()`.
+Or the highest accuracy observed:
+
+```python
+>>> nn.eval_checkpoint(model, tag="acc", num_iters=128)
+```
+
+Or the latest model epoch:
+
+```python
+>>> nn.eval_checkpoint(model, tag="latest", num_iters=128)
+```
+
+The call to `eval_checkpoint()` will automatically load the model weights from the checkpoint file and run `eval_heuristic()`.
 
 
 ## Creating a Pull Request

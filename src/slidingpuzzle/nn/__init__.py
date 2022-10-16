@@ -27,7 +27,7 @@ from slidingpuzzle.nn.dataset import (
 from slidingpuzzle.nn.eval import (
     accuracy,
     evaluate,
-    evaluate_checkpoint,
+    eval_checkpoint,
 )
 
 from slidingpuzzle.nn.heuristics import (

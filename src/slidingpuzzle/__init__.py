@@ -71,10 +71,15 @@ from slidingpuzzle.algorithms import (
     IDDFS,
     ALGORITHMS,
     compare,
-    evaluate_heuristic,
+    eval_heuristic,
     get_next_states,
     search,
     swap_tiles,
 )
 
 from slidingpuzzle.state import SearchResult, State
+
+import logging
+
+
+logging.basicConfig(level=logging.INFO)

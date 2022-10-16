@@ -522,7 +522,7 @@ def search(
     return ALGORITHMS_MAP[alg](board, **kwargs)
 
 
-def evaluate_heuristic(
+def eval_heuristic(
     h: int,
     w: int,
     heuristic,

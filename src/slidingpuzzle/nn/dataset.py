@@ -17,6 +17,7 @@ Utilities for creating, saving, and loading board datasets.
 """
 
 import json
+import logging
 
 import torch
 import torch.utils
@@ -25,6 +26,9 @@ import tqdm
 import slidingpuzzle.algorithms as algorithms
 import slidingpuzzle.board as board_
 import slidingpuzzle.nn.paths as paths
+
+
+log = logging.getLogger(__name__)
 
 
 class SlidingPuzzleDataset(torch.utils.data.Dataset):
@@ -67,7 +71,7 @@ def make_examples(h, w, num_examples, ignore_examples=None, **kwargs) -> list[tu
             if board_.visit(visited, board):
                 dupe_found = True
         if dupe_found:
-            print("WARNING: Duplicate found in prior examples.")
+            log.warning("Duplicate found in prior examples.")
 
     with tqdm.tqdm(total=num_examples) as pbar:
         while len(examples) < num_examples:
@@ -124,7 +128,7 @@ def get_examples(h: int, w: int, num_examples: int, prior_examples: list, **kwar
         examples = examples[:num_examples]
     if len(examples) < num_examples:
         num_new_examples = num_examples - len(prior_examples)
-        print(f"Constructing {num_new_examples} new examples...")
+        log.info(f"Constructing {num_new_examples} new examples...")
         examples.extend(make_examples(h, w, num_new_examples, prior_examples, **kwargs))
     return examples
 
@@ -154,12 +158,12 @@ def load_or_build_dataset(
     Returns:
         A dataset for the requested puzzle size.
     """
-    print("Loading dataset...")
+    log.info("Loading dataset...")
     try:
         examples = load_examples(h, w, examples_file)
-        print(f"Dataset loaded with {len(examples)} examples.")
+        log.info(f"Dataset loaded with {len(examples)} examples.")
     except FileNotFoundError:
-        print("No dataset found.")
+        log.info("No dataset found.")
         examples = []
 
     # if we were asked for a different number of examples than we have on hand
@@ -168,7 +172,7 @@ def load_or_build_dataset(
         # if we made new examples, save them for next time
         if len(new_examples) > len(examples):
             save_examples(h, w, new_examples, examples_file)
-            print("Dataset saved.")
+            log.info("Dataset saved.")
         examples = new_examples
 
     return SlidingPuzzleDataset(examples)
