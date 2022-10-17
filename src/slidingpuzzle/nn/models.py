@@ -55,7 +55,7 @@ class Model_v1(nn.Module):
 
 def save_model(model: nn.Module, device: str = None) -> None:
     """
-    Save a traced version of the model into the "models" dir. Returns the traced model.
+    Save a frozen version of the model into the "models" dir.
 
     Args:
         model: The trained model.
@@ -66,16 +66,17 @@ def save_model(model: nn.Module, device: str = None) -> None:
         device = "cuda" if torch.cuda.is_available() else "cpu"
     model.eval()
     model.to(device)
+    path = paths.get_model_path(model.h, model.w, model.version)
     board = board_.new_board(model.h, model.w)
     example_inputs = torch.tensor(board, dtype=torch.float32).unsqueeze(0).to(device)
     traced_model = torch.jit.trace(model, example_inputs)
-    traced_path = paths.get_model_path(model.h, model.w, model.version)
-    traced_model.save(str(traced_path))
+    frozen_model = torch.jit.freeze(traced_model)
+    frozen_model.save(str(path))
 
 
 def load_model(h: int, w: int, version: str, device: str = None) -> torch.ScriptModule:
     """
-    Reload a pre-trained traced model.
+    Reload a pre-trained frozen model.
     """
     if device is None:
         device = "cuda" if torch.cuda.is_available() else "cpu"
