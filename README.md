@@ -76,7 +76,8 @@ We can get a rough comparison of two heuristics like this:
 
 The numbers are the average number of states expanded over `num_iters` runs for each heuristic.
 
-Or two algorithms:
+Or we can compare two algorithms:
+
 ```python
 >>> compare(3, 3, alga="a*", algb="greedy")
 (2907.5, 618.0)
@@ -240,7 +241,6 @@ You can then train a new network easily:
 The default behavior of `train()` runs until it appears test accuracy has been declining for "a while". See the docs for `train()` for details.
 
 You will now have various model checkpoints available from training.
-To load a specific epoch:
 
 The model with highest accuracy on the test data is tagged `"acc"`.
 
@@ -250,7 +250,14 @@ The model with highest accuracy on the test data is tagged `"acc"`.
 3540
 ```
 
+Or to load a specific epoch:
+
+```python
+>>> checkpoint = nn.load_checkpoint(model, tag="epoch_1499")
+```
+
 (See the `checkpoints` directory for all trained models available to load by `tag`.)
+
 You can then register the model:
 
 ```python
