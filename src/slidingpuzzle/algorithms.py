@@ -159,7 +159,7 @@ def beam(board: tuple[list[int], ...], **kwargs) -> SearchResult:
         for state in next_states:
             state.f = heuristic(state.board)
         next_states.sort()
-        next_states = next_states[-width:]
+        next_states = next_states[:width]
         unvisited.extend(next_states)
         generated += len(next_states)
 
