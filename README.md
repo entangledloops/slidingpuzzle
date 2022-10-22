@@ -56,9 +56,9 @@ The boards are just a `tuple` of `list[int]`. The number `0` is reserved for the
 False
 ```
 
-Not all board configurations are solvable. The [`search()`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html#slidingpuzzle.slidingpuzzle.search) routine will validate the board before beginning, and may throw a `ValueError` if the board is illegal.
+Not all board configurations are solvable. The [`search`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html#slidingpuzzle.slidingpuzzle.search) routine will validate the board before beginning, and may throw a `ValueError` if the board is illegal.
 
-The default search is `A*` with `manhattan_distance` as the heuristic:
+The default search is [`A*`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html#slidingpuzzle.algorithms.a_star) with [`manhattan_distance`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html#slidingpuzzle.heuristics.manhattan_distance) as the heuristic:
 
 ```python
 >>> search(b)
@@ -74,7 +74,7 @@ solution_len=42, generated=711, expanded=490, unvisited=222, visited=258
 
 As expected, greedy search finds a solution must faster than BFS, but the solution is of lower quality.
 
-We can get a rough comparison of two heuristics like this:
+We can [`compare`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html#slidingpuzzle.algorithms.compare) two heuristics like this:
 ```python
 >>> compare(3, 3, ha=manhattan_distance, hb=euclidean_distance)
 (1594.8666666666666, 3377.5)
@@ -97,7 +97,7 @@ The solutions are actually stored as a list of (y, x)-coords of moves, indicatin
 [(2, 1), (2, 2), (1, 2), (1, 1), (0, 1), (0, 2), (1, 2), (1, 1), (0, 1), (0, 0), (1, 0), (1, 1), (2, 1), (2, 0), (1, 0), (0, 0), (0, 1), (1, 1), (2, 1), (2, 2)]
 ```
 
-If you are working with a physical puzzle and actual tile numbers would be easier to read, you can obtain them the same way `str(SearchResult)` does internally:
+If you are working with a physical puzzle and actual tile numbers would be easier to read, you can obtain them the same way `str(`[`SearchResult`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html#slidingpuzzle.state.SearchResult)`)` does, using the convenience function [`solution_as_tiles`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html#slidingpuzzle.board.solution_as_tiles):
 
 ```python
 >>> solution_as_tiles(result.board, result.solution)
@@ -111,16 +111,16 @@ If you are working with a physical puzzle and actual tile numbers would be easie
 ('a*', 'beam', 'bfs', 'dfs', 'greedy', 'ida*', 'iddfs')
 ```
 
-The available algorithms for [`search()`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html#slidingpuzzle.slidingpuzzle.search) are:
-- `"a*"` - [A* search](https://en.wikipedia.org/wiki/A*_search_algorithm)
-- `"beam"` - [Beam search](https://en.wikipedia.org/wiki/Beam_search)
-- `"bfs"` (*default*) - [Breadth-first search](https://en.wikipedia.org/wiki/Breadth-first_search)
-- `"dfs"` - [Depth-first search](https://en.wikipedia.org/wiki/Depth-first_search)
-- `"greedy"` - [Greedy best-first search](https://en.wikipedia.org/wiki/Best-first_search#Greedy_BFS)
-- `"ida*"` - [Iterative deepening A*](https://en.wikipedia.org/wiki/Iterative_deepening_A*)
-- `"iddfs"` - [Iterative deepening depth-first search](https://en.wikipedia.org/wiki/Iterative_deepening_depth-first_search)
+The available algorithms for [`search`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html#slidingpuzzle.slidingpuzzle.search) are:
+- `"a*"` - [Docs](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html#slidingpuzzle.algorithms.a_star), [Wiki](https://en.wikipedia.org/wiki/A*_search_algorithm)
+- `"beam"` - [Docs](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html#slidingpuzzle.algorithms.beam), [Wiki](https://en.wikipedia.org/wiki/Beam_search)
+- `"bfs"` (*default*) - [Docs](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html#slidingpuzzle.algorithms.bfs), [Wiki](https://en.wikipedia.org/wiki/Breadth-first_search)
+- `"dfs"` - [Docs](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html#slidingpuzzle.algorithms.dfs), [Wiki](https://en.wikipedia.org/wiki/Depth-first_search)
+- `"greedy"` - [Docs](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html#slidingpuzzle.algorithms.greedy), [Wiki](https://en.wikipedia.org/wiki/Best-first_search#Greedy_BFS)
+- `"ida*"` - [Docs](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html#slidingpuzzle.algorithms.ida_star), [Wiki](https://en.wikipedia.org/wiki/Iterative_deepening_A*)
+- `"iddfs"` - [Docs](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html#slidingpuzzle.algorithms.iddfs), [Wiki](https://en.wikipedia.org/wiki/Iterative_deepening_depth-first_search)
 
-Some algorithms support additional customization via `kwargs`. These are:
+All algorithms support behavior customization via `kwargs`. These are:
 
     a*: {
         "depth_bound": default is float("inf"),

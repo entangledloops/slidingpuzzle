@@ -72,6 +72,28 @@ def get_next_states(state: State) -> list[State]:
 
 
 def a_star(board: tuple[list[int], ...], **kwargs) -> SearchResult:
+    """
+    A* heuristic search algorithm.
+    Supports weights, depth bounds, and f-bounds.
+    The distance of a search state from the goal is computed as:
+    ``f(n) = g(n) + w * h(n)``, or equivalently
+    ``f(n) = len(state.history) + weight * heuristic(state.board)``
+    Here, ``g(n)`` is the cost of the solution so far, ``w`` is the weight, and
+    ``h(n)`` is the heuristic evaluation. When no heuristic is used, A* becomes
+    breadth-first search. When ``weight != 1`` or an inadmissable heuristic is used,
+    A* may return a suboptimal solution.
+
+    Args:
+        board: The board
+        depth_bound: A limit to search depth
+        f_bound: A limit on state cost
+        detect_dupes: Whether to use duplicate detection (i.e. track visited states)
+        heuristic: A function that maps boards to an estimated distance from goal
+        weight: A constant multiplier on heuristic evaluation
+
+    Returns:
+        A :class:`slidingpuzzle.state.SearchResult` with a solution and statistics
+    """
     # args
     depth_bound = kwargs.get("depth_bound", float("inf"))
     f_bound = kwargs.get("f_bound", float("inf"))
@@ -119,6 +141,23 @@ def a_star(board: tuple[list[int], ...], **kwargs) -> SearchResult:
 
 
 def beam(board: tuple[list[int], ...], **kwargs) -> SearchResult:
+    """
+    Beam search is a variant of breadth-first search that sorts its children using a
+    heuristic function and then drops child states to match the beam width. This search
+    is incomplete, meaning it may miss a solution although it exists. It is useful for
+    limiting memory usage in large search spaces.
+
+    Args:
+        board: The board
+        depth_bound: A limit to search depth
+        f_bound: A limit on state cost
+        detect_dupes: Whether to use duplicate detection (i.e. track visited states)
+        heuristic: A function that maps boards to an estimated distance from goal
+        width: The beam width
+
+    Returns:
+        A :class:`slidingpuzzle.state.SearchResult` with a solution and statistics
+    """
     # args
     depth_bound = kwargs.get("depth_bound", float("inf"))
     f_bound = kwargs.get("f_bound", float("inf"))
@@ -168,6 +207,17 @@ def beam(board: tuple[list[int], ...], **kwargs) -> SearchResult:
 
 
 def bfs(board: tuple[list[int], ...], **kwargs) -> SearchResult:
+    """
+    Breadth-first search
+
+    Args:
+        board: The board
+        depth_bound: A limit to search depth
+        detect_dupes: Whether to use duplicate detection (i.e. track visited states)
+
+    Returns:
+        A :class:`slidingpuzzle.state.SearchResult` with a solution and statistics
+    """
     # args
     depth_bound = kwargs.get("depth_bound", float("inf"))
     detect_dupes = kwargs.get("detect_dupes", True)
@@ -210,6 +260,17 @@ def bfs(board: tuple[list[int], ...], **kwargs) -> SearchResult:
 
 
 def dfs(board: tuple[list[int], ...], **kwargs) -> SearchResult:
+    """
+    Depth-first search
+
+    Args:
+        board: The board
+        depth_bound: A limit to search depth
+        detect_dupes: Whether to use duplicate detection (i.e. track visited states)
+
+    Returns:
+        A :class:`slidingpuzzle.state.SearchResult` with a solution and statistics
+    """
     # args
     depth_bound = kwargs.get("depth_bound", float("inf"))
     detect_dupes = kwargs.get("detect_dupes", True)
@@ -252,6 +313,20 @@ def dfs(board: tuple[list[int], ...], **kwargs) -> SearchResult:
 
 
 def greedy(board: tuple[list[int], ...], **kwargs) -> SearchResult:
+    """
+    Greedy best-first search. This search orders all known states using the provided
+    heuristic and greedily chooses the state closest to the goal.
+
+    Args:
+        board: The board
+        depth_bound: A limit to search depth
+        f_bound: A limit on state cost
+        detect_dupes: Whether to use duplicate detection (i.e. track visited states)
+        heuristic: A function that maps boards to an estimated distance from goal
+
+    Returns:
+        A :class:`slidingpuzzle.state.SearchResult` with a solution and statistics
+    """
     # args
     depth_bound = kwargs.get("depth_bound", float("inf"))
     f_bound = kwargs.get("f_bound", float("inf"))
@@ -298,6 +373,21 @@ def greedy(board: tuple[list[int], ...], **kwargs) -> SearchResult:
 
 
 def ida_star(board: tuple[list[int], ...], **kwargs) -> SearchResult:
+    """
+    Iterative deepening A*. A depth-first search that uses an f-bound instead of depth
+    to limit search. The next bound is set to the minimum increase in f-bound observed
+    during the current iteration. See :func:`a_star`.
+
+    Args:
+        board: The board
+        depth_bound: A limit to search depth
+        detect_dupes: Whether to use duplicate detection (i.e. track visited states)
+        heuristic: A function that maps boards to an estimated distance from goal
+        weight: A constant multiplier on heuristic evaluation
+
+    Returns:
+        A :class:`slidingpuzzle.state.SearchResult` with a solution and statistics
+    """
     # args
     depth_bound = kwargs.get("depth_bound", float("inf"))
     detect_dupes = kwargs.get("detect_dupes", True)
@@ -358,6 +448,17 @@ def ida_star(board: tuple[list[int], ...], **kwargs) -> SearchResult:
 
 
 def iddfs(board: tuple[list[int], ...], **kwargs) -> SearchResult:
+    """
+    Iterative deepening depth first search. Same as :func:`dfs`, except that the depth
+    bound is incrementally increased until a solution is found.
+
+    Args:
+        board: The board
+        detect_dupes: Whether to use duplicate detection (i.e. track visited states)
+
+    Returns:
+        A :class:`slidingpuzzle.state.SearchResult` with a solution and statistics
+    """
     # args
     detect_dupes = kwargs.get("detect_dupes", True)
 
@@ -431,7 +532,8 @@ def search(
     Requested ``alg`` may be one of:
         "a*", "beam", "bfs", "dfs", "greedy", "ida*", "iddfs"
 
-    See :mod:`heuristics` for heuristic functions or provide your own.
+    See :mod:`slidingpuzzle.heuristics` for heuristic functions or provide
+    your own.
 
     If a heuristic is provided with "bfs", "dfs", or "iddfs", it is only used
     to sort the locally generated nodes on each expansion, but not the entire
@@ -506,12 +608,12 @@ def search(
     Args:
         board: The initial board state to search.
         algorithm (str): The algorithm to use for search.
-            Use print(ALGORITHMS) to see available.
+            Use ``print(ALGORITHMS)`` to see available.
         kwargs: Algorithm arguments as described above.
 
     Returns:
-        Returns a :class:`SearchResult` containing a list of moves to solve the
-        puzzle from the initial state along with some search statistics.
+        Returns a :class:`slidingpuzzle.state.SearchResult` containing a list of moves
+        to solve the puzzle from the initial state along with some search statistics.
     """
 
     if not is_solvable(board):
