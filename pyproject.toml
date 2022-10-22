@@ -4,11 +4,11 @@ build-backend = "hatchling.build"
 
 [project]
 name = "slidingpuzzle"
-version = "0.0.11"
+version = "0.0.12"
 authors = [
   { name="Stephen Dunn", email="dunn.stephen@gmail.com" },
 ]
-description = "Sliding Puzzle solver and utilities"
+description = "Sliding Puzzle solver"
 readme = "README.md"
 requires-python = ">=3.10"
 classifiers = [

@@ -14,7 +14,7 @@
   - [Custom Models](#custom-models)
   - [Creating a Pull Request](#creating-a-pull-request)
 
-A package for solving and working with sliding tile puzzles.
+A package for solving sliding tile puzzles.
 
 ## Installation
 
@@ -146,9 +146,9 @@ weight: 14, solution_len: 43, expanded: 733
 weight: 15, solution_len: 43, expanded: 782
 ```
 
-With the default parameters, we see that A* finds the optimal solution after expanding `1086` states. If we are willing to sacrifice optimality of the solution, we can try different weights to tradeoff solution quality for search time. Note that for a given problem and quality criteria, there will be an optimal weight. Beyond a certain point, the weight will have no positive effect. In the example above, using weights beyond `~38` produces further change in neither solution quality nor nodes expanded.
+With the default parameters, we see that A* finds the optimal solution after expanding `1086` states. If we are willing to sacrifice optimality of the solution, we can try different weights to tradeoff solution quality for search time. Beyond a certain point, the weight will have no positive effect. In the example above, using weights beyond `~38` produces further change in neither solution quality nor nodes expanded.
 
-Of the provided algorithms, only beam search is incomplete. This means it
+Of the provided algorithms, only beam search is incomplete by default. This means it
 may miss the goal, even thought the board is solvable.
 
 ## Heuristics
@@ -168,6 +168,7 @@ Well-trained neural networks are generally superior to the other heuristics. Pre
 ```console
 pip install -r requirements-nn.txt
 ```
+> **_Note:_**  This will install the CPU version of PyTorch. If you want GPU support, you will need to follow the [official instructions](https://pytorch.org/).
 
 You can then train a new network easily:
 
@@ -176,8 +177,7 @@ You can then train a new network easily:
 >>> model = nn.Model_v1(3, 3)
 >>> nn.train(model)
 ```
-
-**Note**: Unless you are providing your own dataset, for model sizes larger than `3 x 3` you probably need to pass `kwargs` to [`train()`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.nn.html#slidingpuzzle.nn.train.train) so that the search algorithm used for generating training example can find solutions in a reasonable timeframe. For example:
+> **_Note:_**  Unless you are providing your own dataset, for model sizes larger than `3 x 3` you probably need to pass `kwargs` to [`train()`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.nn.html#slidingpuzzle.nn.train.train) so that the search algorithm used for generating training example can find solutions in a reasonable timeframe. For example:
 
 ```python
 >>> import slidingpuzzle.nn as nn
