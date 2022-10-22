@@ -29,8 +29,8 @@ def euclidean_distance(board: tuple[list[int], ...]) -> float:
     The distance between each tile and its destination, as measured in Euclidean space
 
     .. math::
-        \sum_{i}^{n} \sqrt{(\\text{tile}_{i, x} - \\text{goal}_{i, x})^2 + \\
-            (\\text{tile}_{i, y} - \\text{goal}_{i, y})^2}
+        \sum_{i}^{n} \sqrt{(\text{tile}_{i, x} - \text{goal}_{i, x})^2 + \
+            (\text{tile}_{i, y} - \text{goal}_{i, y})^2}
 
     Args:
         board: The board
@@ -55,7 +55,7 @@ def hamming_distance(board: tuple[list[int], ...]) -> int:
     The count of misplaced tiles.
 
     .. math::
-        \sum_{i}^{n} \\text{tile}_i \oplus \\text{goal}_i
+        \sum_{i}^{n} \text{tile}_i \oplus \text{goal}_i
 
     Args:
         board: The board
@@ -82,8 +82,8 @@ def manhattan_distance(board: tuple[list[int], ...]) -> int:
     could be moved through each other.
 
     .. math::
-        \sum_{i}^{n} |\\text{tile}_{i, x} - \\text{goal}_{i, x}| + \\
-            |\\text{tile}_{i, y} - \\text{goal}_{i, y}|
+        \sum_{i}^{n} |\text{tile}_{i, x} - \text{goal}_{i, x}| + \
+            |\text{tile}_{i, y} - \text{goal}_{i, y}|
 
     Args:
         board: The board
@@ -108,7 +108,7 @@ def random_distance(board: tuple[list[int], ...]) -> int:
     A random distance computed as a hash of the board state. Useful as a baseline.
 
     .. math::
-        hash(\\text{board})
+        hash(\text{board})
 
     Args:
         board: The board
