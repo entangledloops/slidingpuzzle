@@ -15,9 +15,6 @@
 """
 A package for solving and working with sliding tile puzzles.
 
-All submodule code is imported into the parent namespace, so there is no need
-to explicitly refer to submodules.
-
 Examples:
     >>> from slidingpuzzle import *
     >>> b = new_board(3, 3)
