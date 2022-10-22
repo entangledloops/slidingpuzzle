@@ -19,7 +19,7 @@ A package for solving and working with sliding tile puzzles.
 ## Installation
 
 ```console
-$ pip install slidingpuzzle
+pip install slidingpuzzle
 ```
 
 ## Documentation
@@ -166,7 +166,7 @@ The available heuristics are:
 Well-trained neural networks are generally superior to the other heuristics. Pre-trained nets will be available for download soon. For now, you can follow the steps below to train and use your own net from scratch using the models defined in [`slidingpuzzle.nn.models`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.nn.html#module-slidingpuzzle.nn.models).
 
 ```console
-$ pip install -r requirements-nn.txt
+pip install -r requirements-nn.txt
 ```
 
 You can then train a new network easily:
@@ -290,26 +290,26 @@ First of all, thanks for contributing!
 Setup your dev environment:
 
 ```console
-$ pip install -r requirements-dev.txt
-$ pre-commit install
+pip install -r requirements-dev.txt
+pre-commit install
 ```
 
 First and **most importantly** verify you haven't broken anything by running [`pytest`](https://pypi.org/project/pytest/):
 ```console
-$ pytest
+pytest
 ```
 
 Don't forget to add new tests for anything you've added.
 
 You can also run `mypy` and look for any new violations:
 ```console
-$ mypy src
+mypy src
 ```
 
 Finally, check that the docs look correct:
 ```console
-$ cd docs
-$ ./make html
+cd docs
+./make html
 ```
 
 [`Black`](https://pypi.org/project/black/) and [`flake8`](https://pypi.org/project/flake8/) are used for formatting and linting, but they are automatically run by the pre-commit hooks installed in the Git repo.
