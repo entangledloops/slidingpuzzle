@@ -18,8 +18,8 @@ A package for solving and working with sliding tile puzzles.
 
 ## Installation
 
-```bash
-pip install slidingpuzzle
+```console
+$ pip install slidingpuzzle
 ```
 
 ## Documentation
@@ -56,7 +56,7 @@ The boards are just a `tuple` of `list[int]`. The number `0` is reserved for the
 False
 ```
 
-Not all board configurations are solvable. The [`search`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html#slidingpuzzle.slidingpuzzle.search) routine will validate the board before beginning, and may throw a `ValueError` if the board is illegal.
+Not all board configurations are solvable. The [`search()`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html#slidingpuzzle.slidingpuzzle.search) routine will validate the board before beginning, and may throw a `ValueError` if the board is illegal.
 
 The default search is [`A*`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html#slidingpuzzle.algorithms.a_star) with [`manhattan_distance`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html#slidingpuzzle.heuristics.manhattan_distance) as the heuristic:
 
@@ -74,7 +74,7 @@ solution_len=42, generated=711, expanded=490, unvisited=222, visited=258
 
 As expected, greedy search finds a solution must faster than BFS, but the solution is of lower quality.
 
-We can [`compare`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html#slidingpuzzle.algorithms.compare) two heuristics like this:
+We can [`compare()`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html#slidingpuzzle.algorithms.compare) two heuristics like this:
 ```python
 >>> compare(3, 3, ha=manhattan_distance, hb=euclidean_distance)
 (1594.8666666666666, 3377.5)
@@ -97,7 +97,7 @@ The solutions are actually stored as a list of (y, x)-coords of moves, indicatin
 [(2, 1), (2, 2), (1, 2), (1, 1), (0, 1), (0, 2), (1, 2), (1, 1), (0, 1), (0, 0), (1, 0), (1, 1), (2, 1), (2, 0), (1, 0), (0, 0), (0, 1), (1, 1), (2, 1), (2, 2)]
 ```
 
-If you are working with a physical puzzle and actual tile numbers would be easier to read, you can obtain them the same way `str(`[`SearchResult`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html#slidingpuzzle.state.SearchResult)`)` does, using the convenience function [`solution_as_tiles`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html#slidingpuzzle.board.solution_as_tiles):
+If you are working with a physical puzzle and actual tile numbers would be easier to read, you can obtain them the same way `str(`[`SearchResult`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html#slidingpuzzle.state.SearchResult)`)` does, using the convenience function [`solution_as_tiles()`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html#slidingpuzzle.board.solution_as_tiles):
 
 ```python
 >>> solution_as_tiles(result.board, result.solution)
@@ -111,7 +111,7 @@ If you are working with a physical puzzle and actual tile numbers would be easie
 ('a*', 'beam', 'bfs', 'dfs', 'greedy', 'ida*', 'iddfs')
 ```
 
-The available algorithms for [`search`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html#slidingpuzzle.slidingpuzzle.search) are:
+The available algorithms are:
 - `"a*"` - [Docs](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html#slidingpuzzle.algorithms.a_star), [Wiki](https://en.wikipedia.org/wiki/A*_search_algorithm)
 - `"beam"` - [Docs](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html#slidingpuzzle.algorithms.beam), [Wiki](https://en.wikipedia.org/wiki/Beam_search)
 - `"bfs"` (*default*) - [Docs](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html#slidingpuzzle.algorithms.bfs), [Wiki](https://en.wikipedia.org/wiki/Breadth-first_search)
@@ -120,58 +120,7 @@ The available algorithms for [`search`](https://slidingtilepuzzle.readthedocs.io
 - `"ida*"` - [Docs](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html#slidingpuzzle.algorithms.ida_star), [Wiki](https://en.wikipedia.org/wiki/Iterative_deepening_A*)
 - `"iddfs"` - [Docs](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html#slidingpuzzle.algorithms.iddfs), [Wiki](https://en.wikipedia.org/wiki/Iterative_deepening_depth-first_search)
 
-All algorithms support behavior customization via `kwargs`. These are:
-
-    a*: {
-        "depth_bound": default is float("inf"),
-            restrict search to depth < depth_bound
-        "detect_dupes": default is True,
-            if False, will trade time for memory savings
-        "f_bound": default is float("inf"),
-            restricts search to f-values < bound
-        "heuristic": default is manhattan_distance
-        "weight": default is 1
-    }
-    beam: {
-        "depth_bound": default is float("inf"),
-            restrict search to depth < depth_bound
-        "detect_dupes": default is True,
-            if False, will trade time for memory savings
-        "f_bound": default is float("inf"),
-            restricts search to f-values < bound
-        "heuristic": default is manhattan_distance
-        "width", default is 3
-    }
-    bfs: {
-        "depth_bound": default is float("inf"),
-            restrict search to depth < depth_bound
-        "detect_dupes": default is True,
-            if False, will trade time for memory savings
-    }
-    dfs: {
-        "depth_bound": default is float("inf")
-            restrict search to depth < depth_bound
-        "detect_dupes": default is True,
-            if False, will trade time for memory savings
-    }
-    greedy: {
-        "depth_bound": default is float("inf"),
-            restrict search to depth < depth_bound
-        "f_bound": default is float("inf"),
-            restricts search to f-values < bound
-    }
-    ida*: {
-        "depth_bound": default is float("inf")
-            restrict search to depth < depth_bound
-        "detect_dupes": default is True,
-            if False, will trade time for memory savings
-        "heuristic": default is manhattan_distance
-        "weight": default is 1
-    }
-    iddfs: {
-        "detect_dupes": default is True,
-            if False, will trade time for memory savings
-    }
+All algorithms support behavior customization via `kwargs`. See the docs for individual algorithms linked above.
 
 Example:
 
@@ -205,19 +154,19 @@ may miss the goal, even thought the board is solvable.
 ## Heuristics
 
 The available heuristics are:
-- `euclidean_distance` - The straight line distance in Euclidean space between two tiles. This is essentially the hypotenuse of a right triangle. (The square root is not used as it does not affect the sorting order.)
-- `hamming_distance` - Count of how many tiles are in the correct position
-- `manhattan_distance` - Count of how many moves it would take each tile to arrive in the correct position, if other tiles could be ignored
-- `random_distance` - This is a random number (but a *consistent* random number for a given board state). It is useful as a baseline.
-- Neural net heuristics from `slidingpuzzle.nn` submodule (see section below)
+- [`euclidean_distance`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html#slidingpuzzle.heuristics.euclidean_distance) - The straight line distance in Euclidean space between two tiles. This is essentially the hypotenuse of a right triangle. (The square root is not used as it does not affect the sorting order.)
+- [`hamming_distance`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html#slidingpuzzle.heuristics.hamming_distance) - Count of how many tiles are in the correct position
+- [`manhattan_distance`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html#slidingpuzzle.heuristics.manhattan_distance) - Count of how many moves it would take each tile to arrive in the correct position, if other tiles could be ignored
+- [`random_distance`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html#slidingpuzzle.heuristics.random_distance) - This is a random number (but a *consistent* random number for a given board state). It is useful as a baseline.
+- Neural net heuristics from [`slidingpuzzle.nn`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.nn.html) submodule (see section below)
 - Any heuristic you want! Just pass any function that accepts a board and returns a number. The lower the number, the closer the board is to the goal (lower = better).
 
 ### Neural Nets
 
-Well-trained neural networks are generally superior to the other heuristics. Pre-trained nets will be available for download soon. For now, you can follow the steps below to train and use your own net from scratch using the models defined in `slidingpuzzle/nn/models.py`.
+Well-trained neural networks are generally superior to the other heuristics. Pre-trained nets will be available for download soon. For now, you can follow the steps below to train and use your own net from scratch using the models defined in [`slidingpuzzle.nn.models`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.nn.html#module-slidingpuzzle.nn.models).
 
 ```console
-pip install -r requirements-nn.txt
+$ pip install -r requirements-nn.txt
 ```
 
 You can then train a new network easily:
@@ -228,7 +177,7 @@ You can then train a new network easily:
 >>> nn.train(model)
 ```
 
-**Note**: Unless you are providing your own dataset, for model sizes larger than `3 x 3` you probably need to pass `kwargs` to `train()` so that the search algorithm used for generating training example can find solutions in a reasonable timeframe. For example:
+**Note**: Unless you are providing your own dataset, for model sizes larger than `3 x 3` you probably need to pass `kwargs` to [`train()`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.nn.html#slidingpuzzle.nn.train.train) so that the search algorithm used for generating training example can find solutions in a reasonable timeframe. For example:
 
 ```python
 >>> import slidingpuzzle.nn as nn
@@ -236,11 +185,11 @@ You can then train a new network easily:
 >>> nn.train(model)
 ```
 
-The default behavior of `train()` runs until it appears test accuracy has been declining for "a while". See the docs for `train()` for details.
+The default behavior runs until it appears test accuracy has been declining for "a while". See the docs for for details.
 
-You will now have various model checkpoints available from training.
+If you left the default settings for ``checkpoint_freq``, you will now have various model checkpoints available from training.
 
-The model with highest accuracy on the test data is tagged `"acc"`.
+The model with estimated highest accuracy on the test data is tagged `"acc"` in the checkpoints directory.
 
 ```python
 >>> checkpoint = nn.load_checkpoint(model, tag="acc")
@@ -262,7 +211,7 @@ You can then register the model:
 >>> nn.set_heuristic(model)
 ```
 
-Your model is now available as `nn.v1_distance`. (These are associated behind the scenes via the `model.version` string.)
+Your model is now available as [`nn.v1_distance`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.nn.html#slidingpuzzle.nn.heuristics.v1_distance). (These are associated behind the scenes via the `model.version` string.)
 
 You can save your model to disk to be used automatically anytime you use this package as the default for `nn.v1_distance`:
 
@@ -309,7 +258,7 @@ And you use it as expected:
 >>> search(board, "a*", heuristic=my_model_distance)
 ```
 
-You can add your `my_model_distance()` function to the bottom of `nn/heuristics.py` to make it permanently available.
+You can add your `my_model_distance()` function to the bottom of [`nn/heuristics.py`](https://slidingtilepuzzle.readthedocs.io/en/latest/_modules/slidingpuzzle/nn/heuristics.html#v1_distance) to make it permanently available.
 
 During training, tensorboard will show your training/test loss and accuracy.
 After training is complete, you can also evaluate each checkpoint for comparison.
@@ -341,25 +290,26 @@ First of all, thanks for contributing!
 Setup your dev environment:
 
 ```console
-pip install -r requirements-dev.txt
+$ pip install -r requirements-dev.txt
+$ pre-commit install
 ```
 
 First and **most importantly** verify you haven't broken anything by running [`pytest`](https://pypi.org/project/pytest/):
 ```console
-pytest
+$ pytest
 ```
 
 Don't forget to add new tests for anything you've added.
 
 You can also run `mypy` and look for any new violations:
 ```console
-mypy src
+$ mypy src
 ```
 
 Finally, check that the docs look correct:
 ```console
-cd docs
-./make html
+$ cd docs
+$ ./make html
 ```
 
 [`Black`](https://pypi.org/project/black/) and [`flake8`](https://pypi.org/project/flake8/) are used for formatting and linting, but they are automatically run by the pre-commit hooks installed in the Git repo.

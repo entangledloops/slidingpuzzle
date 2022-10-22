@@ -32,6 +32,7 @@ release = "0.0.10"
 # ones.
 extensions = [
     "sphinx.ext.autodoc",
+    "sphinx.ext.intersphinx",
     "sphinx.ext.mathjax",
     "sphinx.ext.napoleon",
     "sphinx.ext.viewcode",
@@ -46,6 +47,10 @@ templates_path = ["_templates"]
 # This pattern also affects html_static_path and html_extra_path.
 exclude_patterns = []
 
+intersphinx_mapping = {
+    "python": ("https://docs.python.org/", None),
+    "torch": ("https://pytorch.org/docs/master/", None),
+}
 
 # -- Options for HTML output -------------------------------------------------
 

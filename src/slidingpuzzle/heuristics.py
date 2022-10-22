@@ -24,7 +24,20 @@ import math
 import slidingpuzzle
 
 
-def euclidean_distance(board: tuple[list[int], ...]) -> int:
+def euclidean_distance(board: tuple[list[int], ...]) -> float:
+    r"""
+    The distance between each tile and its destination, as measured in Euclidean space
+
+    .. math::
+        \sum_{i}^{n} \sqrt{(\\text{tile}_{i, x} - \\text{goal}_{i, x})^2 + \\
+            (\\text{tile}_{i, y} - \\text{goal}_{i, y})^2}
+
+    Args:
+        board: The board
+
+    Returns:
+        The sum of all tile distances from their goal positions
+    """
     w = len(board[0])
     dist = 0
     for y, row in enumerate(board):
@@ -38,6 +51,18 @@ def euclidean_distance(board: tuple[list[int], ...]) -> int:
 
 
 def hamming_distance(board: tuple[list[int], ...]) -> int:
+    r"""
+    The count of misplaced tiles.
+
+    .. math::
+        \sum_{i}^{n} \\text{tile}_i \oplus \\text{goal}_i
+
+    Args:
+        board: The board
+
+    Returns:
+        The number of tiles out of their goal positions
+    """
     w = len(board[0])
     dist = 0
     for y, row in enumerate(board):
@@ -52,6 +77,20 @@ def hamming_distance(board: tuple[list[int], ...]) -> int:
 
 
 def manhattan_distance(board: tuple[list[int], ...]) -> int:
+    r"""
+    The minimum number of moves needed to restore the board to the goal state, if tiles
+    could be moved through each other.
+
+    .. math::
+        \sum_{i}^{n} |\\text{tile}_{i, x} - \\text{goal}_{i, x}| + \\
+            |\\text{tile}_{i, y} - \\text{goal}_{i, y}|
+
+    Args:
+        board: The board
+
+    Returns:
+        The sum of all tile distances from their goal positions
+    """
     w = len(board[0])
     dist = 0
     for y, row in enumerate(board):
@@ -65,5 +104,17 @@ def manhattan_distance(board: tuple[list[int], ...]) -> int:
 
 
 def random_distance(board: tuple[list[int], ...]) -> int:
+    r"""
+    A random distance computed as a hash of the board state. Useful as a baseline.
+
+    .. math::
+        hash(\\text{board})
+
+    Args:
+        board: The board
+
+    Returns:
+        A random distance that is consistent for a given board state
+    """
     frozen_board = tuple(tuple(row) for row in board)
     return hash(frozen_board)

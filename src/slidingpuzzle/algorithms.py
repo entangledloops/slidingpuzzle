@@ -72,12 +72,15 @@ def get_next_states(state: State) -> list[State]:
 
 
 def a_star(board: tuple[list[int], ...], **kwargs) -> SearchResult:
-    """
+    r"""
     A* heuristic search algorithm.
     Supports weights, depth bounds, and f-bounds.
     The distance of a search state from the goal is computed as:
-    ``f(n) = g(n) + w * h(n)``, or equivalently
-    ``f(n) = len(state.history) + weight * heuristic(state.board)``
+
+    .. math::
+        f(n) = g(n) + w \cdot h(n)
+
+    or equivalently ``f(n) = len(state.history) + weight * heuristic(state.board)``
     Here, ``g(n)`` is the cost of the solution so far, ``w`` is the weight, and
     ``h(n)`` is the heuristic evaluation. When no heuristic is used, A* becomes
     breadth-first search. When ``weight != 1`` or an inadmissable heuristic is used,
@@ -85,11 +88,13 @@ def a_star(board: tuple[list[int], ...], **kwargs) -> SearchResult:
 
     Args:
         board: The board
-        depth_bound: A limit to search depth
-        f_bound: A limit on state cost
-        detect_dupes: Whether to use duplicate detection (i.e. track visited states)
-        heuristic: A function that maps boards to an estimated distance from goal
-        weight: A constant multiplier on heuristic evaluation
+        depth_bound (int): A limit to search depth. Default is :math:`\infty`.
+        f_bound (float): A limit on state cost. Default is :math:`\infty`.
+        detect_dupes (bool): Duplicate detection (i.e. track visited states).
+            Default is ``True``.
+        heuristic: A function that maps boards to an estimated distance from goal.
+            Default is :func:`slidingpuzzle.heuristics.manhattan_distance`.
+        weight (float): A constant multiplier on heuristic evaluation
 
     Returns:
         A :class:`slidingpuzzle.state.SearchResult` with a solution and statistics
@@ -141,7 +146,7 @@ def a_star(board: tuple[list[int], ...], **kwargs) -> SearchResult:
 
 
 def beam(board: tuple[list[int], ...], **kwargs) -> SearchResult:
-    """
+    r"""
     Beam search is a variant of breadth-first search that sorts its children using a
     heuristic function and then drops child states to match the beam width. This search
     is incomplete, meaning it may miss a solution although it exists. It is useful for
@@ -149,11 +154,13 @@ def beam(board: tuple[list[int], ...], **kwargs) -> SearchResult:
 
     Args:
         board: The board
-        depth_bound: A limit to search depth
-        f_bound: A limit on state cost
-        detect_dupes: Whether to use duplicate detection (i.e. track visited states)
-        heuristic: A function that maps boards to an estimated distance from goal
-        width: The beam width
+        depth_bound (int): A limit to search depth. Default is :math:`\infty`.
+        f_bound (float): A limit on state cost. Default is :math:`\infty`.
+        detect_dupes (bool): Duplicate detection (i.e. track visited states).
+            Default is ``True``.
+        heuristic: A function that maps boards to an estimated distance from goal.
+            Default is :func:`slidingpuzzle.heuristics.manhattan_distance`.
+        width (int): The beam width. Default is ``3``.
 
     Returns:
         A :class:`slidingpuzzle.state.SearchResult` with a solution and statistics
@@ -207,13 +214,14 @@ def beam(board: tuple[list[int], ...], **kwargs) -> SearchResult:
 
 
 def bfs(board: tuple[list[int], ...], **kwargs) -> SearchResult:
-    """
+    r"""
     Breadth-first search
 
     Args:
         board: The board
-        depth_bound: A limit to search depth
-        detect_dupes: Whether to use duplicate detection (i.e. track visited states)
+        depth_bound (int): A limit to search depth. Default is :math:`\infty`.
+        detect_dupes (bool): Duplicate detection (i.e. track visited states).
+            Default is ``True``.
 
     Returns:
         A :class:`slidingpuzzle.state.SearchResult` with a solution and statistics
@@ -260,13 +268,14 @@ def bfs(board: tuple[list[int], ...], **kwargs) -> SearchResult:
 
 
 def dfs(board: tuple[list[int], ...], **kwargs) -> SearchResult:
-    """
+    r"""
     Depth-first search
 
     Args:
         board: The board
-        depth_bound: A limit to search depth
-        detect_dupes: Whether to use duplicate detection (i.e. track visited states)
+        depth_bound (int): A limit to search depth. Default is :math:`\infty`.
+        detect_dupes (bool): Duplicate detection (i.e. track visited states).
+            Default is ``True``.
 
     Returns:
         A :class:`slidingpuzzle.state.SearchResult` with a solution and statistics
@@ -313,16 +322,18 @@ def dfs(board: tuple[list[int], ...], **kwargs) -> SearchResult:
 
 
 def greedy(board: tuple[list[int], ...], **kwargs) -> SearchResult:
-    """
+    r"""
     Greedy best-first search. This search orders all known states using the provided
     heuristic and greedily chooses the state closest to the goal.
 
     Args:
         board: The board
-        depth_bound: A limit to search depth
-        f_bound: A limit on state cost
-        detect_dupes: Whether to use duplicate detection (i.e. track visited states)
-        heuristic: A function that maps boards to an estimated distance from goal
+        depth_bound (int): A limit to search depth. Default is :math:`\infty`.
+        f_bound (float): A limit on state cost. Default is :math:`\infty`.
+        detect_dupes (bool): Duplicate detection (i.e. track visited states).
+            Default is ``True``.
+        heuristic: A function that maps boards to an estimated distance from goal.
+            Default is :func:`slidingpuzzle.heuristics.manhattan_distance`.
 
     Returns:
         A :class:`slidingpuzzle.state.SearchResult` with a solution and statistics
@@ -373,17 +384,20 @@ def greedy(board: tuple[list[int], ...], **kwargs) -> SearchResult:
 
 
 def ida_star(board: tuple[list[int], ...], **kwargs) -> SearchResult:
-    """
+    r"""
     Iterative deepening A*. A depth-first search that uses an f-bound instead of depth
     to limit search. The next bound is set to the minimum increase in f-bound observed
     during the current iteration. See :func:`a_star`.
 
     Args:
         board: The board
-        depth_bound: A limit to search depth
-        detect_dupes: Whether to use duplicate detection (i.e. track visited states)
-        heuristic: A function that maps boards to an estimated distance from goal
-        weight: A constant multiplier on heuristic evaluation
+        depth_bound (int): A limit to search depth. Default is :math:`\infty`.
+        detect_dupes (bool): Duplicate detection (i.e. track visited states).
+            Default is ``True``.
+        heuristic: A function that maps boards to an estimated distance from goal.
+            Default is :func:`slidingpuzzle.heuristics.manhattan_distance`.
+        weight (float): A constant multiplier on heuristic evaluation.
+            Default is ``1``.
 
     Returns:
         A :class:`slidingpuzzle.state.SearchResult` with a solution and statistics
@@ -448,13 +462,14 @@ def ida_star(board: tuple[list[int], ...], **kwargs) -> SearchResult:
 
 
 def iddfs(board: tuple[list[int], ...], **kwargs) -> SearchResult:
-    """
+    r"""
     Iterative deepening depth first search. Same as :func:`dfs`, except that the depth
     bound is incrementally increased until a solution is found.
 
     Args:
         board: The board
-        detect_dupes: Whether to use duplicate detection (i.e. track visited states)
+        detect_dupes (bool): Duplicate detection (i.e. track visited states).
+            Default is ``True``.
 
     Returns:
         A :class:`slidingpuzzle.state.SearchResult` with a solution and statistics
@@ -525,7 +540,7 @@ def search(
     alg: str = A_STAR,
     **kwargs,
 ) -> SearchResult:
-    """
+    r"""
     Searches for a set of moves that take the provided board state to the
     solved state.
 
@@ -548,62 +563,7 @@ def search(
     may miss the goal, even thought the board is solvable.
 
     The algorithms support some additional kwargs that can be used to
-    customize their behavior. These are:
-
-    ..  code-block:: python
-
-        a*: {
-            "depth_bound": default is float("inf"),
-                restrict search to depth < depth_bound
-            "detect_dupes": default is True,
-                if False, will trade time for memory savings
-            "f_bound": default is float("inf"),
-                restricts search to f-values < bound
-            "heuristic": default is manhattan_distance
-            "weight": default is 1
-        }
-        beam: {
-            "depth_bound": default is float("inf"),
-                restrict search to depth < depth_bound
-            "detect_dupes": default is True,
-                if False, will trade time for memory savings
-            "f_bound": default is float("inf"),
-                restricts search to f-values < bound
-            "heuristic": default is manhattan_distance
-            "width", default is 3
-        }
-        bfs: {
-            "depth_bound": default is float("inf"),
-                restrict search to depth < depth_bound
-            "detect_dupes": default is True,
-                if False, will trade time for memory savings
-        }
-        dfs: {
-            "depth_bound": default is float("inf")
-                restrict search to depth < depth_bound
-            "detect_dupes": default is True,
-                if False, will trade time for memory savings
-        }
-        greedy: {
-            "depth_bound": default is float("inf"),
-                restrict search to depth < depth_bound
-            "detect_dupes": default is True,
-                if False, will trade time for memory savings
-            "f_bound": default is float("inf"),
-                restricts search to f-values < bound
-        }
-        ida*: {
-            "depth_bound": default is float("inf")
-                restrict search to depth < depth_bound
-            "detect_dupes": default is True,
-                if False, will trade time for memory savings
-            "heuristic": default is manhattan_distance
-            "weight": default is 1
-        }
-        iddfs: {
-            "detect_dupes": default is True,
-                if False, will trade time for memory savings
-        }
+    customize their behavior. See the docs for individual algorithms.
 
     Args:
         board: The initial board state to search.

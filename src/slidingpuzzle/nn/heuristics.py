@@ -65,6 +65,15 @@ def get_heuristic(h, w, version):
 
 
 def v1_distance(board: tuple[list[int], ...]) -> float:
+    """
+    A neural network that estimates distance to goal
+
+    Args:
+        board: The board
+
+    Returns:
+        An estimated number of moves to reach the goal
+    """
     h, w = len(board), len(board[0])
     heuristic = get_heuristic(h, w, models.VERSION_1)
     return heuristic(board)
