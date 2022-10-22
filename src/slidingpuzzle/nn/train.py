@@ -138,7 +138,7 @@ def train(
     so that training may be paused and resumed without leaking test data.
 
     Note:
-        If you change your dataaset between runs, the train/test split will no longer
+        If you change your dataset between runs, the train/test split will no longer
         be consistent with original training, so training will need to be restarted
         to prevent leaking test data.
 
@@ -162,9 +162,10 @@ def train(
             always run until ``num_epochs`` of training have completed. If both this
             and ``num_epochs`` are 0, training will run until interrupted.
         max_epochs: If non-0 and ``max_epochs`` is reached, training will be terminated
-        kwargs: Additional args that may be passed to :ref:`make_examples` when
-            generating a new dataset. Can be used to customize the search algorithm
-            used to find training examples if, for example, it is taking too long.
+        kwargs: Additional args that may be passed to
+            :func:`slidingpuzzle.nn.dataset.make_examples` when generating a new
+            dataset. Can be used to customize the search algorithm used to find
+            training examples if, for example, it is taking too long.
     """
     random.seed(seed)
     np.random.seed(seed)

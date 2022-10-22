@@ -58,7 +58,12 @@ False
 
 Not all board configurations are solvable. The [`search()`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html#slidingpuzzle.slidingpuzzle.search) routine will validate the board before beginning, and may throw a `ValueError` if the board is illegal.
 
+The default search is `A*` with `manhattan_distance` as the heuristic:
+
 ```python
+>>> search(b)
+solution=[3, 2, 8, 3, 6, 7, 3, 6, 7, 1, 4, 7, 2, 5, 7, 4, 1, 2, 5, 8]
+solution_len=20, generated=829, expanded=518, unvisited=312, visited=313
 >>> search(b, "bfs")
 solution=[3, 2, 8, 3, 6, 7, 3, 6, 7, 1, 4, 7, 2, 5, 7, 4, 1, 2, 5, 8]
 solution_len=20, generated=165616, expanded=120653, unvisited=44964, visited=62277
@@ -82,14 +87,6 @@ Or we can compare two algorithms:
 ```python
 >>> compare(3, 3, alga="a*", algb="greedy")
 (2907.5, 618.0)
-```
-
-The default search is `A*` with `manhattan_distance` as the heuristic:
-
-```python
->>> search(b)
-solution=[3, 2, 8, 3, 6, 7, 3, 6, 7, 1, 4, 7, 2, 5, 7, 4, 1, 2, 5, 8]
-solution_len=20, generated=829, expanded=518, unvisited=312, visited=313
 ```
 
 The solutions are actually stored as a list of (y, x)-coords of moves, indicating which tile is to be moved next:
