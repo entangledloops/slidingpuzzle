@@ -72,7 +72,7 @@ solution=[8, 2, 3, 8, 2, 7, 6, 2, 7, 3, 8, 5, 4, 7, 5, 4, 7, 5, 3, 6, 2, 3, 4, 8
 solution_len=42, generated=711, expanded=490, unvisited=222, visited=258
 ```
 
-As expected, greedy search finds a solution must faster than BFS, but the solution is of lower quality.
+In this case greedy search finds a solution quickly, but the solution is of lower quality.
 
 We can [`compare()`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html#slidingpuzzle.algorithms.compare) two heuristics like this:
 ```python
