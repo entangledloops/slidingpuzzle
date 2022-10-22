@@ -299,6 +299,11 @@ First and **most importantly** verify you haven't broken anything by running [`p
 pytest
 ```
 
+If you changed anything in the `slidingpuzzle.nn` package, also run:
+```console
+pytest tests/test_nn.py
+```
+
 Don't forget to add new tests for anything you've added.
 
 You can also run `mypy` and look for any new violations:
