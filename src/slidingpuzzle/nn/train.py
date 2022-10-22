@@ -126,7 +126,7 @@ def train(
     tensorboard_dir: str = paths.TENSORBOARD_DIR,
     seed: int = 0,
     checkpoint_freq: int = 50,
-    early_quit_epochs: int = 6000,
+    early_quit_epochs: int = 10000,
     max_epochs: int = 0,
     **kwargs,
 ) -> None:

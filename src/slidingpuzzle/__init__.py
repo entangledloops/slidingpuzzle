@@ -27,15 +27,12 @@ Examples:
     7 8
     >>> shuffle_board(b)
     >>> print_board(b)
-    4 5
-    6 7 2
-    1 8 3
-    >>> r = search(b)
-    >>> print_result(r)
-    solution_len=20, generated=144704, expanded=103615, unvisited=41090, visited=54466
-    >>> r = search(b, "greedy" heuristic=manhattan_distance)
-    >>> print_result(r)
-    solution_len=36, generated=409, expanded=299, unvisited=111, visited=153
+    1 6 7
+    4   8
+    5 3 2
+    >>> search(b, "greedy", heuristic=manhattan_distance)
+    solution=[3, 2, 8, 3, 6, 7, 3, 6, 7, 1, 4, 7, 2, 5, 7, 4, 1, 2, 5, 8]
+    solution_len=20, generated=829, expanded=518, unvisited=312, visited=313
 """
 
 from slidingpuzzle.heuristics import (
@@ -62,6 +59,7 @@ from slidingpuzzle.board import (
 )
 
 from slidingpuzzle.algorithms import (
+    ALGORITHMS,
     A_STAR,
     BEAM,
     BFS,
@@ -69,7 +67,6 @@ from slidingpuzzle.algorithms import (
     GREEDY,
     IDA_STAR,
     IDDFS,
-    ALGORITHMS,
     compare,
     eval_heuristic,
     get_next_states,
