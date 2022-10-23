@@ -30,6 +30,7 @@ import torch.optim as optim
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 import tqdm
+from tqdm.contrib.logging import tqdm_logging_redirect
 
 import slidingpuzzle.nn.paths as paths
 from slidingpuzzle.nn.dataset import load_or_build_dataset
@@ -118,16 +119,16 @@ def linear_regression_beta(data):
 def train(
     model: nn.Module,
     num_examples: int = 2**14,
+    dataset: torch.utils.data.Dataset = None,
     train_fraction: float = 0.95,
     num_epochs: int = 0,
     batch_size: int = 128,
+    early_quit_epochs: int = 10000,
+    early_quit_threshold: float = -1e-6,
     device: str = None,
-    dataset: torch.utils.data.Dataset = None,
+    checkpoint_freq: int = 50,
     tensorboard_dir: str = paths.TENSORBOARD_DIR,
     seed: int = 0,
-    checkpoint_freq: int = 50,
-    early_quit_epochs: int = 10000,
-    max_epochs: int = 0,
     **kwargs,
 ) -> None:
     """
@@ -143,25 +144,26 @@ def train(
         to prevent leaking test data.
 
     Args:
-        h: Height of board to train the model for
-        w: Width of the board to train the model for
+        model: The model instance to train
         num_examples: Total number of examples to use for training / test. Ignored
             if ``dataset`` is provided
+        dataset: A custom dataset to use
+        train_fraction: The train/test split
         num_epochs: Total number of epochs model should be trained for. Use 0 to run
             until the ``early_quit_epochs`` logic is hit.
-        device: Device to train on. Default will autodetect CUDA or use CPU
         batch_size: Batch size to use for training
-        dataset: A custom dataset to use
-        tensorboard_dir: The root tensorboard dir for logs. Default is "tensorboard".
-        seed: Seed used for torch random utilities for reproducibility
-        checkpoint_freq: Model will be checkpointed every time this many epochs
-            complete. If 0, no epoch checkpointint will be used.
         early_quit_epochs: We will hold an ``early_quit_epochs``-sized window of test
             accuracy values. If the linear regression slope of these data points is
             < 0, we will terminate training early. Use 0 to disable this feature and
             always run until ``num_epochs`` of training have completed. If both this
             and ``num_epochs`` are 0, training will run until interrupted.
-        max_epochs: If non-0 and ``max_epochs`` is reached, training will be terminated
+        early_quit_threshold: If the slope of test accuracy linear regression falls
+            below this value, training is terminated.
+        device: Device to train on. Default will autodetect CUDA or use CPU
+        checkpoint_freq: Model will be checkpointed every time this many epochs
+            complete. If 0, no epoch checkpointint will be used.
+        tensorboard_dir: The root tensorboard dir for logs. Default is "tensorboard".
+        seed: Seed used for torch random utilities for reproducibility
         kwargs: Additional args that may be passed to
             :func:`slidingpuzzle.nn.dataset.make_examples` when generating a new
             dataset. Can be used to customize the search algorithm used to find
@@ -266,20 +268,22 @@ def train(
                 )
                 save_checkpoint(state, f"epoch_{epoch}")
             if early_quit_epochs > 0 and len(test_acc_window) == early_quit_epochs:
-                # if we are using early quitting, check the trendline
-                if linear_regression_beta(test_acc_window) < 0:
-                    log.info(
-                        f"Early quit threshold reached at epoch {epoch}, "
-                        f"highest_acc={highest_acc}"
-                    )
+                # if we are using early quitting, check the overall trendline is down
+                if linear_regression_beta(test_acc_window) < early_quit_threshold:
+                    with tqdm_logging_redirect():
+                        log.info(
+                            f"Early quit threshold reached at epoch {epoch}, "
+                            f"highest_acc={highest_acc}"
+                        )
                     break
-            if max_epochs and epoch == max_epochs - 1:
-                log.info("Max epochs reached.")
+            if num_epochs and epoch == num_epochs - 1:
+                with tqdm_logging_redirect():
+                    log.info("Max epochs reached.")
                 break
 
     except KeyboardInterrupt:
-        pbar.close()
-        log.info("Training interrupted.")
+        with tqdm_logging_redirect():
+            log.info("Training interrupted.")
     finally:
         pbar.close()
 

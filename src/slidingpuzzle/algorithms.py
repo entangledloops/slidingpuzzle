@@ -92,7 +92,7 @@ def a_star(board: tuple[list[int], ...], **kwargs) -> SearchResult:
         f_bound (float): A limit on state cost. Default is :math:`\infty`.
         detect_dupes (bool): Duplicate detection (i.e. track visited states).
             Default is ``True``.
-        heuristic: A function that maps boards to an estimated distance from goal.
+        heuristic: A function that maps boards to an estimated cost-to-go.
             Default is :func:`slidingpuzzle.heuristics.manhattan_distance`.
         weight (float): A constant multiplier on heuristic evaluation
 
@@ -158,7 +158,7 @@ def beam(board: tuple[list[int], ...], **kwargs) -> SearchResult:
         f_bound (float): A limit on state cost. Default is :math:`\infty`.
         detect_dupes (bool): Duplicate detection (i.e. track visited states).
             Default is ``True``.
-        heuristic: A function that maps boards to an estimated distance from goal.
+        heuristic: A function that maps boards to an estimated cost-to-go.
             Default is :func:`slidingpuzzle.heuristics.manhattan_distance`.
         width (int): The beam width. Default is ``3``.
 
@@ -332,7 +332,7 @@ def greedy(board: tuple[list[int], ...], **kwargs) -> SearchResult:
         f_bound (float): A limit on state cost. Default is :math:`\infty`.
         detect_dupes (bool): Duplicate detection (i.e. track visited states).
             Default is ``True``.
-        heuristic: A function that maps boards to an estimated distance from goal.
+        heuristic: A function that maps boards to an estimated cost-to-go.
             Default is :func:`slidingpuzzle.heuristics.manhattan_distance`.
 
     Returns:
@@ -394,7 +394,7 @@ def ida_star(board: tuple[list[int], ...], **kwargs) -> SearchResult:
         depth_bound (int): A limit to search depth. Default is :math:`\infty`.
         detect_dupes (bool): Duplicate detection (i.e. track visited states).
             Default is ``True``.
-        heuristic: A function that maps boards to an estimated distance from goal.
+        heuristic: A function that maps boards to an estimated cost-to-go.
             Default is :func:`slidingpuzzle.heuristics.manhattan_distance`.
         weight (float): A constant multiplier on heuristic evaluation.
             Default is ``1``.
