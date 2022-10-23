@@ -191,6 +191,13 @@ If you left the default settings for ``checkpoint_freq``, you will now have vari
 
 The model with estimated highest accuracy on the test data is tagged `"acc"` in the checkpoints directory.
 
+You can evaluate a checkpoint similar to `eval_heuristic`:
+```python
+>>> nn.eval_checkpoint(model, tag="acc")
+417.71875
+```
+
+You can also manually load a specific checkpoint:
 ```python
 >>> checkpoint = nn.load_checkpoint(model, tag="acc")
 >>> checkpoint["epoch"]
@@ -198,7 +205,6 @@ The model with estimated highest accuracy on the test data is tagged `"acc"` in 
 ```
 
 Or to load a specific epoch:
-
 ```python
 >>> checkpoint = nn.load_checkpoint(model, tag="epoch_1499")
 ```
@@ -206,12 +212,11 @@ Or to load a specific epoch:
 (See the `checkpoints` directory for all trained models available to load by `tag`.)
 
 You can then register the model:
-
 ```python
 >>> nn.set_heuristic(model)
 ```
 
-Your model is now available as [`nn.v1_distance`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.nn.html#slidingpuzzle.nn.heuristics.v1_distance). (These are associated behind the scenes via the `model.version` string.)
+Your model is now available as [`nn.v1_distance`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.nn.html#slidingpuzzle.nn.heuristics.v1_distance) if you are using the default provided model [`Model_v1`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.nn.html#slidingpuzzle.nn.models.Model_v1). (These are associated behind the scenes via the `model.version` property.)
 
 You can save your model to disk to be used automatically anytime you use this package as the default for `nn.v1_distance`:
 

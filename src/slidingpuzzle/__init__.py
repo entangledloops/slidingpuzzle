@@ -13,7 +13,7 @@
 # limitations under the License.
 
 """
-A package for solving and working with sliding tile puzzles.
+A package for solving sliding tile puzzles.
 
 Examples:
     >>> from slidingpuzzle import *
