@@ -197,16 +197,18 @@ You can evaluate a checkpoint similar to `eval_heuristic`:
 417.71875
 ```
 
-You can also manually load a specific checkpoint:
+Or the latest model epoch:
 ```python
->>> checkpoint = nn.load_checkpoint(model, tag="acc")
->>> checkpoint["epoch"]
-3540
+>>> nn.eval_checkpoint(model, tag="latest", num_iters=128)
 ```
 
-Or to load a specific epoch:
+The call to `eval_checkpoint()` will load the model weights from the appropriate checkpoint file and run `eval_heuristic()`.
+
+You can also manually load checkpoints:
 ```python
 >>> checkpoint = nn.load_checkpoint(model, tag="epoch_1499")
+>>> checkpoint["epoch"]
+1499
 ```
 
 (See the `checkpoints` directory for all trained models available to load by `tag`.)
@@ -218,11 +220,11 @@ You can then register the model:
 
 Your model is now available as [`nn.v1_distance`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.nn.html#slidingpuzzle.nn.heuristics.v1_distance) if you are using the default provided model [`Model_v1`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.nn.html#slidingpuzzle.nn.models.Model_v1). (These are associated behind the scenes via the `model.version` property.)
 
-You can save your model to disk to be used automatically anytime you use this package as the default for `nn.v1_distance`:
-
+You can freeze your preferred model to disk to be used as the default for `nn.v1_distance`:
 ```python
 >>> nn.save_model(model)
 ```
+> **_Note:_** This may overwrite a previously saved model.
 
 Your model will now be available whenever you import `slidingpuzzle.nn`.
 
@@ -266,28 +268,7 @@ And you use it as expected:
 You can add your `my_model_distance()` function to the bottom of [`nn/heuristics.py`](https://slidingtilepuzzle.readthedocs.io/en/latest/_modules/slidingpuzzle/nn/heuristics.html#v1_distance) to make it permanently available.
 
 During training, tensorboard will show your training/test loss and accuracy.
-After training is complete, you can also evaluate each checkpoint for comparison.
-
-For example, to evaluate a specific epoch:
-
-```python
->>> nn.eval_checkpoint(model, tag="epoch_649")
-```
-
-Or the highest accuracy observed:
-
-```python
->>> nn.eval_checkpoint(model, tag="acc", num_iters=128)
-```
-
-Or the latest model epoch:
-
-```python
->>> nn.eval_checkpoint(model, tag="latest", num_iters=128)
-```
-
-The call to `eval_checkpoint()` will automatically load the model weights from the checkpoint file and run `eval_heuristic()`.
-
+After training is complete, you can also evaluate each checkpoint for comparison as shown above.
 
 ## Creating a Pull Request
 
