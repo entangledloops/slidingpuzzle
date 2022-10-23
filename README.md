@@ -168,7 +168,7 @@ Well-trained neural networks are generally superior to the other heuristics. Pre
 ```console
 pip install -r requirements-nn.txt
 ```
-> **_Note:_**  This will install the CPU version of PyTorch. If you want GPU support, you will need to follow the [official instructions](https://pytorch.org/).
+> **_Note:_**  This will install the CUDA 11.6 version of PyTorch. If you want another version, you will need to follow the [official instructions](https://pytorch.org/).
 
 You can then train a new network easily:
 
