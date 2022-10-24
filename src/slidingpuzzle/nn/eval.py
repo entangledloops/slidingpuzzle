@@ -21,7 +21,22 @@ import torch.utils
 
 
 def accuracy(expected, predicted) -> float:
-    diff = torch.abs(expected - torch.abs(predicted))
+    r"""
+    Helper function to estimate accuracy of sliding puzzle model outputs.
+    This function replaces NaNs/infinities with 0s and uses:
+
+    .. math::
+
+        f(e, p) = 1 - \frac{|e - p|}{1 + |e - p|}
+
+    Args:
+        expected: A tensor with the expected value
+        predicted: A tensor with the predicted value
+
+    Returns:
+        The accuracy as a float in the range [0, 1].
+    """
+    diff = torch.abs(expected - predicted)
     diff /= 1 + diff
     diff = torch.nan_to_num(diff, nan=0, posinf=0, neginf=0)
     diff = 1 - diff
@@ -33,6 +48,14 @@ def evaluate(
 ) -> tuple[float, float]:
     """
     Runs the model on provided datatset computing average loss and accuracy.
+
+    Args:
+        model: Model to evaluate
+        criterion: The criterion function to use for evaluation
+        dataset: The dataset of examples
+
+    Returns:
+        A tuple(avg. loss, avg. accuracy)
     """
     model.eval()
     device = next(model.parameters()).device

@@ -584,27 +584,35 @@ def search(
     return ALGORITHMS_MAP[alg](board, **kwargs)
 
 
-def eval_heuristic(
+def evaluate(
     h: int,
     w: int,
-    heuristic,
+    heuristic=manhattan_distance,
     algorithm=A_STAR,
     num_iters: int = 64,
     **kwargs,
 ) -> float:
     """
     Runs search on ``num_iters`` random boards. Returns the average number of nodes
-    expanded.
+    generated.
+
+    Args:
+        h: Height of the board
+        w: Width of the board
+        heuristic: Heuristic function to evaluate
+        algorithm: Search algorithm to evaluate
+        num_iters: Number of iterations to average
+        kwargs: Additional args for ``algorithm``
 
     Returns:
-        The average number of states expanded.
+        The average number of states generated.
     """
     total = 0
     for _ in range(num_iters):
         board = new_board(h, w)
         shuffle_board(board)
         result = search(board, alg=algorithm, heuristic=heuristic, **kwargs)
-        total += result.expanded
+        total += result.generated
     return total / num_iters
 
 
@@ -615,23 +623,41 @@ def compare(
     hb=manhattan_distance,
     alga=A_STAR,
     algb=A_STAR,
-    num_iters: int = 8,
+    num_iters: int = 32,
+    kwargsa: dict = None,
+    kwargsb: dict = None,
     **kwargs,
 ) -> tuple[float, float]:
     """
     Runs search on ``num_iters`` random boards, trying both alga(board, ha) and
-    algb(board, hb) on each board. Returns the average number of states expanded
+    algb(board, hb) on each board. Returns the average number of states generated
     for both.
 
+    Args:
+        h: Height of the board
+        w: Width of the board
+        ha: First heuristic function to evaluate
+        hb: Second heuristic function to evaluate
+        alga: Search algorithm paired with ``ha``
+        algb: Search algorithm paired with ``hb``
+        num_iters: Number of iterations to average
+        kwargsa: Keyword args for only ``alga``
+        kwargsb: Keyword args for only ``algb``
+        kwargs: Keyword args for both algorithms
+
     Returns:
-        A tuple containing (avg. A, avg. B).
+        A tuple containing (avg. generated A, avg. generated B).
     """
+    if not kwargsa:
+        kwargsa = {}
+    if not kwargsb:
+        kwargsb = {}
     total_a, total_b = 0, 0
     for _ in range(num_iters):
         board = new_board(h, w)
         shuffle_board(board)
-        result = search(board, alg=alga, heuristic=ha, **kwargs)
-        total_a += result.expanded
-        result = search(board, alg=algb, heuristic=hb, **kwargs)
-        total_b += result.expanded
+        result = search(board, alg=alga, heuristic=ha, **kwargsa, **kwargs)
+        total_a += result.generated
+        result = search(board, alg=algb, heuristic=hb, **kwargsb, **kwargs)
+        total_b += result.generated
     return total_a / num_iters, total_b / num_iters

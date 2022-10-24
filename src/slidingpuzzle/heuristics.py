@@ -22,6 +22,7 @@ that indicates the estimated distance from the goal.
 import math
 
 import slidingpuzzle
+from slidingpuzzle.board import freeze_board
 
 
 def euclidean_distance(board: tuple[list[int], ...]) -> float:
@@ -116,5 +117,4 @@ def random_distance(board: tuple[list[int], ...]) -> int:
     Returns:
         A random distance that is consistent for a given board state
     """
-    frozen_board = tuple(tuple(row) for row in board)
-    return hash(frozen_board)
+    return hash(freeze_board(board))

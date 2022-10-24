@@ -65,7 +65,7 @@ from slidingpuzzle.algorithms import (
     IDA_STAR,
     IDDFS,
     compare,
-    eval_heuristic,
+    evaluate,
     get_next_states,
     search,
     swap_tiles,

@@ -80,7 +80,7 @@ We can [`compare()`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingp
 (1594.8666666666666, 3377.5)
 ```
 
-The numbers are the average number of states expanded over `num_iters` runs for each heuristic.
+The numbers are the average number of states generated over `num_iters` runs for each heuristic.
 
 Or we can compare two algorithms:
 
@@ -122,32 +122,6 @@ The available algorithms are:
 
 All algorithms support behavior customization via `kwargs`. See the docs for individual algorithms linked above.
 
-Example:
-
-```python
->>> for weight in range(1, 16):
-...     r = search(b, weight=weight)
-...     print(f"weight: {weight}, solution_len: {len(r.solution)}, expanded: {r.expanded}")
-...
-weight: 1, solution_len: 27, expanded: 1086
-weight: 2, solution_len: 35, expanded: 1026
-weight: 3, solution_len: 35, expanded: 814
-weight: 4, solution_len: 43, expanded: 640
-weight: 5, solution_len: 45, expanded: 531
-weight: 6, solution_len: 45, expanded: 563
-weight: 7, solution_len: 43, expanded: 407
-weight: 8, solution_len: 43, expanded: 578
-weight: 9, solution_len: 43, expanded: 648
-weight: 10, solution_len: 43, expanded: 689
-weight: 11, solution_len: 43, expanded: 764
-weight: 12, solution_len: 43, expanded: 601
-weight: 13, solution_len: 43, expanded: 786
-weight: 14, solution_len: 43, expanded: 733
-weight: 15, solution_len: 43, expanded: 782
-```
-
-With the default parameters, we see that A* finds the optimal solution after expanding `1086` states. If we are willing to sacrifice optimality of the solution, we can try different weights to tradeoff solution quality for search time. Beyond a certain point, the weight will have no positive effect. In the example above, using weights beyond `~38` produces further change in neither solution quality nor nodes expanded.
-
 Of the provided algorithms, only beam search is incomplete by default. This means it
 may miss the goal, even thought the board is solvable.
 
@@ -160,6 +134,23 @@ The available heuristics are:
 - [`random_distance`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html#slidingpuzzle.heuristics.random_distance) - This is a random number (but a *consistent* random number for a given board state). It is useful as a baseline.
 - Neural net heuristics from [`slidingpuzzle.nn`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.nn.html) submodule (see section below)
 - Any heuristic you want! Just pass any function that accepts a board and returns a number. The lower the number, the closer the board is to the goal (lower = better).
+
+
+There are two simple provided utility functions for evaluating algorithm/heuristic performance: [`evaluate()`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html#slidingpuzzle.algorithms.evaluate) and [`compare()`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html#slidingpuzzle.algorithms.compare).
+
+```python
+>>> import matplotlib.pyplot as plt
+>>> import numpy as np
+>>> x = np.linspace(1, 10, num=128)
+>>> y = [evaluate(3, 3, weight=w) for w in x]
+>>> plt.plot(x, y)
+>>> plt.title("Average Nodes Generated vs. A* Weight")
+>>> plt.xlabel("Weight")
+>>> plt.ylabel("Generated")
+>>> plt.show()
+```
+
+![Generated vs. Weight](https://raw.githubusercontent.com/entangledloops/slidingpuzzle/master/media/generated_vs_weight.png))
 
 ### Neural Nets
 
@@ -191,7 +182,7 @@ If you left the default settings for ``checkpoint_freq``, you will now have vari
 
 The model with estimated highest accuracy on the test data is tagged `"acc"` in the checkpoints directory.
 
-You can evaluate a checkpoint similar to `eval_heuristic`:
+You can evaluate a checkpoint similar to `evaluate`:
 ```python
 >>> nn.eval_checkpoint(model, tag="acc")
 417.71875
@@ -202,7 +193,7 @@ Or the latest model epoch:
 >>> nn.eval_checkpoint(model, tag="latest", num_iters=128)
 ```
 
-The call to `eval_checkpoint()` will load the model weights from the appropriate checkpoint file and run `eval_heuristic()`.
+The call to `eval_checkpoint()` will load the model weights from the appropriate checkpoint file and run `evaluate()`.
 
 You can also manually load checkpoints:
 ```python

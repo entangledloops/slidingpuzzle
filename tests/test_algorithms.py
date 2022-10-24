@@ -97,17 +97,21 @@ def test_search_hard():
     assert len(result.solution) == 27
 
 
+def test_evaluate():
+    assert evaluate(3, 3, num_iters=1) > 0
+
+
 def test_heuristic_behavior():
     random.seed(0)
 
-    # we compute avg expanded nodes over multiple runs to confirm that
+    # we compute avg generated nodes over multiple runs to confirm that
     # heuristic behavior is in line with expectations
-    expanded_avg = compare(3, 3, manhattan_distance, hamming_distance)
-    assert expanded_avg[0] < expanded_avg[1]
+    generated_avg = compare(3, 3, manhattan_distance, hamming_distance, num_iters=4)
+    assert generated_avg[0] < generated_avg[1]
 
     # manhattan + euclidean are both good contenders, so we don't compare them
-    expanded_avg = compare(3, 3, euclidean_distance, hamming_distance)
-    assert expanded_avg[0] < expanded_avg[1]
+    generated_avg = compare(3, 3, euclidean_distance, hamming_distance, num_iters=4)
+    assert generated_avg[0] < generated_avg[1]
 
 
 def test_solution_as_tiles():
