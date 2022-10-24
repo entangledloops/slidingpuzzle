@@ -22,7 +22,7 @@ copyright = "2022, Stephen Dunn"
 author = "Stephen Dunn"
 
 # The full version, including alpha/beta/rc tags
-release = "0.0.12"
+release = "0.0.13"
 
 
 # -- General configuration ---------------------------------------------------

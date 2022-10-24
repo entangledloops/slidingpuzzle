@@ -154,9 +154,10 @@ def train(
         batch_size: Batch size to use for training
         early_quit_epochs: We will hold an ``early_quit_epochs``-sized window of test
             accuracy values. If the linear regression slope of these data points is
-            < 0, we will terminate training early. Use 0 to disable this feature and
-            always run until ``num_epochs`` of training have completed. If both this
-            and ``num_epochs`` are 0, training will run until interrupted.
+            < ``early_quit_threshold``, we will terminate training early. Use 0 to
+            disable this feature and always run until ``num_epochs`` of training have
+            completed. If both this and ``num_epochs`` are 0, training will run until
+            manually interrupted.
         early_quit_threshold: If the slope of test accuracy linear regression falls
             below this value, training is terminated.
         device: Device to train on. Default will autodetect CUDA or use CPU
