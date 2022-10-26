@@ -56,7 +56,7 @@ The boards are just a `tuple` of `list[int]`. The number `0` is reserved for the
 False
 ```
 
-Not all board configurations are solvable. The [`search()`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html#slidingpuzzle.slidingpuzzle.search) routine will validate the board before beginning, and may throw a `ValueError` if the board is illegal.
+Not all board configurations are solvable. The [`search()`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html#slidingpuzzle.algorithms.search) routine will validate the board before beginning, and may throw a `ValueError` if the board is illegal.
 
 The default search is [`A*`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html#slidingpuzzle.algorithms.a_star) with [`manhattan_distance`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html#slidingpuzzle.heuristics.manhattan_distance) as the heuristic:
 
@@ -74,6 +74,19 @@ solution_len=42, generated=711, expanded=490, unvisited=222, visited=258
 
 In this case greedy search finds a solution quickly, but the solution is of lower quality.
 
+```python
+>>> result = search(b)
+>>> result.solution
+[(2, 1), (2, 2), (1, 2), (1, 1), (0, 1), (0, 2), (1, 2), (1, 1), (0, 1), (0, 0), (1, 0), (1, 1), (2, 1), (2, 0), (1, 0), (0, 0), (0, 1), (1, 1), (2, 1), (2, 2)]
+```
+
+If you are working with a physical puzzle and actual tile numbers would be easier to read, you can obtain them the same way `str(`[`SearchResult`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html#slidingpuzzle.state.SearchResult)`)` does, using the convenience function [`solution_as_tiles()`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html#slidingpuzzle.board.solution_as_tiles):
+
+```python
+>>> solution_as_tiles(result.board, result.solution)
+[8, 2, 3, 8, 2, 7, 6, 2, 7, 3, 8, 5, 4, 7, 5, 4, 7, 5, 3, 6, 2, 3, 4, 8, 6, 2, 3, 1, 5, 4, 2, 6, 8, 7, 4, 5, 1, 2, 5, 4, 7, 8]
+```
+
 We can [`compare()`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html#slidingpuzzle.algorithms.compare) two heuristics like this:
 ```python
 >>> compare(3, 3, ha=manhattan_distance, hb=euclidean_distance)
@@ -90,19 +103,6 @@ Or we can compare two algorithms:
 ```
 
 The solutions are actually stored as a list of (y, x)-coords of moves, indicating which tile is to be moved next:
-
-```python
->>> result = search(b)
->>> result.solution
-[(2, 1), (2, 2), (1, 2), (1, 1), (0, 1), (0, 2), (1, 2), (1, 1), (0, 1), (0, 0), (1, 0), (1, 1), (2, 1), (2, 0), (1, 0), (0, 0), (0, 1), (1, 1), (2, 1), (2, 2)]
-```
-
-If you are working with a physical puzzle and actual tile numbers would be easier to read, you can obtain them the same way `str(`[`SearchResult`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html#slidingpuzzle.state.SearchResult)`)` does, using the convenience function [`solution_as_tiles()`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html#slidingpuzzle.board.solution_as_tiles):
-
-```python
->>> solution_as_tiles(result.board, result.solution)
-[8, 2, 3, 8, 2, 7, 6, 2, 7, 3, 8, 5, 4, 7, 5, 4, 7, 5, 3, 6, 2, 3, 4, 8, 6, 2, 3, 1, 5, 4, 2, 6, 8, 7, 4, 5, 1, 2, 5, 4, 7, 8]
-```
 
 ## Algorithms
 
@@ -141,7 +141,7 @@ There are two simple provided utility functions for evaluating algorithm/heurist
 ```python
 >>> import matplotlib.pyplot as plt
 >>> import numpy as np
->>> x = np.linspace(1, 10, num=128)
+>>> x = np.linspace(1, 20, num=128)
 >>> y = [evaluate(3, 3, weight=w) for w in x]
 >>> plt.plot(x, y)
 >>> plt.title("Average Nodes Generated vs. A* Weight")
