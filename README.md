@@ -248,7 +248,7 @@ def my_model_distance(board) -> float:
     return heuristic(board)
 ```
 
-Just change `"my_model_version` to the string you used in your model class.
+Just change `"my_model_version"` to the string you used in your model class.
 
 And you use it as expected:
 
@@ -271,22 +271,18 @@ pip install -r requirements-dev.txt
 pre-commit install
 ```
 
-First and **most importantly** verify you haven't broken anything by running [`pytest`](https://pypi.org/project/pytest/):
+After you've added your new code, verify you haven't broken anything by running [`pytest`](https://pypi.org/project/pytest/):
 ```console
 pytest
 ```
 
 If you changed anything in the `slidingpuzzle.nn` package, also run:
 ```console
+pip install -r requirements-nn.txt
 pytest tests/test_nn.py
 ```
 
 Don't forget to add new tests for anything you've added.
-
-You can also run `mypy` and look for any new violations:
-```console
-mypy src
-```
 
 Finally, check that the docs look correct:
 ```console
@@ -294,6 +290,9 @@ cd docs
 ./make html
 ```
 
-[`Black`](https://pypi.org/project/black/) and [`flake8`](https://pypi.org/project/flake8/) are used for formatting and linting, but they are automatically run by the pre-commit hooks installed in the Git repo.
+You can also run `mypy` and look for any new violations:
+```console
+mypy src
+```
 
-If you made changes in the `nn` submodule, you also need to install `requirements-nn.txt` and run `pytest tests/test_nn.py` to validate.
+[`Black`](https://pypi.org/project/black/) and [`flake8`](https://pypi.org/project/flake8/) are used for formatting and linting, but they are automatically run by the pre-commit hooks you installed earlier in the Git repo.

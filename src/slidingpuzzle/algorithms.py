@@ -42,11 +42,11 @@ GREEDY = "greedy"
 IDA_STAR = "ida*"
 IDDFS = "iddfs"
 ALGORITHMS = (
-    A_STAR,  # f(n) = g(n) + W * h(n)
+    A_STAR,
     BEAM,
     BFS,
     DFS,
-    GREEDY,  # f(n) = h(n)
+    GREEDY,
     IDA_STAR,
     IDDFS,
 )
