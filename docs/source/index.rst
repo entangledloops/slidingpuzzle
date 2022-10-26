@@ -7,6 +7,7 @@ Welcome to slidingpuzzle's documentation!
 
    install
    slidingpuzzle
+   slidingpuzzle.nn
    GitHub <https://www.github.com/entangledloops/slidingpuzzle>
 
 
