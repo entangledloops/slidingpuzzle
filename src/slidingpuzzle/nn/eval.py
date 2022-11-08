@@ -15,6 +15,7 @@
 """
 Module used to evaluate model performance vs. other heuristics.
 """
+from typing import Optional
 
 import torch
 import torch.utils
@@ -73,9 +74,9 @@ def evaluate(
 
 def eval_checkpoint(
     model: torch.nn.Module,
-    tag: str = None,
-    num_iters: int = None,
-    device: str = None,
+    tag: Optional[str] = None,
+    num_iters: Optional[int] = None,
+    device: Optional[str] = None,
     **kwargs,
 ) -> float:
     """

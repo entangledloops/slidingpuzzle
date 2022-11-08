@@ -22,7 +22,7 @@ help:
 LINKCHECKDIR  = build/linkcheck
 
 .PHONY: checklinks
-  checklinks:
-  $(SPHINXBUILD) -b linkcheck $(ALLSPHINXOPTS) $(LINKCHECKDIR)
-  @echo
-  @echo "Check finished. Report is in $(LINKCHECKDIR)."
+checklinks:
+	$(SPHINXBUILD) -b linkcheck $(ALLSPHINXOPTS) $(LINKCHECKDIR)
+	@echo
+	@echo "Check finished. Report is in $(LINKCHECKDIR)."

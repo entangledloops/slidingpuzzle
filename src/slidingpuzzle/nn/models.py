@@ -16,6 +16,8 @@
 Defines a PyTorch model to evaluate sliding puzzle boards.
 """
 
+from typing import Optional
+
 import torch
 import torch.nn as nn
 
@@ -53,7 +55,7 @@ class Model_v1(nn.Module):
         return x
 
 
-def save_model(model: nn.Module, device: str = None) -> None:
+def save_model(model: nn.Module, device: Optional[str] = None) -> None:
     """
     Save a frozen version of the model into the "models" dir.
 
@@ -74,7 +76,9 @@ def save_model(model: nn.Module, device: str = None) -> None:
     frozen_model.save(str(path))
 
 
-def load_model(h: int, w: int, version: str, device: str = None) -> torch.ScriptModule:
+def load_model(
+    h: int, w: int, version: str, device: Optional[str] = None
+) -> torch.ScriptModule:
     """
     Reload a pre-trained frozen model.
     """

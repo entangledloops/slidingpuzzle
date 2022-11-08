@@ -16,6 +16,8 @@
 Utilities for creating, saving, and loading board datasets.
 """
 
+from typing import Optional, TypeAlias
+
 import json
 import logging
 
@@ -26,8 +28,10 @@ import tqdm
 import slidingpuzzle.algorithms as algorithms
 import slidingpuzzle.board as board_
 import slidingpuzzle.nn.paths as paths
+from slidingpuzzle.board import FrozenBoard
 
 
+Example: TypeAlias = tuple[FrozenBoard, int | float]
 log = logging.getLogger(__name__)
 
 
@@ -47,7 +51,13 @@ class SlidingPuzzleDataset(torch.utils.data.Dataset):
         )
 
 
-def make_examples(h, w, num_examples, ignore_examples=None, **kwargs) -> list[tuple]:
+def make_examples(
+    h: int,
+    w: int,
+    num_examples: int,
+    ignore_examples: Optional[list[Example]] = None,
+    **kwargs,
+) -> list[Example]:
     """
     Constructs a list of training examples, which are tuples of:
         (board, num_moves_to_goal)
@@ -63,7 +73,7 @@ def make_examples(h, w, num_examples, ignore_examples=None, **kwargs) -> list[tu
     Returns:
         The list of training examples.
     """
-    visited = set()
+    visited: set[FrozenBoard] = set()
     examples = []
     if ignore_examples is not None:
         dupe_found = False
@@ -98,7 +108,7 @@ def make_examples(h, w, num_examples, ignore_examples=None, **kwargs) -> list[tu
     return examples
 
 
-def load_examples(h: int, w: int, examples_file: str = None) -> list:
+def load_examples(h: int, w: int, examples_file: Optional[str] = None) -> list[Example]:
     """
     Loads examples from a JSON file.
     """
@@ -108,7 +118,9 @@ def load_examples(h: int, w: int, examples_file: str = None) -> list:
         return json.load(fp)
 
 
-def save_examples(h: int, w: int, examples: list, examples_file: str = None) -> None:
+def save_examples(
+    h: int, w: int, examples: list, examples_file: Optional[str] = None
+) -> None:
     """
     Save a list of examples to disk as JSON.
     """
@@ -118,7 +130,9 @@ def save_examples(h: int, w: int, examples: list, examples_file: str = None) -> 
         json.dump(examples, fp)
 
 
-def get_examples(h: int, w: int, num_examples: int, prior_examples: list, **kwargs):
+def get_examples(
+    h: int, w: int, num_examples: int, prior_examples: list, **kwargs
+) -> list[Example]:
     """
     Returns ``num_examples`` total unique examples, starting with ``prior_examples`` if
     they are provided. May truncate or produce new examples as necessary.
@@ -137,7 +151,7 @@ def load_or_build_dataset(
     h: int,
     w: int,
     num_examples: int,
-    examples_file: str = None,
+    examples_file: Optional[str] = None,
     **kwargs,
 ) -> torch.utils.data.Dataset:
     """

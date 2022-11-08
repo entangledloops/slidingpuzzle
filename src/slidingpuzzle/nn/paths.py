@@ -16,6 +16,8 @@
 Utilities for dealing with paths required during model training and inference.
 """
 
+from typing import Optional
+
 import pathlib
 
 
@@ -46,7 +48,7 @@ def get_path(dirname: str, filename: str) -> pathlib.Path:
     return dirpath / filename
 
 
-def get_checkpoint_path(h: int, w: int, tag: str = None) -> pathlib.Path:
+def get_checkpoint_path(h: int, w: int, tag: Optional[str] = None) -> pathlib.Path:
     checkpoint_name = get_board_size_str(h, w)
     if tag is not None:
         checkpoint_name = f"{checkpoint_name}_{tag}"

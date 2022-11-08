@@ -15,11 +15,12 @@
 """
 Defines neural network-guided heuristics.
 """
-
 import torch
 
 import slidingpuzzle.nn.models as models
 import slidingpuzzle.nn.paths as paths
+from slidingpuzzle.board import Board
+from slidingpuzzle.heuristics import Heuristic
 
 
 MODEL_HEURISTICS = {}
@@ -31,7 +32,7 @@ def get_heuristic_key(h: int, w: int, version: str):
 
 
 def make_heuristic(model: torch.nn.Module | torch.ScriptModule):
-    device = next(model.parameters()).device
+    device = "cuda" if torch.cuda.is_available() else "cpu"
 
     def heuristic(board: tuple[list[int], ...]) -> float:
         tensor = torch.tensor(board, dtype=torch.float32).unsqueeze(0).to(device)
@@ -40,14 +41,14 @@ def make_heuristic(model: torch.nn.Module | torch.ScriptModule):
     return heuristic
 
 
-def set_heuristic(model: torch.nn.Module):
+def set_heuristic(model: torch.nn.Module | torch.ScriptModule):
     key = get_heuristic_key(model.h, model.w, model.version)
     heuristic = make_heuristic(model)
     MODEL_HEURISTICS[key] = heuristic
     return heuristic
 
 
-def get_heuristic(h, w, version):
+def get_heuristic(h: int, w: int, version: str) -> Heuristic:
     key = get_heuristic_key(h, w, version)
     heuristic = MODEL_HEURISTICS.get(key, None)
     if heuristic is None:
@@ -64,7 +65,7 @@ def get_heuristic(h, w, version):
 ##################################################################
 
 
-def v1_distance(board: tuple[list[int], ...]) -> float:
+def v1_distance(board: Board) -> float:
     """
     A neural network that estimates distance to goal
 

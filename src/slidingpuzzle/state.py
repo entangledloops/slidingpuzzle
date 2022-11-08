@@ -16,9 +16,12 @@
 Provides some convience classes to track search state and results.
 """
 
+from typing import Collection, Optional
+
 import dataclasses
 
 import slidingpuzzle
+from slidingpuzzle.board import Board, FrozenBoard
 
 
 @dataclasses.dataclass(order=True)
@@ -38,7 +41,7 @@ class State:
             search algorithm.
     """
 
-    board: tuple[list[int], ...] = dataclasses.field(compare=False)
+    board: Board = dataclasses.field(compare=False)
     empty_pos: tuple[int, int] = dataclasses.field(compare=False)
     history: list[tuple[int, int]] = dataclasses.field(
         compare=False, default_factory=list
@@ -67,12 +70,12 @@ class SearchResult:
         function ``open`` would collide, so they have been renamed.
     """
 
-    board: tuple[list[int], ...]
+    board: Board
     generated: int
     expanded: int
-    unvisited: list[State]
-    visited: set[tuple[tuple[int, ...], ...]]
-    solution: list[tuple[int, int]] | None
+    unvisited: Collection[State]
+    visited: set[FrozenBoard]
+    solution: Optional[list[tuple[int, int]]]
 
     def __repr__(self) -> str:
         solution = (

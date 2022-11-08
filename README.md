@@ -64,6 +64,16 @@ The default search is [`A*`](https://slidingtilepuzzle.readthedocs.io/en/latest/
 >>> search(b)
 solution=[3, 2, 8, 3, 6, 7, 3, 6, 7, 1, 4, 7, 2, 5, 7, 4, 1, 2, 5, 8]
 solution_len=20, generated=829, expanded=518, unvisited=312, visited=313
+```
+
+The solution is a list of tile numbers that should be moved into the empty square. You may be wondering about some of the numbers below. Briefly:
+- `generated` is the total number of nodes generated during the search
+- `expanded` is the total number of nodes that were evaluated (removed from search frontier)
+- `unvisited` is the number of nodes that we never reached because search terminated early (search frontier, "open")
+- `visited` is the number of unique states visited (`expanded` minus duplicate state expansions, "closed")
+
+
+```python
 >>> search(b, "bfs")
 solution=[3, 2, 8, 3, 6, 7, 3, 6, 7, 1, 4, 7, 2, 5, 7, 4, 1, 2, 5, 8]
 solution_len=20, generated=165616, expanded=120653, unvisited=44964, visited=62277
@@ -72,7 +82,7 @@ solution=[8, 2, 3, 8, 2, 7, 6, 2, 7, 3, 8, 5, 4, 7, 5, 4, 7, 5, 3, 6, 2, 3, 4, 8
 solution_len=42, generated=711, expanded=490, unvisited=222, visited=258
 ```
 
-In this case greedy search finds a solution quickly, but the solution is of lower quality.
+Notice how many states are generated for BFS to find a solution. Greedy search finds a solution quickly, but the solution is of lower quality.
 
 ```python
 >>> result = search(b)
@@ -287,8 +297,9 @@ Don't forget to add new tests for anything you've added.
 Finally, check that the docs look correct:
 ```console
 cd docs
-./make html
+make html
 ```
+> **_Note:_**  Use `./make html` on Windows.
 
 You can also run `mypy` and look for any new violations:
 ```console

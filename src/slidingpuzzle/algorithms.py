@@ -16,10 +16,14 @@
 Search algorithms
 """
 
+from typing import Optional
+
 import collections
 import heapq
 
 from slidingpuzzle.board import (
+    Board,
+    FrozenBoard,
     get_empty_yx,
     get_next_moves,
     is_solvable,
@@ -71,7 +75,7 @@ def get_next_states(state: State) -> list[State]:
     return next_states
 
 
-def a_star(board: tuple[list[int], ...], **kwargs) -> SearchResult:
+def a_star(board: Board, **kwargs) -> SearchResult:
     r"""
     A* heuristic search algorithm.
     Supports weights, depth bounds, and f-bounds.
@@ -111,7 +115,7 @@ def a_star(board: tuple[list[int], ...], **kwargs) -> SearchResult:
     empty_pos = get_empty_yx(board)
     initial_state = State(board, empty_pos)
     unvisited = [initial_state]
-    visited = set()
+    visited: set[FrozenBoard] = set()
 
     # stats
     generated, expanded = 0, 0
@@ -145,7 +149,7 @@ def a_star(board: tuple[list[int], ...], **kwargs) -> SearchResult:
     return SearchResult(board, generated, expanded, list(unvisited), visited, None)
 
 
-def beam(board: tuple[list[int], ...], **kwargs) -> SearchResult:
+def beam(board: Board, **kwargs) -> SearchResult:
     r"""
     Beam search is a variant of breadth-first search that sorts its children using a
     heuristic function and then drops child states to match the beam width. This search
@@ -177,7 +181,7 @@ def beam(board: tuple[list[int], ...], **kwargs) -> SearchResult:
     empty_pos = get_empty_yx(board)
     initial_state = State(board, empty_pos)
     unvisited = collections.deque([initial_state])
-    visited = set()
+    visited: set[FrozenBoard] = set()
 
     # stats
     generated, expanded = 0, 0
@@ -213,7 +217,7 @@ def beam(board: tuple[list[int], ...], **kwargs) -> SearchResult:
     return SearchResult(board, generated, expanded, list(unvisited), visited, None)
 
 
-def bfs(board: tuple[list[int], ...], **kwargs) -> SearchResult:
+def bfs(board: Board, **kwargs) -> SearchResult:
     r"""
     Breadth-first search
 
@@ -235,7 +239,7 @@ def bfs(board: tuple[list[int], ...], **kwargs) -> SearchResult:
     empty_pos = get_empty_yx(board)
     initial_state = State(board, empty_pos)
     unvisited = collections.deque([initial_state])
-    visited = set()
+    visited: set[FrozenBoard] = set()
 
     # stats
     generated, expanded = 0, 0
@@ -267,7 +271,7 @@ def bfs(board: tuple[list[int], ...], **kwargs) -> SearchResult:
     return SearchResult(board, generated, expanded, list(unvisited), visited, None)
 
 
-def dfs(board: tuple[list[int], ...], **kwargs) -> SearchResult:
+def dfs(board: Board, **kwargs) -> SearchResult:
     r"""
     Depth-first search
 
@@ -289,7 +293,7 @@ def dfs(board: tuple[list[int], ...], **kwargs) -> SearchResult:
     empty_pos = get_empty_yx(board)
     initial_state = State(board, empty_pos)
     unvisited = [initial_state]
-    visited = set()
+    visited: set[FrozenBoard] = set()
 
     # stats
     generated, expanded = 0, 0
@@ -321,7 +325,7 @@ def dfs(board: tuple[list[int], ...], **kwargs) -> SearchResult:
     return SearchResult(board, generated, expanded, list(unvisited), visited, None)
 
 
-def greedy(board: tuple[list[int], ...], **kwargs) -> SearchResult:
+def greedy(board: Board, **kwargs) -> SearchResult:
     r"""
     Greedy best-first search. This search orders all known states using the provided
     heuristic and greedily chooses the state closest to the goal.
@@ -349,7 +353,7 @@ def greedy(board: tuple[list[int], ...], **kwargs) -> SearchResult:
     empty_pos = get_empty_yx(board)
     initial_state = State(board, empty_pos)
     unvisited = [initial_state]
-    visited = set()
+    visited: set[FrozenBoard] = set()
 
     # stats
     generated, expanded = 0, 0
@@ -383,7 +387,7 @@ def greedy(board: tuple[list[int], ...], **kwargs) -> SearchResult:
     return SearchResult(board, generated, expanded, list(unvisited), visited, None)
 
 
-def ida_star(board: tuple[list[int], ...], **kwargs) -> SearchResult:
+def ida_star(board: Board, **kwargs) -> SearchResult:
     r"""
     Iterative deepening A*. A depth-first search that uses an f-bound instead of depth
     to limit search. The next bound is set to the minimum increase in f-bound observed
@@ -411,11 +415,11 @@ def ida_star(board: tuple[list[int], ...], **kwargs) -> SearchResult:
     # initial state
     goal = new_board(len(board), len(board[0]))
     empty_pos = get_empty_yx(board)
-    bound = manhattan_distance(board)
+    bound = float(manhattan_distance(board))
     initial_state = State(board, empty_pos)
     next_bound = float("inf")
     unvisited = [initial_state]
-    visited = set()
+    visited: set[FrozenBoard] = set()
 
     # stats
     generated, expanded = 0, 0
@@ -461,7 +465,7 @@ def ida_star(board: tuple[list[int], ...], **kwargs) -> SearchResult:
     return SearchResult(board, generated, expanded, list(unvisited), visited, None)
 
 
-def iddfs(board: tuple[list[int], ...], **kwargs) -> SearchResult:
+def iddfs(board: Board, **kwargs) -> SearchResult:
     r"""
     Iterative deepening depth first search. Same as :func:`dfs`, except that the depth
     bound is incrementally increased until a solution is found.
@@ -484,7 +488,7 @@ def iddfs(board: tuple[list[int], ...], **kwargs) -> SearchResult:
     initial_state = State(board, empty_pos)
     next_bound = bound
     unvisited = [initial_state]
-    visited = set()
+    visited: set[FrozenBoard] = set()
 
     # stats
     generated, expanded = 0, 0
@@ -624,8 +628,8 @@ def compare(
     alga=A_STAR,
     algb=A_STAR,
     num_iters: int = 32,
-    kwargsa: dict = None,
-    kwargsb: dict = None,
+    kwargsa: Optional[dict] = None,
+    kwargsb: Optional[dict] = None,
     **kwargs,
 ) -> tuple[float, float]:
     """

@@ -16,14 +16,18 @@
 A collection of functions for working with sliding tile puzzle boards.
 """
 
+from typing import Optional, TypeAlias
+
 import random
 import sys
 
 
 EMPTY_TILE = 0
+Board: TypeAlias = tuple[list[int], ...]
+FrozenBoard: TypeAlias = tuple[tuple[int, ...], ...]
 
 
-def new_board(h: int, w: int) -> tuple[list[int], ...]:
+def new_board(h: int, w: int) -> Board:
     """
     Create a new board in the default solved state.
 
@@ -39,7 +43,7 @@ def new_board(h: int, w: int) -> tuple[list[int], ...]:
     return board
 
 
-def freeze_board(board: tuple[list[int], ...]) -> tuple[tuple[int, ...], ...]:
+def freeze_board(board: Board) -> FrozenBoard:
     """
     Obtain a frozen copy of the board that is hashable.
 
@@ -52,7 +56,7 @@ def freeze_board(board: tuple[list[int], ...]) -> tuple[tuple[int, ...], ...]:
     return tuple(tuple(row) for row in board)
 
 
-def print_board(board: tuple[list[int], ...], file=sys.stdout) -> None:
+def print_board(board: Board | FrozenBoard, file=sys.stdout) -> None:
     """
     Convienance function for printing a formatted board.
 
@@ -72,7 +76,7 @@ def print_board(board: tuple[list[int], ...], file=sys.stdout) -> None:
         print(file=file)
 
 
-def get_yx(board: tuple[list[int], ...], tile: int) -> tuple[int, int]:
+def get_yx(board: Board | FrozenBoard, tile: int) -> tuple[int, int]:
     """
     Given a tile number, find the (y, x)-coord on the board.
 
@@ -90,7 +94,7 @@ def get_yx(board: tuple[list[int], ...], tile: int) -> tuple[int, int]:
     raise ValueError(f'There is no tile "{tile}" on the board.')
 
 
-def get_empty_yx(board: tuple[list[int], ...]) -> tuple[int, int]:
+def get_empty_yx(board: Board | FrozenBoard) -> tuple[int, int]:
     """
     Locate the empty tile's (y, x)-coord.
 
@@ -104,8 +108,8 @@ def get_empty_yx(board: tuple[list[int], ...]) -> tuple[int, int]:
 
 
 def get_next_moves(
-    board: tuple[list[int], ...],
-    empty_pos: tuple[int, int] = None,
+    board: Board | FrozenBoard,
+    empty_pos: Optional[tuple[int, int]] = None,
 ) -> list[tuple[int, int]]:
     """
     Return a list of all possible moves.
@@ -129,9 +133,7 @@ def get_next_moves(
     return moves
 
 
-def swap_tiles(
-    board: tuple[list[int], ...], pos1: tuple[int, int], pos2: tuple[int, int]
-) -> tuple[list[int], ...]:
+def swap_tiles(board: Board, pos1: tuple[int, int], pos2: tuple[int, int]) -> Board:
     """
     Mutates the board by swapping a pair of tiles.
 
@@ -149,7 +151,7 @@ def swap_tiles(
     return board
 
 
-def count_inversions(board: tuple[list[int], ...]) -> int:
+def count_inversions(board: Board | FrozenBoard) -> int:
     """
     From each tile, count the number of tiles that are out of place.
     Returns the sum of all counts. See :func:`is_solvable`.
@@ -175,10 +177,10 @@ def count_inversions(board: tuple[list[int], ...]) -> int:
 
 
 def apply_move(
-    board: tuple[list[int], ...],
+    board: Board,
     move: tuple[int, int] | int,
-    empty_pos: tuple[int, int] = None,
-) -> tuple[list[int], ...]:
+    empty_pos: Optional[tuple[int, int]] = None,
+) -> Board:
     """
     Applies a move to the board in place.
 
@@ -197,7 +199,7 @@ def apply_move(
     return swap_tiles(board, move, empty_pos)
 
 
-def is_solvable(board: tuple[list[int], ...]) -> bool:
+def is_solvable(board: Board | FrozenBoard) -> bool:
     """
     Determines if it is possible to solve this board.
 
@@ -230,7 +232,7 @@ def is_solvable(board: tuple[list[int], ...]) -> bool:
     return False
 
 
-def shuffle_board(board: tuple[list[int], ...]) -> tuple[list[int], ...]:
+def shuffle_board(board: Board) -> Board:
     """
     Shuffles a board (in place) and validates that the result is solvable.
 
@@ -255,8 +257,8 @@ def shuffle_board(board: tuple[list[int], ...]) -> tuple[list[int], ...]:
 
 
 def shuffle_board_lazy(
-    board: tuple[list[int], ...], num_moves: int = None, moves: list = None
-) -> tuple[list[int], ...]:
+    board: Board, num_moves: Optional[int] = None, moves: Optional[list] = None
+) -> Board:
     """
     Shuffles a board in place by making random legal moves.
     Each move is first checked to avoid repeated states, although
@@ -275,7 +277,7 @@ def shuffle_board_lazy(
     if num_moves is None:
         num_moves = (h + w) * 2
     empty_pos = get_empty_yx(board)
-    visited = set()
+    visited: set[FrozenBoard] = set()
     for _ in range(num_moves):
         next_moves = get_next_moves(board, empty_pos)
         random.shuffle(next_moves)
@@ -304,9 +306,7 @@ def shuffle_board_lazy(
     return board
 
 
-def solution_as_tiles(
-    board: tuple[list[int], ...], solution: list[tuple[int, int]]
-) -> list[int]:
+def solution_as_tiles(board: Board, solution: list[tuple[int, int]]) -> list[int]:
     """
     Converts a list of (y, x)-coords indicating moves into tile numbers,
     given a starting board configuration.
@@ -329,9 +329,7 @@ def solution_as_tiles(
     return tiles
 
 
-def visit(
-    visited: set[tuple[tuple[int, ...], ...]], board: tuple[list[int], ...]
-) -> bool:
+def visit(visited: set[FrozenBoard], board: Board) -> bool:
     """
     Helper to check if this state already exists. Otherwise, record it.
     Returns True if we have already been here, False otherwise.

@@ -19,13 +19,18 @@ Each function accepts a puzzle board as input, and returns a numeric value
 that indicates the estimated distance from the goal.
 """
 
+from typing import Callable, TypeAlias
+
 import math
 
 import slidingpuzzle
-from slidingpuzzle.board import freeze_board
+from slidingpuzzle.board import Board, freeze_board
 
 
-def euclidean_distance(board: tuple[list[int], ...]) -> float:
+Heuristic: TypeAlias = Callable[[Board], int | float]
+
+
+def euclidean_distance(board: Board) -> float:
     r"""
     The distance between each tile and its destination, as measured in Euclidean space
 
@@ -40,7 +45,7 @@ def euclidean_distance(board: tuple[list[int], ...]) -> float:
         The sum of all tile distances from their goal positions
     """
     w = len(board[0])
-    dist = 0
+    dist = 0.0
     for y, row in enumerate(board):
         for x, tile in enumerate(row):
             if slidingpuzzle.EMPTY_TILE == tile:
@@ -51,7 +56,7 @@ def euclidean_distance(board: tuple[list[int], ...]) -> float:
     return dist
 
 
-def hamming_distance(board: tuple[list[int], ...]) -> int:
+def hamming_distance(board: Board) -> int:
     r"""
     The count of misplaced tiles.
 
@@ -77,7 +82,7 @@ def hamming_distance(board: tuple[list[int], ...]) -> int:
     return dist
 
 
-def manhattan_distance(board: tuple[list[int], ...]) -> int:
+def manhattan_distance(board: Board) -> int:
     r"""
     The minimum number of moves needed to restore the board to the goal state, if tiles
     could be moved through each other.
@@ -104,7 +109,7 @@ def manhattan_distance(board: tuple[list[int], ...]) -> int:
     return dist
 
 
-def random_distance(board: tuple[list[int], ...]) -> int:
+def random_distance(board: Board) -> int:
     r"""
     A random distance computed as a hash of the board state. Useful as a baseline.
 

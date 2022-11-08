@@ -16,11 +16,14 @@
 Utilities for training a new sliding tile puzzle model for computing heuristic value.
 """
 
+from typing import Collection, Optional
+
 import collections
 import itertools
 import logging
 import math
 import random
+import shutil
 
 import numpy as np
 import tensorboard
@@ -40,6 +43,19 @@ from slidingpuzzle.nn.eval import accuracy, evaluate
 log = logging.getLogger(__name__)
 
 
+def set_seed(seed: int) -> None:
+    """
+    Set all standard random seeds.
+
+    Args:
+        seed (int): The seed to use
+    """
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
+
+
 def get_state_dict(model: nn.Module, optimizer: optim.Optimizer, **kwargs) -> dict:
     return {
         "model_state_dict": model.state_dict(),
@@ -52,8 +68,8 @@ def get_state_dict(model: nn.Module, optimizer: optim.Optimizer, **kwargs) -> di
 
 def load_checkpoint(
     model: nn.Module,
-    optimizer: optim.Optimizer = None,
-    tag: str = None,
+    optimizer: Optional[optim.Optimizer] = None,
+    tag: Optional[str] = None,
 ) -> dict:
     """
     Loads a model and optimizer state from the specified epoch.
@@ -78,7 +94,7 @@ def load_checkpoint(
         return {"epoch": 0, "test_accuracy": float("-inf")}
 
 
-def save_checkpoint(state: dict, tag: str = None) -> None:
+def save_checkpoint(state: dict, tag: Optional[str] = None) -> None:
     h = state["board_height"]
     w = state["board_width"]
     checkpoint_path = paths.get_checkpoint_path(h, w, tag)
@@ -119,13 +135,13 @@ def linear_regression_beta(data):
 def train(
     model: nn.Module,
     num_examples: int = 2**14,
-    dataset: torch.utils.data.Dataset = None,
+    dataset: Optional[torch.utils.data.Dataset] = None,
     train_fraction: float = 0.95,
     num_epochs: int = 0,
     batch_size: int = 128,
     early_quit_epochs: int = 10000,
     early_quit_threshold: float = -1e-6,
-    device: str = None,
+    device: Optional[str] = None,
     checkpoint_freq: int = 50,
     tensorboard_dir: str = paths.TENSORBOARD_DIR,
     seed: int = 0,
@@ -170,15 +186,14 @@ def train(
             dataset. Can be used to customize the search algorithm used to find
             training examples if, for example, it is taking too long.
     """
-    random.seed(seed)
-    np.random.seed(seed)
-    torch.manual_seed(seed)
+    set_seed(seed)
     h, w = model.h, model.w
 
     # prepare tensorboard to record training
     url = launch_tensorboard(tensorboard_dir)
     log.info(f"Tensorboard launched: {url}")
     log_dir = paths.get_log_dir(tensorboard_dir, h, w)
+    shutil.rmtree(log_dir, ignore_errors=True)  # clear old logs
     comment = f"EXAMPLES_{num_examples}_BS_{batch_size}"
     writer = SummaryWriter(log_dir, comment=comment)
     layout = {
@@ -206,7 +221,7 @@ def train(
     highest_acc = load_checkpoint(model, optimizer, tag="acc")["test_accuracy"]
     epoch = load_checkpoint(model, optimizer, tag="latest")["epoch"]
     criterion = nn.MSELoss()
-    test_acc_window = collections.deque(maxlen=early_quit_epochs)
+    test_acc_window: Collection[float] = collections.deque(maxlen=early_quit_epochs)
 
     # prepare training loop
     if 0 == num_epochs:
@@ -232,7 +247,7 @@ def train(
             for batch, expected in iter(
                 DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
             ):
-                num_train_examples += batch_size
+                num_train_examples += batch.shape[0]
                 batch = batch.to(device)
                 expected = expected.to(device)
                 optimizer.zero_grad()
