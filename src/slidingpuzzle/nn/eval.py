@@ -59,7 +59,7 @@ def evaluate(
         A tuple(avg. loss, avg. accuracy)
     """
     model.eval()
-    device = next(model.parameters()).device
+    device = "cuda" if torch.cuda.is_available() else "cpu"
     running_loss = 0.0
     running_accuracy = 0.0
     dataloader = torch.utils.data.DataLoader(dataset)
@@ -74,17 +74,17 @@ def evaluate(
 
 def eval_checkpoint(
     model: torch.nn.Module,
-    tag: Optional[str] = None,
+    tag: str = "acc",
     num_iters: Optional[int] = None,
     device: Optional[str] = None,
     **kwargs,
 ) -> float:
     """
     Loads the provided model from the checkpoint at ``epoch`` and runs
-    ``evaluate_heuristic``, returning the result. If ``epoch`` is not provided, the
+    ``evaluate``, returning the result. If ``epoch`` is not provided, the
     latest checkpoint is used.
     """
-    from slidingpuzzle.algorithms import eval_heuristic
+    from slidingpuzzle.algorithms import evaluate as evaluate_
     from slidingpuzzle.nn.train import load_checkpoint
     from slidingpuzzle.nn.heuristics import set_heuristic
 
@@ -94,8 +94,8 @@ def eval_checkpoint(
     model.to(device)
     heuristic = set_heuristic(model)
     if num_iters is None:
-        return eval_heuristic(model.h, model.w, heuristic=heuristic, **kwargs)
+        return evaluate_(model.h, model.w, heuristic=heuristic, **kwargs)
     else:
-        return eval_heuristic(
+        return evaluate_(
             model.h, model.w, heuristic=heuristic, num_iters=num_iters, **kwargs
         )
