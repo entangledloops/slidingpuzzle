@@ -56,5 +56,6 @@ from slidingpuzzle.nn.train import (
     launch_tensorboard,
     load_checkpoint,
     save_checkpoint,
+    set_seed,
     train,
 )

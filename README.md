@@ -175,6 +175,7 @@ You can then train a new network easily:
 
 ```python
 >>> import slidingpuzzle.nn as nn
+>>> nn.set_seed(0)  # if you want reproducible weights
 >>> model = nn.Model_v1(3, 3)
 >>> nn.train(model)
 ```

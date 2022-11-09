@@ -36,7 +36,7 @@ log = logging.getLogger(__name__)
 
 
 class SlidingPuzzleDataset(torch.utils.data.Dataset):
-    def __init__(self, examples) -> None:
+    def __init__(self, examples: list[Example]) -> None:
         super().__init__()
         self.examples = examples
 

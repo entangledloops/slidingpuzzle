@@ -48,10 +48,16 @@ def get_path(dirname: str, filename: str) -> pathlib.Path:
     return dirpath / filename
 
 
-def get_checkpoint_path(h: int, w: int, tag: Optional[str] = None) -> pathlib.Path:
-    checkpoint_name = get_board_size_str(h, w)
-    if tag is not None:
-        checkpoint_name = f"{checkpoint_name}_{tag}"
+def get_checkpoint_path(h: int, w: int, tag: str) -> pathlib.Path:
+    """
+    Get the path to a checkpoint, given a board size and optional tag.
+
+    Args:
+        h: Board height
+        w: Board width
+        tag: Checkpoint tag to load
+    """
+    checkpoint_name = f"{get_board_size_str(h, w)}_{tag}"
     return get_path(CHECKPOINT_DIR, f"checkpoint_{checkpoint_name}")
 
 

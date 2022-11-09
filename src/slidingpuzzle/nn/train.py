@@ -23,7 +23,6 @@ import itertools
 import logging
 import math
 import random
-import shutil
 
 import numpy as np
 import tensorboard
@@ -68,19 +67,30 @@ def get_state_dict(model: nn.Module, optimizer: optim.Optimizer, **kwargs) -> di
 
 def load_checkpoint(
     model: nn.Module,
+    tag: str = "acc",
     optimizer: Optional[optim.Optimizer] = None,
-    tag: Optional[str] = None,
 ) -> dict:
     """
     Loads a model and optimizer state from the specified epoch.
     If no epoch provided, latest trained model is used.
+    In addition to the model and optimizer state, a checkpoint contains:
+
+    * ``epoch``: The epoch this checkpoint is from
+    * ``test_accuracy``: The test accuracy at that time
+    * ``board_width/height``: The board size
 
     Note:
-        The board size is extracted from ``model.h`` and ``model.w``,
-        which are expected to be present.
+        The board size is extracted from ``model.h`` and ``model.w``, which are
+        expected to be present.
+
+    Args:
+        model: The module to load weights into
+        optimizer: The optimizer state to restore. If ``None``, ignored.
+        tag: The checkpoint tag to load. If ``None``, latest checkpo
 
     Returns:
-        The checkpoint.
+        The checkpoint ``dict``. If not found, returns ``dict`` with default values
+        that can be used at the start of search.
     """
     checkpoint_path = paths.get_checkpoint_path(model.h, model.w, tag)
     try:
@@ -101,7 +111,7 @@ def save_checkpoint(state: dict, tag: Optional[str] = None) -> None:
     torch.save(state, str(checkpoint_path))
 
 
-def launch_tensorboard(dirname: str) -> str:
+def launch_tensorboard(dirname: str = paths.TENSORBOARD_DIR) -> str:
     """
     Launches tensorboard in the specified directory.
 
@@ -118,17 +128,38 @@ def launch_tensorboard(dirname: str) -> str:
 
 
 def linear_regression_beta(data):
+    r"""
+    Calculates the :math:`\beta` (slope) of the linear regresion of ``data``.
+    Used to determine which direction a trend appears to be moving. The formula
+    derived below comes from linear regression. We wish to solve for :math:`\beta`
+    in the equation
+
+    .. math::
+        y = \alpha + \beta x
+
+    where the formula for :math:`\beta` is
+
+    .. math::
+        \beta = \frac{\sum^{n}_{i=1}{(x_i - \overline{x})(y_i - \overline{y})}}
+            {\sum^{n}_{i=1}{(x_i - \overline{x})^2}}
+            \text{.}
+
+    In our case, the values for :math:`x` are the range :math:`[1, n]`, where
+    :math:`n` is ``len(data)``. We can compute the sum of this range using the
+    standard formula,
+
+    .. math::
+        n(n+1)/2
+
+    and to compute the average :math:`\overline{x}`,
+
+    .. math::
+        \overline{x} = n(n+1)/2n = (n+1)/2 \text{.}
     """
-    Calculates the beta (slope) of the linear regresion of ``data``.
-    Used to determine which direction a trend appears to be moving.
-    """
-    # n*(n+1) / 2 == sum of a range
-    # n*(n+1) / 2n == avg of range
-    # (n+1) / 2 == simplified
-    mean_x = (len(data) + 1) / 2
-    mean_y = sum(data) / len(data)
-    numerator = sum((x - mean_x) * (y - mean_y) for x, y in zip(range(len(data)), data))
-    denominator = sum((x - mean_x) ** 2 for x in data)
+    x_mean = (len(data) + 1) / 2
+    y_mean = sum(data) / len(data)
+    numerator = sum((x - x_mean) * (y - y_mean) for x, y in zip(range(len(data)), data))
+    denominator = sum((x - x_mean) ** 2 for x in data)
     return numerator / denominator
 
 
@@ -138,9 +169,9 @@ def train(
     dataset: Optional[torch.utils.data.Dataset] = None,
     train_fraction: float = 0.95,
     num_epochs: int = 0,
-    batch_size: int = 128,
-    early_quit_epochs: int = 10000,
-    early_quit_threshold: float = -1e-6,
+    batch_size: int = 256,
+    early_quit_epochs: int = 256,
+    early_quit_threshold: float = 1e-5,
     device: Optional[str] = None,
     checkpoint_freq: int = 50,
     tensorboard_dir: str = paths.TENSORBOARD_DIR,
@@ -163,22 +194,23 @@ def train(
         model: The model instance to train
         num_examples: Total number of examples to use for training / test. Ignored
             if ``dataset`` is provided
-        dataset: A custom dataset to use
+        dataset: A custom dataset to use. If not provided, it will be generated.
         train_fraction: The train/test split
         num_epochs: Total number of epochs model should be trained for. Use 0 to run
             until the ``early_quit_epochs`` logic is hit.
         batch_size: Batch size to use for training
         early_quit_epochs: We will hold an ``early_quit_epochs``-sized window of test
-            accuracy values. If the linear regression slope of these data points is
-            < ``early_quit_threshold``, we will terminate training early. Use 0 to
+            loss values. If the linear regression slope of these data points is
+            > ``early_quit_threshold``, we will terminate training early. Use 0 to
             disable this feature and always run until ``num_epochs`` of training have
             completed. If both this and ``num_epochs`` are 0, training will run until
             manually interrupted.
-        early_quit_threshold: If the slope of test accuracy linear regression falls
-            below this value, training is terminated.
+        early_quit_beta: If the slope of test accuracy linear regression falls below
+            this value, training is terminated.
         device: Device to train on. Default will autodetect CUDA or use CPU
-        checkpoint_freq: Model will be checkpointed every time this many epochs
-            complete. If 0, no epoch checkpointint will be used.
+        checkpoint_freq: Model will be checkpointed each time this many epochs
+            elapse. If 0, no epoch checkpointint will be used. (Highest test acc. will
+            still be checkpointed and also final checkpoint on termination.)
         tensorboard_dir: The root tensorboard dir for logs. Default is "tensorboard".
         seed: Seed used for torch random utilities for reproducibility
         kwargs: Additional args that may be passed to
@@ -193,7 +225,6 @@ def train(
     url = launch_tensorboard(tensorboard_dir)
     log.info(f"Tensorboard launched: {url}")
     log_dir = paths.get_log_dir(tensorboard_dir, h, w)
-    shutil.rmtree(log_dir, ignore_errors=True)  # clear old logs
     comment = f"EXAMPLES_{num_examples}_BS_{batch_size}"
     writer = SummaryWriter(log_dir, comment=comment)
     layout = {
@@ -218,10 +249,12 @@ def train(
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model.to(device)
     optimizer = optim.SGD(model.parameters(), lr=0.0001, momentum=0.9)
-    highest_acc = load_checkpoint(model, optimizer, tag="acc")["test_accuracy"]
-    epoch = load_checkpoint(model, optimizer, tag="latest")["epoch"]
+    highest_acc = load_checkpoint(model, tag="acc", optimizer=optimizer)[
+        "test_accuracy"
+    ]
+    epoch = load_checkpoint(model, tag="latest", optimizer=optimizer)["epoch"]
     criterion = nn.MSELoss()
-    test_acc_window: Collection[float] = collections.deque(maxlen=early_quit_epochs)
+    test_loss_window: Collection[float] = collections.deque(maxlen=early_quit_epochs)
 
     # prepare training loop
     if 0 == num_epochs:
@@ -262,7 +295,7 @@ def train(
             running_loss /= num_train_examples
             running_accuracy /= num_train_examples
             test_loss, test_accuracy = evaluate(model, criterion, test_dataset)
-            test_acc_window.append(test_accuracy)
+            test_loss_window.append(test_loss)
             writer.add_scalar("loss/training", running_loss, epoch)
             writer.add_scalar("accuracy/training", running_accuracy, epoch)
             writer.add_scalar("loss/test", test_loss, epoch)
@@ -283,9 +316,9 @@ def train(
                     model, optimizer, epoch=epoch, test_accuracy=test_accuracy
                 )
                 save_checkpoint(state, f"epoch_{epoch}")
-            if early_quit_epochs > 0 and len(test_acc_window) == early_quit_epochs:
+            if early_quit_epochs > 0 and len(test_loss_window) == early_quit_epochs:
                 # if we are using early quitting, check the overall trendline is down
-                if linear_regression_beta(test_acc_window) < early_quit_threshold:
+                if linear_regression_beta(test_loss_window) > early_quit_threshold:
                     with tqdm_logging_redirect():
                         log.info(
                             f"Early quit threshold reached at epoch {epoch}, "

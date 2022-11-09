@@ -539,11 +539,7 @@ ALGORITHMS_MAP = {
 }
 
 
-def search(
-    board: tuple[list[int], ...],
-    alg: str = A_STAR,
-    **kwargs,
-) -> SearchResult:
+def search(board: Board, alg: str = A_STAR, **kwargs) -> SearchResult:
     r"""
     Searches for a set of moves that take the provided board state to the
     solved state.
@@ -582,10 +578,10 @@ def search(
 
     if not is_solvable(board):
         raise ValueError("The provided board is not solvable.")
-    alg = alg.strip().lower()
-    if alg not in ALGORITHMS:
+    alg_ = alg.strip().lower()
+    if alg_ not in ALGORITHMS:
         raise ValueError(f'Unknown algorithm: "{alg}"')
-    return ALGORITHMS_MAP[alg](board, **kwargs)
+    return ALGORITHMS_MAP[alg_](board, **kwargs)
 
 
 def evaluate(

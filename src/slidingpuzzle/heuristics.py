@@ -35,7 +35,7 @@ def euclidean_distance(board: Board) -> float:
     The distance between each tile and its destination, as measured in Euclidean space
 
     .. math::
-        \sum_{i}^{n} \sqrt{(\text{tile}_{i, x} - \text{goal}_{i, x})^2 + \
+        \sum_{i}^{n} \sqrt{(\text{tile}_{i, x} - \text{goal}_{i, x})^2 +
             (\text{tile}_{i, y} - \text{goal}_{i, y})^2}
 
     Args:
@@ -88,7 +88,7 @@ def manhattan_distance(board: Board) -> int:
     could be moved through each other.
 
     .. math::
-        \sum_{i}^{n} |\text{tile}_{i, x} - \text{goal}_{i, x}| + \
+        \sum_{i}^{n} |\text{tile}_{i, x} - \text{goal}_{i, x}| +
             |\text{tile}_{i, y} - \text{goal}_{i, y}|
 
     Args:
