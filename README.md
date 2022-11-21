@@ -6,7 +6,7 @@
 ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/slidingpuzzle)
 <a href="https://www.buymeacoffee.com/entangledloops" target="_blank"><img src="https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png" alt="Buy Me A Coffee" height=32></a>
 
-[Installation](https://slidingtilepuzzle.readthedocs.io/en/latest/install.html) | Documentation ([Latest](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html) | [Stable](https://slidingtilepuzzle.readthedocs.io/en/stable/slidingpuzzle.html]))
+[Installation](https://slidingtilepuzzle.readthedocs.io/en/latest/install.html) | Documentation ([Latest](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html) | [Stable](https://slidingtilepuzzle.readthedocs.io/en/stable/slidingpuzzle.html))
 
 A package for solving sliding tile puzzles.
 
