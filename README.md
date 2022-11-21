@@ -5,27 +5,25 @@
 ![PyPI - License](https://img.shields.io/pypi/l/slidingpuzzle)
 <a href="https://www.buymeacoffee.com/entangledloops" target="_blank"><img src="https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png" alt="Buy Me A Coffee" height=32></a>
 
+[Installation](https://slidingtilepuzzle.readthedocs.io/en/latest/install.html) | Documentation ([Latest](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html) | [Stable](https://slidingtilepuzzle.readthedocs.io/en/stable/slidingpuzzle.html]))
+
+A package for solving sliding tile puzzles.
+
 - [Sliding Puzzle](#sliding-puzzle)
   - [Installation](#installation)
-  - [Documentation](#documentation)
   - [Examples](#examples)
   - [Algorithms](#algorithms)
   - [Heuristics](#heuristics)
     - [Neural Nets](#neural-nets)
   - [Custom Models](#custom-models)
-  - [Creating a Pull Request](#creating-a-pull-request)
+  - [Contributing](#contributing)
 
-A package for solving sliding tile puzzles.
 
 ## Installation
 
 ```console
 pip install slidingpuzzle
 ```
-
-## Documentation
-
-https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html
 
 ## Examples
 
@@ -145,7 +143,7 @@ may miss the goal, even thought the board is solvable.
 The available heuristics are:
 - [`euclidean_distance`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html#slidingpuzzle.heuristics.euclidean_distance) - The straight line distance in Euclidean space between two tiles. This is essentially the hypotenuse of a right triangle. (The square root is not used as it does not affect the sorting order.)
 - [`hamming_distance`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html#slidingpuzzle.heuristics.hamming_distance) - Count of how many tiles are in the correct position
-- [`linear_conflict_distance`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html#slidingpuzzle.heuristics.linear_conflict_distance)
+- [`linear_conflict_distance`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html#slidingpuzzle.heuristics.linear_conflict_distance) - This is an augmented Manhattan distance. Adds an additional 2 to each pair of inverted tiles that are already on their goal row/column.
 - [`manhattan_distance`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html#slidingpuzzle.heuristics.manhattan_distance) - Count of how many moves it would take each tile to arrive in the correct position, if other tiles could be ignored
 - [`random_distance`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html#slidingpuzzle.heuristics.random_distance) - This is a random number (but a *consistent* random number for a given board state). It is useful as a baseline.
 - Neural net heuristics from [`slidingpuzzle.nn`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.nn.html) submodule (see section below)
@@ -155,15 +153,15 @@ The available heuristics are:
 There are two simple provided utility functions for evaluating algorithm/heuristic performance: [`evaluate()`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html#slidingpuzzle.algorithms.evaluate) and [`compare()`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html#slidingpuzzle.algorithms.compare).
 
 ```python
->>> import matplotlib.pyplot as plt
->>> import numpy as np
->>> x = np.linspace(1, 20, num=128)
->>> y = [evaluate(3, 3, weight=w) for w in x]
->>> plt.plot(x, y)
->>> plt.title("Average Nodes Generated vs. A* Weight")
->>> plt.xlabel("Weight")
->>> plt.ylabel("Generated")
->>> plt.show()
+import matplotlib.pyplot as plt
+import numpy as np
+x = np.linspace(1, 32, num=256)
+y = [evaluate(3, 3, weight=w) for w in x]
+plt.plot(x, y)
+plt.title("Average Nodes Generated vs. A* Weight")
+plt.xlabel("Weight")
+plt.ylabel("Generated")
+plt.show()
 ```
 
 ![Generated vs. Weight](https://raw.githubusercontent.com/entangledloops/slidingpuzzle/master/media/generated_vs_weight.png))
@@ -278,7 +276,7 @@ You can add your `my_model_distance()` function to the bottom of [`nn/heuristics
 During training, tensorboard will show your training/test loss and accuracy.
 After training is complete, you can also evaluate each checkpoint for comparison as shown above.
 
-## Creating a Pull Request
+## Contributing
 
 First of all, thanks for contributing!
 Setup your dev environment:

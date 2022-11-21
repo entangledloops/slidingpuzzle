@@ -84,7 +84,7 @@ def hamming_distance(board: Board) -> int:
 
 def linear_conflict_distance(board: Board) -> int:
     r"""
-    Starts with manhattan distance and adds an additional 2 for every out-of-place
+    Starts with Manhattan distance and adds an additional 2 for every out-of-place
     pair of tiles in the same row or column that are also both in their target row
     or column. It will take at least 2 additional moves to reshuffle the tiles into
     their correct positions.
@@ -93,7 +93,7 @@ def linear_conflict_distance(board: Board) -> int:
         board: The board
 
     Returns:
-        A slightly more accurate heuristic value than manhattan distance.
+        A slightly more accurate heuristic value than Manhattan distance.
     """
     h = len(board)
     w = len(board[0])
