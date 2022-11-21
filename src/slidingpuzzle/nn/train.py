@@ -205,8 +205,8 @@ def train(
             disable this feature and always run until ``num_epochs`` of training have
             completed. If both this and ``num_epochs`` are 0, training will run until
             manually interrupted.
-        early_quit_beta: If the slope of test accuracy linear regression falls below
-            this value, training is terminated.
+        early_quit_beta: If the slope of the test loss rises above this value, training
+            is terminated.
         device: Device to train on. Default will autodetect CUDA or use CPU
         checkpoint_freq: Model will be checkpointed each time this many epochs
             elapse. If 0, no epoch checkpointint will be used. (Highest test acc. will

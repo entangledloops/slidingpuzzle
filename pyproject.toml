@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "slidingpuzzle"
-version = "0.0.13"
+version = "0.0.14"
 authors = [
   { name="Stephen Dunn", email="dunn.stephen@gmail.com" },
 ]
@@ -13,7 +13,6 @@ readme = "README.md"
 requires-python = ">=3.10"
 classifiers = [
     "Development Status :: 3 - Alpha",
-    "Programming Language :: Python :: 3",
     "License :: OSI Approved :: Apache Software License",
     "Operating System :: OS Independent",
 ]
@@ -26,7 +25,7 @@ classifiers = [
 target-version = ["py310"]
 
 [tool.pytest.ini_options]
-addopts = "-v --ignore tests/test_nn.py"
+addopts = "-v -x --ignore tests/test_nn.py"
 minversion = "6.0"
 pythonpath = [
     "src",

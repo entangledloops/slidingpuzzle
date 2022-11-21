@@ -29,9 +29,10 @@ def test_newboard():
 
 def test_freezeboard():
     b = new_board(3, 3)
-    s = set()
     frozen = freeze_board(b)
-    s.add(frozen)
+    assert id(b) != id(frozen)
+    swap_tiles(b, (0, 1), (1, 0))
+    assert b[0][1] != frozen[0][1]
 
 
 def test_print_board():
@@ -88,7 +89,7 @@ def test_shuffle_board(size):
     h, w = size
     board = new_board(h, w)
     shuffle_board(board)
-    r = search(board, alg="greedy", heuristic=manhattan_distance)
+    r = search(board, alg="greedy", heuristic=linear_conflict_distance)
     assert r.solution is not None
 
 

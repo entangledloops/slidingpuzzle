@@ -83,6 +83,7 @@ def make_examples(
         if dupe_found:
             log.warning("Duplicate found in prior examples.")
 
+    # TODO: parallelize
     with tqdm.tqdm(total=num_examples) as pbar:
         while len(examples) < num_examples:
             board = board_.new_board(h, w)

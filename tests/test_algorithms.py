@@ -20,7 +20,7 @@ import pytest
 from slidingpuzzle import *
 
 
-def test_hamming():
+def test_hamming_distance():
     board = new_board(5, 3)
     assert hamming_distance(board) == 0
 
@@ -28,7 +28,22 @@ def test_hamming():
     assert hamming_distance(board) == 2
 
 
-def test_manhattan():
+def test_linear_conflict():
+    board = new_board(3, 3)
+    swap_tiles(board, (0, 0), (0, 1))  # col check
+    assert linear_conflict_distance(board) == 4
+
+    board = new_board(3, 3)
+    swap_tiles(board, (0, 0), (1, 0))  # row check
+    assert linear_conflict_distance(board) == 4
+
+    board = new_board(3, 3)
+    swap_tiles(board, (0, 0), (1, 0))
+    swap_tiles(board, (1, 0), (2, 0))
+    assert linear_conflict_distance(board) == 8
+
+
+def test_manhattan_distance():
     board = new_board(5, 3)
     assert manhattan_distance(board) == 0
 
@@ -36,7 +51,7 @@ def test_manhattan():
     assert manhattan_distance(board) == 6
 
 
-def test_euclidean():
+def test_euclidean_distance():
     board = new_board(5, 3)
     assert euclidean_distance(board) == 0
 
@@ -66,7 +81,9 @@ def test_search_slow(algorithm):
 
 
 @pytest.mark.parametrize("algorithm", [A_STAR, BEAM, BFS, DFS, GREEDY])
-@pytest.mark.parametrize("heuristic", [euclidean_distance, manhattan_distance])
+@pytest.mark.parametrize(
+    "heuristic", [euclidean_distance, linear_conflict_distance, manhattan_distance]
+)
 def test_search(algorithm, heuristic):
     random.seed(0)
     board = tuple([[5, 2, 4], [3, 0, 1]])
@@ -106,10 +123,15 @@ def test_heuristic_behavior():
 
     # we compute avg generated nodes over multiple runs to confirm that
     # heuristic behavior is in line with expectations
+    generated_avg = compare(
+        3, 3, linear_conflict_distance, manhattan_distance, num_iters=4
+    )
+    assert generated_avg[0] < generated_avg[1]
+
     generated_avg = compare(3, 3, manhattan_distance, hamming_distance, num_iters=4)
     assert generated_avg[0] < generated_avg[1]
 
-    # manhattan + euclidean are both good contenders, so we don't compare them
+    # lcd/manhattan/euclidean are good contenders, so we don't compare them
     generated_avg = compare(3, 3, euclidean_distance, hamming_distance, num_iters=4)
     assert generated_avg[0] < generated_avg[1]
 

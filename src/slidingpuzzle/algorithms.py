@@ -32,7 +32,7 @@ from slidingpuzzle.board import (
     swap_tiles,
     visit,
 )
-from slidingpuzzle.heuristics import manhattan_distance
+from slidingpuzzle.heuristics import linear_conflict_distance
 from slidingpuzzle.state import State, SearchResult
 
 
@@ -97,7 +97,7 @@ def a_star(board: Board, **kwargs) -> SearchResult:
         detect_dupes (bool): Duplicate detection (i.e. track visited states).
             Default is ``True``.
         heuristic: A function that maps boards to an estimated cost-to-go.
-            Default is :func:`slidingpuzzle.heuristics.manhattan_distance`.
+            Default is :func:`slidingpuzzle.heuristics.linear_conflict_distance`.
         weight (float): A constant multiplier on heuristic evaluation
 
     Returns:
@@ -107,7 +107,7 @@ def a_star(board: Board, **kwargs) -> SearchResult:
     depth_bound = kwargs.get("depth_bound", float("inf"))
     f_bound = kwargs.get("f_bound", float("inf"))
     detect_dupes = kwargs.get("detect_dupes", True)
-    heuristic = kwargs.get("heuristic", manhattan_distance)
+    heuristic = kwargs.get("heuristic", linear_conflict_distance)
     weight = kwargs.get("weight", 1)
 
     # initial state
@@ -163,7 +163,7 @@ def beam(board: Board, **kwargs) -> SearchResult:
         detect_dupes (bool): Duplicate detection (i.e. track visited states).
             Default is ``True``.
         heuristic: A function that maps boards to an estimated cost-to-go.
-            Default is :func:`slidingpuzzle.heuristics.manhattan_distance`.
+            Default is :func:`slidingpuzzle.heuristics.linear_conflict_distance`.
         width (int): The beam width. Default is ``3``.
 
     Returns:
@@ -173,7 +173,7 @@ def beam(board: Board, **kwargs) -> SearchResult:
     depth_bound = kwargs.get("depth_bound", float("inf"))
     f_bound = kwargs.get("f_bound", float("inf"))
     detect_dupes = kwargs.get("detect_dupes", True)
-    heuristic = kwargs.get("heuristic", manhattan_distance)
+    heuristic = kwargs.get("heuristic", linear_conflict_distance)
     width = kwargs.get("width", 3)
 
     # initial state
@@ -337,7 +337,7 @@ def greedy(board: Board, **kwargs) -> SearchResult:
         detect_dupes (bool): Duplicate detection (i.e. track visited states).
             Default is ``True``.
         heuristic: A function that maps boards to an estimated cost-to-go.
-            Default is :func:`slidingpuzzle.heuristics.manhattan_distance`.
+            Default is :func:`slidingpuzzle.heuristics.linear_conflict_distance`.
 
     Returns:
         A :class:`slidingpuzzle.state.SearchResult` with a solution and statistics
@@ -346,7 +346,7 @@ def greedy(board: Board, **kwargs) -> SearchResult:
     depth_bound = kwargs.get("depth_bound", float("inf"))
     f_bound = kwargs.get("f_bound", float("inf"))
     detect_dupes = kwargs.get("detect_dupes", True)
-    heuristic = kwargs.get("heuristic", manhattan_distance)
+    heuristic = kwargs.get("heuristic", linear_conflict_distance)
 
     # initial state
     goal = new_board(len(board), len(board[0]))
@@ -399,7 +399,7 @@ def ida_star(board: Board, **kwargs) -> SearchResult:
         detect_dupes (bool): Duplicate detection (i.e. track visited states).
             Default is ``True``.
         heuristic: A function that maps boards to an estimated cost-to-go.
-            Default is :func:`slidingpuzzle.heuristics.manhattan_distance`.
+            Default is :func:`slidingpuzzle.heuristics.linear_conflict_distance`.
         weight (float): A constant multiplier on heuristic evaluation.
             Default is ``1``.
 
@@ -409,13 +409,13 @@ def ida_star(board: Board, **kwargs) -> SearchResult:
     # args
     depth_bound = kwargs.get("depth_bound", float("inf"))
     detect_dupes = kwargs.get("detect_dupes", True)
-    heuristic = kwargs.get("heuristic", manhattan_distance)
+    heuristic = kwargs.get("heuristic", linear_conflict_distance)
     weight = kwargs.get("weight", 1)
 
     # initial state
     goal = new_board(len(board), len(board[0]))
     empty_pos = get_empty_yx(board)
-    bound = float(manhattan_distance(board))
+    bound = float(heuristic(board))
     initial_state = State(board, empty_pos)
     next_bound = float("inf")
     unvisited = [initial_state]
@@ -482,7 +482,7 @@ def iddfs(board: Board, **kwargs) -> SearchResult:
     detect_dupes = kwargs.get("detect_dupes", True)
 
     # initial state
-    bound = manhattan_distance(board)
+    bound = linear_conflict_distance(board)
     goal = new_board(len(board), len(board[0]))
     empty_pos = get_empty_yx(board)
     initial_state = State(board, empty_pos)
@@ -587,7 +587,7 @@ def search(board: Board, alg: str = A_STAR, **kwargs) -> SearchResult:
 def evaluate(
     h: int,
     w: int,
-    heuristic=manhattan_distance,
+    heuristic=linear_conflict_distance,
     algorithm=A_STAR,
     num_iters: int = 64,
     **kwargs,
@@ -613,14 +613,14 @@ def evaluate(
         shuffle_board(board)
         result = search(board, alg=algorithm, heuristic=heuristic, **kwargs)
         total += result.generated
-    return total / num_iters
+    return round(total / num_iters, 2)
 
 
 def compare(
     h: int,
     w: int,
-    ha=manhattan_distance,
-    hb=manhattan_distance,
+    ha=linear_conflict_distance,
+    hb=linear_conflict_distance,
     alga=A_STAR,
     algb=A_STAR,
     num_iters: int = 32,
@@ -660,4 +660,4 @@ def compare(
         total_a += result.generated
         result = search(board, alg=algb, heuristic=hb, **kwargsb, **kwargs)
         total_b += result.generated
-    return total_a / num_iters, total_b / num_iters
+    return round(total_a / num_iters, 2), round(total_b / num_iters, 2)

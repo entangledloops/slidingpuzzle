@@ -82,6 +82,61 @@ def hamming_distance(board: Board) -> int:
     return dist
 
 
+def linear_conflict_distance(board: Board) -> int:
+    r"""
+    Starts with manhattan distance and adds an additional 2 for every out-of-place
+    pair of tiles in the same row or column that are also both in their target row
+    or column. It will take at least 2 additional moves to reshuffle the tiles into
+    their correct positions.
+
+    Args:
+        board: The board
+
+    Returns:
+        A slightly more accurate heuristic value than manhattan distance.
+    """
+    h = len(board)
+    w = len(board[0])
+    dist = manhattan_distance(board)
+    # check out-of-place cols in each row
+    for y in range(h):
+        for x1 in range(w):
+            if slidingpuzzle.EMPTY_TILE == board[y][x1]:
+                continue
+            tile1 = board[y][x1]
+            target_row1 = (tile1 - 1) // w
+            if y != target_row1:
+                continue
+            for x2 in range(x1 + 1, w):
+                if slidingpuzzle.EMPTY_TILE == board[y][x2]:
+                    continue
+                tile2 = board[y][x2]
+                target_row2 = (tile2 - 1) // w
+                if y != target_row2:
+                    continue
+                if target_row1 == target_row2 and tile2 < tile1:
+                    dist += 2
+    # check out-of-place rows in each col
+    for x in range(w):
+        for y1 in range(h):
+            if slidingpuzzle.EMPTY_TILE == board[y1][x]:
+                continue
+            tile1 = board[y1][x]
+            target_col1 = (tile1 - 1) % w
+            if x != target_col1:
+                continue
+            for y2 in range(y1 + 1, h):
+                if slidingpuzzle.EMPTY_TILE == board[y2][x]:
+                    continue
+                tile2 = board[y2][x]
+                target_col2 = (tile2 - 1) % w
+                if x != target_col2:
+                    continue
+                if target_col1 == target_col2 and tile2 < tile1:
+                    dist += 2
+    return dist
+
+
 def manhattan_distance(board: Board) -> int:
     r"""
     The minimum number of moves needed to restore the board to the goal state, if tiles

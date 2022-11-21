@@ -2,7 +2,8 @@
 
 [![docs](https://readthedocs.org/projects/slidingtilepuzzle/badge/?version=latest)](https://slidingtilepuzzle.readthedocs.io/en/latest/?badge=latest)
 ![tests](https://github.com/entangledloops/slidingpuzzle/actions/workflows/tests.yaml/badge.svg)
-<a href="https://www.buymeacoffee.com/entangledloops" target="_blank"><img src="https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png" alt="Buy Me A Coffee" ></a>
+![PyPI - License](https://img.shields.io/pypi/l/slidingpuzzle)
+<a href="https://www.buymeacoffee.com/entangledloops" target="_blank"><img src="https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png" alt="Buy Me A Coffee" height=32></a>
 
 - [Sliding Puzzle](#sliding-puzzle)
   - [Installation](#installation)
@@ -36,10 +37,11 @@ https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html
 4 5 6
 7 8
 >>> shuffle_board(b)
+([8, 3, 1], [4, 0, 2], [5, 6, 7])
 >>> print_board(b)
-1 6 7
-4   8
-5 3 2
+8 3 1 
+4   2 
+5 6 7 
 ```
 
 The boards are just a `tuple` of `list[int]`. The number `0` is reserved for the blank. You can easily build your own board:
@@ -58,12 +60,15 @@ False
 
 Not all board configurations are solvable. The [`search()`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html#slidingpuzzle.algorithms.search) routine will validate the board before beginning, and may throw a `ValueError` if the board is illegal.
 
-The default search is [`A*`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html#slidingpuzzle.algorithms.a_star) with [`manhattan_distance`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html#slidingpuzzle.heuristics.manhattan_distance) as the heuristic:
+The default search is [`A*`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html#slidingpuzzle.algorithms.a_star) with [`linear_conflict_distance`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html#slidingpuzzle.heuristics.linear_conflict_distance) as the heuristic:
 
 ```python
+>>> b = shuffle_board(new_board(3, 3))
+>>> b
+([7, 5, 4], [3, 0, 1], [8, 6, 2])
 >>> search(b)
-solution=[3, 2, 8, 3, 6, 7, 3, 6, 7, 1, 4, 7, 2, 5, 7, 4, 1, 2, 5, 8]
-solution_len=20, generated=829, expanded=518, unvisited=312, visited=313
+solution=[5, 4, 1, 2, 6, 5, 3, 7, 4, 1, 2, 3, 5, 8, 7, 4, 1, 2, 3, 6]
+solution_len=20, generated=360, expanded=164, unvisited=197, visited=136
 ```
 
 The solution is a list of tile numbers that should be moved into the empty square. You may be wondering about some of the numbers below. Briefly:
@@ -75,11 +80,11 @@ The solution is a list of tile numbers that should be moved into the empty squar
 
 ```python
 >>> search(b, "bfs")
-solution=[3, 2, 8, 3, 6, 7, 3, 6, 7, 1, 4, 7, 2, 5, 7, 4, 1, 2, 5, 8]
-solution_len=20, generated=165616, expanded=120653, unvisited=44964, visited=62277
+solution=[3, 7, 5, 4, 1, 2, 6, 8, 7, 5, 4, 1, 2, 3, 5, 4, 1, 2, 3, 6]
+solution_len=20, generated=125450, expanded=88173, unvisited=37278, visited=45763
 >>> search(b, "greedy")
-solution=[8, 2, 3, 8, 2, 7, 6, 2, 7, 3, 8, 5, 4, 7, 5, 4, 7, 5, 3, 6, 2, 3, 4, 8, 6, 2, 3, 1, 5, 4, 2, 6, 8, 7, 4, 5, 1, 2, 5, 4, 7, 8]
-solution_len=42, generated=711, expanded=490, unvisited=222, visited=258
+solution=[3, 7, 5, 4, 1, 3, 4, 1, 3, 2, 6, 8, 7, 4, 2, 6, 8, 7, 4, 5, 1, 2, 5, 4, 7, 8]
+solution_len=26, generated=556, expanded=374, unvisited=183, visited=202
 ```
 
 Notice how many states are generated for BFS to find a solution. Greedy search finds a solution quickly, but the solution is of lower quality.
@@ -87,20 +92,20 @@ Notice how many states are generated for BFS to find a solution. Greedy search f
 ```python
 >>> result = search(b)
 >>> result.solution
-[(2, 1), (2, 2), (1, 2), (1, 1), (0, 1), (0, 2), (1, 2), (1, 1), (0, 1), (0, 0), (1, 0), (1, 1), (2, 1), (2, 0), (1, 0), (0, 0), (0, 1), (1, 1), (2, 1), (2, 2)]
+[(0, 1), (0, 2), (1, 2), (2, 2), (2, 1), (1, 1), (1, 0), (0, 0), (0, 1), (0, 2), (1, 2), (1, 1), (2, 1), (2, 0), (1, 0), (0, 0), (0, 1), (0, 2), (1, 2), (2, 2)]
 ```
 
 If you are working with a physical puzzle and actual tile numbers would be easier to read, you can obtain them the same way `str(`[`SearchResult`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html#slidingpuzzle.state.SearchResult)`)` does, using the convenience function [`solution_as_tiles()`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html#slidingpuzzle.board.solution_as_tiles):
 
 ```python
 >>> solution_as_tiles(result.board, result.solution)
-[8, 2, 3, 8, 2, 7, 6, 2, 7, 3, 8, 5, 4, 7, 5, 4, 7, 5, 3, 6, 2, 3, 4, 8, 6, 2, 3, 1, 5, 4, 2, 6, 8, 7, 4, 5, 1, 2, 5, 4, 7, 8]
+[5, 4, 1, 2, 6, 5, 3, 7, 4, 1, 2, 3, 5, 8, 7, 4, 1, 2, 3, 6]
 ```
 
 We can [`compare()`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html#slidingpuzzle.algorithms.compare) two heuristics like this:
 ```python
 >>> compare(3, 3, ha=manhattan_distance, hb=euclidean_distance)
-(1594.8666666666666, 3377.5)
+(1594.87, 3377.5)
 ```
 
 The numbers are the average number of states generated over `num_iters` runs for each heuristic.
@@ -140,6 +145,7 @@ may miss the goal, even thought the board is solvable.
 The available heuristics are:
 - [`euclidean_distance`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html#slidingpuzzle.heuristics.euclidean_distance) - The straight line distance in Euclidean space between two tiles. This is essentially the hypotenuse of a right triangle. (The square root is not used as it does not affect the sorting order.)
 - [`hamming_distance`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html#slidingpuzzle.heuristics.hamming_distance) - Count of how many tiles are in the correct position
+- [`linear_conflict_distance`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html#slidingpuzzle.heuristics.linear_conflict_distance)
 - [`manhattan_distance`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html#slidingpuzzle.heuristics.manhattan_distance) - Count of how many moves it would take each tile to arrive in the correct position, if other tiles could be ignored
 - [`random_distance`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html#slidingpuzzle.heuristics.random_distance) - This is a random number (but a *consistent* random number for a given board state). It is useful as a baseline.
 - Neural net heuristics from [`slidingpuzzle.nn`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.nn.html) submodule (see section below)
