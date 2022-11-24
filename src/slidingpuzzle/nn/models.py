@@ -18,6 +18,8 @@ Defines a PyTorch model to evaluate sliding puzzle boards.
 
 from typing import Optional
 
+import math
+
 import torch
 import torch.nn as nn
 
@@ -30,11 +32,11 @@ VERSION_1 = "v1"
 
 class Model_v1(nn.Module):
     """
-    A model that takes a sliding puzzle board as input and outputs the estimated
-    distance to the goal.
+    A stack of linear layers that accepts a board as input and outputs the
+    estimated distance to the goal.
     """
 
-    def __init__(self, h, w) -> None:
+    def __init__(self, h: int, w: int) -> None:
         super().__init__()
         self.version = VERSION_1  # required
         self.h = h  # required

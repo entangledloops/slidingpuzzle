@@ -98,11 +98,14 @@ def linear_conflict_distance(board: Board) -> int:
     h = len(board)
     w = len(board[0])
     dist = manhattan_distance(board)
+
     # check out-of-place cols in each row
     for y in range(h):
+        max_conflicts = 0
         for x1 in range(w):
             if slidingpuzzle.EMPTY_TILE == board[y][x1]:
                 continue
+            conflicts = 0
             tile1 = board[y][x1]
             target_row1 = (tile1 - 1) // w
             if y != target_row1:
@@ -115,12 +118,17 @@ def linear_conflict_distance(board: Board) -> int:
                 if y != target_row2:
                     continue
                 if target_row1 == target_row2 and tile2 < tile1:
-                    dist += 2
+                    conflicts += 1
+            max_conflicts = max(max_conflicts, conflicts)
+        dist += 2 * max_conflicts
+
     # check out-of-place rows in each col
     for x in range(w):
+        max_conflicts = 0
         for y1 in range(h):
             if slidingpuzzle.EMPTY_TILE == board[y1][x]:
                 continue
+            conflicts = 0
             tile1 = board[y1][x]
             target_col1 = (tile1 - 1) % w
             if x != target_col1:
@@ -133,7 +141,9 @@ def linear_conflict_distance(board: Board) -> int:
                 if x != target_col2:
                     continue
                 if target_col1 == target_col2 and tile2 < tile1:
-                    dist += 2
+                    conflicts += 1
+            max_conflicts = max(max_conflicts, conflicts)
+        dist += 2 * max_conflicts
     return dist
 
 

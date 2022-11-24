@@ -16,8 +16,9 @@
 A collection of functions for working with sliding tile puzzle boards.
 """
 
-from typing import Optional, TypeAlias
+from typing import Iterable, Iterator, Optional, TypeAlias
 
+import itertools
 import random
 import sys
 
@@ -41,6 +42,33 @@ def new_board(h: int, w: int) -> Board:
     board = tuple([(y * w) + x + 1 for x in range(w)] for y in range(h))
     board[-1][-1] = 0
     return board
+
+
+def board_from_values(h: int, w: int, values: Iterable[int]) -> Board:
+    r"""
+    Given an iterable of ints, will construct a board of size ``h x w`` in
+    row-major order. The number of values must exactly equal :math:`h \cdot w` or
+    a :class:`ValueError` will be raised.
+
+    Args:
+        h: Height of the board to construct
+        w: Width of the board to construct
+        values: Values to construct board from
+    """
+    # construct board from iterable
+    board = []
+    row = []
+    for value in values:
+        row.append(value)
+        if len(row) == w:
+            board.append(row)
+            row = []
+
+    # validate board shape
+    for row in board:
+        if len(row) != w or len(board) != h:
+            raise ValueError("Not enough values provided")
+    return tuple(board)
 
 
 def freeze_board(board: Board) -> FrozenBoard:
@@ -133,21 +161,29 @@ def get_next_moves(
     return moves
 
 
-def swap_tiles(board: Board, pos1: tuple[int, int], pos2: tuple[int, int]) -> Board:
+def swap_tiles(
+    board: Board, tile1: tuple[int, int] | int, tile2: tuple[int, int] | int
+) -> Board:
     """
     Mutates the board by swapping a pair of tiles.
 
     Args:
         board: The board to modify.
-        pos1: The first tile position.
-        pos2: The second tile position.
+        pos1: The first tile position or value.
+        pos2: The second tile position or value.
 
     Return:
         The modified board, for conveience chaining calls.
     """
-    y1, x1 = pos1
-    y2, x2 = pos2
+    if isinstance(tile1, int):
+        tile1 = get_yx(board, tile1)
+    if isinstance(tile2, int):
+        tile2 = get_yx(board, tile2)
+
+    y1, x1 = tile1
+    y2, x2 = tile2
     board[y1][x1], board[y2][x2] = board[y2][x2], board[y1][x1]
+
     return board
 
 
@@ -346,3 +382,19 @@ def visit(visited: set[FrozenBoard], board: Board) -> bool:
         return True
     visited.add(frozen_board)
     return False
+
+
+def board_generator(h: int, w: int) -> Iterator[Board]:
+    """
+    Returns a generator that yields all possible boards, in numerical order.
+
+    Args:
+        h: Height of board
+        w: Width of board
+
+    Yields:
+        A board permutation
+    """
+    size = h * w
+    for values in itertools.permutations(range(size)):
+        yield board_from_values(h, w, values)

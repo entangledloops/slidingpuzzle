@@ -29,22 +29,18 @@ def test_hamming_distance():
 
 
 def test_linear_conflict():
-    board = new_board(3, 3)
-    swap_tiles(board, (0, 0), (0, 1))  # col check
+    board = ([2, 1, 3], [4, 5, 6], [7, 8, 0])
     assert linear_conflict_distance(board) == 4
 
-    board = new_board(3, 3)
-    swap_tiles(board, (0, 0), (1, 0))  # row check
+    board = ([4, 2, 3], [1, 5, 6], [7, 8, 0])
     assert linear_conflict_distance(board) == 4
 
-    board = new_board(3, 3)
-    swap_tiles(board, (0, 0), (1, 0))
-    swap_tiles(board, (1, 0), (2, 0))
+    board = ([1, 2, 3], [6, 5, 4], [7, 8, 0])
     assert linear_conflict_distance(board) == 8
 
 
 def test_manhattan_distance():
-    board = new_board(5, 3)
+    board = new_board(3, 5)
     assert manhattan_distance(board) == 0
 
     swap_tiles(board, (1, 2), (0, 0))
@@ -52,7 +48,7 @@ def test_manhattan_distance():
 
 
 def test_euclidean_distance():
-    board = new_board(5, 3)
+    board = new_board(3, 5)
     assert euclidean_distance(board) == 0
 
     swap_tiles(board, (1, 2), (0, 0))
@@ -86,7 +82,7 @@ def test_search_slow(algorithm):
 )
 def test_search(algorithm, heuristic):
     random.seed(0)
-    board = tuple([[5, 2, 4], [3, 0, 1]])
+    board = ([5, 2, 4], [3, 0, 1])
     weight = 1
     result = search(
         board,
@@ -104,7 +100,7 @@ def test_search(algorithm, heuristic):
 
 def test_search_hard():
     random.seed(0)
-    board = tuple([[8, 6, 7], [3, 5, 1], [2, 0, 4]])
+    board = ([8, 6, 7], [3, 5, 1], [2, 0, 4])
     result = search(
         board,
         alg=A_STAR,
@@ -118,6 +114,16 @@ def test_evaluate():
     assert evaluate(3, 3, num_iters=1) > 0
 
 
+def test_solution_as_tiles():
+    h, w = 3, 3
+    b = new_board(h, w)
+    swap_tiles(b, (h - 1, w - 1), (h - 2, w - 1))
+    swap_tiles(b, (h - 2, w - 1), (h - 2, w - 2))
+    r = search(b)
+    assert [5, 6] == solution_as_tiles(b, r.solution)
+
+
+@pytest.mark.slow
 def test_heuristic_behavior():
     random.seed(0)
 
@@ -136,10 +142,13 @@ def test_heuristic_behavior():
     assert generated_avg[0] < generated_avg[1]
 
 
-def test_solution_as_tiles():
-    h, w = 3, 3
-    b = new_board(h, w)
-    swap_tiles(b, (h - 1, w - 1), (h - 2, w - 1))
-    swap_tiles(b, (h - 2, w - 1), (h - 2, w - 2))
-    r = search(b)
-    assert [5, 6] == solution_as_tiles(b, r.solution)
+@pytest.mark.slow
+def test_heuristic_admissibility():
+    # validate that solutions are in line with BFS
+    # this does not guarantee admissibility, it's just an empirical sanity check
+    random.seed(0)
+    boards = [shuffle_board(new_board(3, 3)) for _ in range(50)]
+    optimal = [len(search(b, "bfs").solution) for b in boards]
+    for h in (linear_conflict_distance, manhattan_distance):
+        for b, o in zip(boards, optimal):
+            assert len(search(b, heuristic=h).solution) == o

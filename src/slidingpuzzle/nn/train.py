@@ -219,7 +219,7 @@ def train(
             training examples if, for example, it is taking too long.
     """
     set_seed(seed)
-    h, w = model.h, model.w
+    h, w = model.w, model.h
 
     # prepare tensorboard to record training
     url = launch_tensorboard(tensorboard_dir)
@@ -253,7 +253,7 @@ def train(
         "test_accuracy"
     ]
     epoch = load_checkpoint(model, tag="latest", optimizer=optimizer)["epoch"]
-    criterion = nn.MSELoss()
+    criterion = nn.MSELoss(reduction="sum")
     test_loss_window: Collection[float] = collections.deque(maxlen=early_quit_epochs)
 
     # prepare training loop

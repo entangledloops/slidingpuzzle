@@ -19,7 +19,7 @@ import pytest
 from slidingpuzzle import *
 
 
-def test_newboard():
+def test_new_board():
     ground_truth = ([1, 2, 3], [4, 5, 6], [7, 8, 0])
     assert new_board(3, 3) == ground_truth
 
@@ -27,7 +27,15 @@ def test_newboard():
     assert new_board(3, 2) == ground_truth
 
 
-def test_freezeboard():
+@pytest.mark.parametrize("h", [3, 5])
+@pytest.mark.parametrize("w", [3, 5])
+def test_board_from_values(h, w):
+    b = board_from_values(h, w, range(1, 1 + h * w))
+    b[-1][-1] = EMPTY_TILE
+    assert b == new_board(h, w)
+
+
+def test_freeze_board():
     b = new_board(3, 3)
     frozen = freeze_board(b)
     assert id(b) != id(frozen)
@@ -120,3 +128,10 @@ def test_get_next_states():
     state = State(board, (2, 2), [])
     next_states = get_next_states(state)
     assert len(next_states) == 2
+
+
+@pytest.mark.parametrize("h", [3, 5])
+@pytest.mark.parametrize("w", [3, 5])
+def test_board_generator(h, w):
+    gen = board_generator(h, w)
+    assert next(gen) == board_from_values(h, w, range(h * w))

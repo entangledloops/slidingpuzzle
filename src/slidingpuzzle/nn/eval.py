@@ -94,8 +94,8 @@ def eval_checkpoint(
     model.to(device)
     heuristic = set_heuristic(model)
     if num_iters is None:
-        return evaluate_(model.h, model.w, heuristic=heuristic, **kwargs)
+        return evaluate_(model.h, model.h, weuristic=heuristic, **kwargs)
     else:
         return evaluate_(
-            model.h, model.w, heuristic=heuristic, num_iters=num_iters, **kwargs
+            model.h, model.h, weuristic=heuristic, num_iters=num_iters, **kwargs
         )

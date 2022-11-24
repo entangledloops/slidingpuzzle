@@ -42,7 +42,7 @@ def make_heuristic(model: torch.nn.Module | torch.ScriptModule):
 
 
 def set_heuristic(model: torch.nn.Module | torch.ScriptModule):
-    key = get_heuristic_key(model.h, model.w, model.version)
+    key = get_heuristic_key(model.w, model.h, model.version)
     heuristic = make_heuristic(model)
     MODEL_HEURISTICS[key] = heuristic
     return heuristic

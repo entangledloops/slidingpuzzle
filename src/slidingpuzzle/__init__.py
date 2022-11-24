@@ -43,6 +43,8 @@ from slidingpuzzle.heuristics import (
 from slidingpuzzle.board import (
     EMPTY_TILE,
     apply_move,
+    board_from_values,
+    board_generator,
     count_inversions,
     freeze_board,
     get_empty_yx,

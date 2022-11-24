@@ -567,7 +567,7 @@ def search(board: Board, alg: str = A_STAR, **kwargs) -> SearchResult:
 
     Args:
         board: The initial board state to search.
-        algorithm (str): The algorithm to use for search.
+        alg: The algorithm to use for search.
             Use ``print(ALGORITHMS)`` to see available.
         kwargs: Algorithm arguments as described above.
 
@@ -588,7 +588,7 @@ def evaluate(
     h: int,
     w: int,
     heuristic=linear_conflict_distance,
-    algorithm=A_STAR,
+    alg=A_STAR,
     num_iters: int = 64,
     **kwargs,
 ) -> float:
@@ -600,7 +600,7 @@ def evaluate(
         h: Height of the board
         w: Width of the board
         heuristic: Heuristic function to evaluate
-        algorithm: Search algorithm to evaluate
+        alg: Search algorithm to evaluate
         num_iters: Number of iterations to average
         kwargs: Additional args for ``algorithm``
 
@@ -611,7 +611,7 @@ def evaluate(
     for _ in range(num_iters):
         board = new_board(h, w)
         shuffle_board(board)
-        result = search(board, alg=algorithm, heuristic=heuristic, **kwargs)
+        result = search(board, alg=alg, heuristic=heuristic, **kwargs)
         total += result.generated
     return round(total / num_iters, 2)
 
