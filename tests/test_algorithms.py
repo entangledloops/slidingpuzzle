@@ -146,7 +146,7 @@ def test_heuristic_behavior():
 def test_heuristic_admissibility():
     # validate that solutions are in line with BFS
     # this does not guarantee admissibility, it's just an empirical sanity check
-    random.seed(0)
+    random.seed()  # we want a random seed here
     boards = [shuffle_board(new_board(3, 3)) for _ in range(50)]
     optimal = [len(search(b, "bfs").solution) for b in boards]
     for h in (linear_conflict_distance, manhattan_distance):
