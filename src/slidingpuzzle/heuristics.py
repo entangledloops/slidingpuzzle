@@ -30,6 +30,8 @@ from slidingpuzzle.board import (
     Board,
     find_blank,
     get_goal_tile,
+    get_goal_y,
+    get_goal_x,
     get_goal_yx,
     freeze_board,
     is_solved,
@@ -54,7 +56,7 @@ def euclidean_distance(board: Board) -> float:
     Returns:
         The sum of all tile distances from their goal positions
     """
-    h, w = len(board), len(board[0])
+    h, w = board.shape
     dist = 0.0
     for y, row in enumerate(board):
         for x, tile in enumerate(row):
@@ -79,7 +81,7 @@ def hamming_distance(board: Board) -> int:
     Returns:
         The number of tiles out of their goal positions
     """
-    h, w = len(board), len(board[0])
+    h, w = board.shape
     dist = 0
     for y, row in enumerate(board):
         for x, tile in enumerate(row):
@@ -93,11 +95,11 @@ def hamming_distance(board: Board) -> int:
 
 def linear_conflict_distance(board: Board) -> int:
     r"""
-    Starts with Manhattan distance and adds an additional 2 for every out-of-place
-    pair of tiles in the same row or column that are also both in their target row
-    or column. (It will take at least 2 additional moves to reshuffle the tiles into
-    their correct positions.) Only the largest number of conflicts per row/col are
-    added to the distance. This is an improvement over Manhattan distance.
+    This is a simplified variant of the original Linear Conflict Distance.
+    It starts with Manhattan distance. Then for each row and column, the maximum number
+    of conflicts are identified, and 2 * this number is added to the distance.
+    (It will take at least 2 additional moves to reshuffle the conflicting tiles into
+    their correct positions.) This is an admissible improvement over Manhattan distance.
 
     Args:
         board: The board
@@ -105,25 +107,25 @@ def linear_conflict_distance(board: Board) -> int:
     Returns:
         Estimated distance to goal.
     """
-    h, w = len(board), len(board[0])
+    h, w = board.shape
     dist = manhattan_distance(board)
 
     # check out-of-place tiles in each row
     for y in range(h):
         max_conflicts = 0
         for x1 in range(w):
-            if BLANK_TILE == board[y][x1]:
+            if BLANK_TILE == board[y, x1]:
                 continue
             conflicts = 0
-            tile1 = board[y][x1]
-            target_row1, _ = get_goal_yx(h, w, tile1)
+            tile1 = board[y, x1]
+            target_row1 = get_goal_y(h, w, tile1)
             if y != target_row1:
                 continue
             for x2 in range(x1 + 1, w):
-                if BLANK_TILE == board[y][x2]:
+                if BLANK_TILE == board[y, x2]:
                     continue
-                tile2 = board[y][x2]
-                target_row2, _ = get_goal_yx(h, w, tile2)
+                tile2 = board[y, x2]
+                target_row2 = get_goal_y(h, w, tile2)
                 if y != target_row2:
                     continue
                 if target_row1 == target_row2 and tile2 < tile1:
@@ -135,18 +137,18 @@ def linear_conflict_distance(board: Board) -> int:
     for x in range(w):
         max_conflicts = 0
         for y1 in range(h):
-            if BLANK_TILE == board[y1][x]:
+            if BLANK_TILE == board[y1, x]:
                 continue
             conflicts = 0
-            tile1 = board[y1][x]
-            _, target_col1 = get_goal_yx(h, w, tile1)
+            tile1 = board[y1, x]
+            target_col1 = get_goal_x(h, w, tile1)
             if x != target_col1:
                 continue
             for y2 in range(y1 + 1, h):
-                if BLANK_TILE == board[y2][x]:
+                if BLANK_TILE == board[y2, x]:
                     continue
-                tile2 = board[y2][x]
-                _, target_col2 = get_goal_yx(h, w, tile2)
+                tile2 = board[y2, x]
+                target_col2 = get_goal_x(h, w, tile2)
                 if x != target_col2:
                     continue
                 if target_col1 == target_col2 and tile2 < tile1:
@@ -171,7 +173,7 @@ def manhattan_distance(board: Board) -> int:
     Returns:
         The sum of all tile distances from their goal positions
     """
-    h, w = len(board), len(board[0])
+    h, w = board.shape
     dist = 0
     for y, row in enumerate(board):
         for x, tile in enumerate(row):
@@ -210,7 +212,7 @@ def relaxed_adjacency_distance(board: Board) -> int:
     Returns:
         The estimated distance to goal.
     """
-    h, w = len(board), len(board[0])
+    h, w = board.shape
     board = np.copy(board)
     dist = 0
 

@@ -193,6 +193,40 @@ def print_board(board: Board | FrozenBoard, file=sys.stdout) -> Board:
     return board
 
 
+def get_goal_y(h: int, w: int, tile: int) -> int:
+    """
+    Given a board width and tile number, returns the goal row position of ``tile``.
+
+    Args:
+        h: Height of the board
+        w: Width of the board
+        tile: The tile number of interest
+
+    Returns:
+        The goal row (y-coord)
+    """
+    if BLANK_TILE == tile:
+        return h - 1
+    return (tile - 1) // w
+
+
+def get_goal_x(h: int, w: int, tile: int) -> int:
+    """
+    Given a board width and tile number, returns the goal column position of ``tile``.
+
+    Args:
+        h: Height of the board
+        w: Width of the board
+        tile: The tile number of interest
+
+    Returns:
+        The goal column (x-coord)
+    """
+    if BLANK_TILE == tile:
+        return w - 1
+    return (tile - 1) % w
+
+
 def get_goal_yx(h: int, w: int, tile: int) -> tuple[int, int]:
     """
     Given a board width and tile number, returns the goal (y, x) position of ``tile``.
@@ -205,9 +239,7 @@ def get_goal_yx(h: int, w: int, tile: int) -> tuple[int, int]:
     Returns:
         A tuple (y, x) indicating the tile's goal position.
     """
-    if BLANK_TILE == tile:
-        return h - 1, w - 1
-    return (tile - 1) // w, (tile - 1) % w
+    return get_goal_y(h, w, tile), get_goal_x(h, w, tile)
 
 
 def get_goal_tile(h: int, w: int, pos: tuple[int, int]) -> int:

@@ -26,13 +26,13 @@ def test_hamming_distance():
 
 
 def test_linear_conflict_distance():
-    board = ([2, 1, 3], [4, 5, 6], [7, 8, 0])
+    board = board_from([2, 1, 3], [4, 5, 6], [7, 8, 0])
     assert linear_conflict_distance(board) == 4
 
-    board = ([4, 2, 3], [1, 5, 6], [7, 8, 0])
+    board = board_from([4, 2, 3], [1, 5, 6], [7, 8, 0])
     assert linear_conflict_distance(board) == 4
 
-    board = ([1, 2, 3], [6, 5, 4], [7, 8, 0])
+    board = board_from([1, 2, 3], [6, 5, 4], [7, 8, 0])
     assert linear_conflict_distance(board) == 8
 
 

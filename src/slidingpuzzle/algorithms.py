@@ -165,7 +165,7 @@ def beam(board: Board, **kwargs) -> SearchResult:
             Default is ``True``.
         heuristic: A function that maps boards to an estimated cost-to-go.
             Default is :func:`slidingpuzzle.heuristics.linear_conflict_distance`.
-        width (int): The beam width. Default is ``3``.
+        width (int): The beam width. Default is ``4``.
 
     Returns:
         A :class:`slidingpuzzle.state.SearchResult` with a solution and statistics
@@ -175,43 +175,47 @@ def beam(board: Board, **kwargs) -> SearchResult:
     f_bound = kwargs.get("f_bound", float("inf"))
     detect_dupes = kwargs.get("detect_dupes", True)
     heuristic = kwargs.get("heuristic", linear_conflict_distance)
-    width = kwargs.get("width", 3)
+    width = kwargs.get("width", 4)
 
     # initial state
     goal = new_board(*board.shape)
     initial_state = State(np.copy(board), find_blank(board))
-    unvisited = collections.deque([initial_state])
+    unvisited = [initial_state]
     visited: set[FrozenBoard] = set()
 
     # stats
     generated, expanded = 0, 0
 
     while unvisited:
-        state = unvisited.popleft()
-        expanded += 1
+        next_level = []
+        while unvisited:
+            state = unvisited.pop()
+            expanded += 1
 
-        # goal check
-        if np.array_equal(goal, state.board):
-            return SearchResult(
-                board, generated, expanded, unvisited, visited, state.history
-            )
+            # goal check
+            if np.array_equal(goal, state.board):
+                return SearchResult(
+                    board, generated, expanded, unvisited, visited, state.history
+                )
 
-        # bound
-        if len(state.history) > depth_bound or state.f > f_bound:
-            continue
+            # bound
+            if len(state.history) > depth_bound or state.f > f_bound:
+                continue
 
-        # duplicate detection
-        if detect_dupes and visit(visited, state.board):
-            continue
+            # duplicate detection
+            if detect_dupes and visit(visited, state.board):
+                continue
 
-        # children
-        next_states = get_next_states(state)
-        for state in next_states:
-            state.f = heuristic(state.board)
-        next_states.sort()
-        next_states = next_states[:width]
-        unvisited.extend(next_states)
-        generated += len(next_states)
+            # children
+            next_states = get_next_states(state)
+            for state in next_states:
+                state.f = heuristic(state.board)
+            next_level.extend(next_states)
+            generated += len(next_states)
+
+        # sort all children at this level
+        next_level.sort(reverse=True)
+        unvisited = next_level[-width:]
 
     # if we are here, no solution was found
     return SearchResult(board, generated, expanded, list(unvisited), visited, None)

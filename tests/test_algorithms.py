@@ -54,7 +54,7 @@ def test_search(algorithm, heuristic):
         alg=algorithm,
         heuristic=heuristic,
         weight=weight,
-        width=4,
+        width=128,
     )
     assert result.solution is not None
     if algorithm in (A_STAR, BEAM, BFS, IDA_STAR):

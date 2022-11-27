@@ -51,6 +51,8 @@ from slidingpuzzle.board import (
     flatten_board,
     freeze_board,
     get_goal_tile,
+    get_goal_x,
+    get_goal_y,
     get_goal_yx,
     get_next_moves,
     is_solvable,
