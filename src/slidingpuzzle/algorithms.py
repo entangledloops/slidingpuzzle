@@ -596,7 +596,6 @@ def evaluate(
         board = new_board(h, w)
         shuffle_board(board)
         result = search(board, alg=alg, heuristic=heuristic, **kwargs)
-        print(board, result)
         total += result.generated
     return round(total / num_iters, 2)
 

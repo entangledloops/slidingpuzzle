@@ -32,10 +32,10 @@ def test_board_from():
 
 @pytest.mark.parametrize("h", [3, 5])
 @pytest.mark.parametrize("w", [3, 5])
-def test_board_from_values(h, w):
+def test_board_from_iter(h, w):
     values = list(range(1, 1 + h * w))
     values[-1] = BLANK_TILE
-    b = board_from_values(h, w, values)
+    b = board_from_iter(h, w, values)
     assert np.array_equal(b, new_board(h, w))
 
 
@@ -120,4 +120,4 @@ def test_get_next_states():
 @pytest.mark.parametrize("w", [3, 5])
 def test_board_generator(h, w):
     gen = board_generator(h, w)
-    assert np.array_equal(next(gen), board_from_values(h, w, range(h * w)))
+    assert np.array_equal(next(gen), board_from_iter(h, w, range(h * w)))

@@ -2,8 +2,10 @@
 
 [![docs](https://readthedocs.org/projects/slidingtilepuzzle/badge/?version=latest)](https://slidingtilepuzzle.readthedocs.io/en/latest/?badge=latest)
 ![tests](https://github.com/entangledloops/slidingpuzzle/actions/workflows/tests.yaml/badge.svg)
-![PyPI - License](https://img.shields.io/pypi/l/slidingpuzzle)
+![PyPI - Version](https://img.shields.io/pypi/v/slidingpuzzle.svg)
 ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/slidingpuzzle)
+![PyPI - License](https://img.shields.io/pypi/l/slidingpuzzle)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 <a href="https://www.buymeacoffee.com/entangledloops" target="_blank"><img src="https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png" alt="Buy Me A Coffee" height=32></a>
 
 [Installation](https://slidingtilepuzzle.readthedocs.io/en/latest/install.html) | Documentation ([Latest](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html) | [Stable](https://slidingtilepuzzle.readthedocs.io/en/stable/slidingpuzzle.html))
@@ -174,10 +176,23 @@ The available heuristics are:
 - [`random_distance`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html#slidingpuzzle.heuristics.random_distance) - This is a random number (but a *consistent* random number for a given board state). It is useful as a baseline.
 - [`relaxed_adjacency_distance`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html#slidingpuzzle.heuristics.relaxed_adjacency_distance) - This is a slight improvement over Hamming distance that includes a penalty for swapping out-of-place tiles.
 - Neural net heuristics from [`slidingpuzzle.nn`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.nn.html) submodule (see section below)
-- Any heuristic you want! Just pass any function that accepts a board and returns a number. The lower the number, the closer the board is to the goal (lower = better).
-
+- Any heuristic you want. Just pass any function that accepts a board and returns a number. The lower the number, the closer the board is to the goal (lower = better).
 
 There are two simple provided utility functions for evaluating algorithm/heuristic performance: [`evaluate()`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html#slidingpuzzle.algorithms.evaluate) and [`compare()`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html#slidingpuzzle.algorithms.compare).
+
+For example, here we use `compare()` with a trivial custom heuristic to see how it fares against Manhattan Distance:
+
+```python
+>>> def max_distance(board):
+...     return max(manhattan_distance(board), relaxed_adjacency_distance(board))
+... 
+>>> compare(3, 3, ha=manhattan_distance, hb=max_distance)
+(3020.5, 2857.53)
+```
+
+We can reasonably conclude that on average the max of these two heuristics is slightly better than either one alone ([Hansson et al., 1985](https://www.sciencedirect.com/science/article/abs/pii/002002559290070O)).
+
+We can use `evaluate()` to study an algorithm's behavior when tweaking a parameter.
 
 ```python
 import matplotlib.pyplot as plt

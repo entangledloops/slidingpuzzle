@@ -111,7 +111,7 @@ def board_from(*rows: Iterable[int], dtype: Optional[npt.DTypeLike] = None) -> B
     return np.array(board, dtype=dtype)
 
 
-def board_from_values(h: int, w: int, values: Iterable[int]) -> Board:
+def board_from_iter(h: int, w: int, iter: Iterable[int]) -> Board:
     r"""
     Given an iterable of ints, will construct a board of size ``h x w`` in
     row-major order. The number of values should equal :math:`h \cdot w` and
@@ -120,7 +120,7 @@ def board_from_values(h: int, w: int, values: Iterable[int]) -> Board:
     Args:
         h: Height of the board to construct
         w: Width of the board to construct
-        values: Iterable of values to construct board from
+        iter: Iterable of values to construct board from
 
     Raises:
         TypeError: If a non-int value is found in a row.
@@ -133,12 +133,26 @@ def board_from_values(h: int, w: int, values: Iterable[int]) -> Board:
     # construct board from iterable
     rows = []
     row = []
-    for value in values:
-        row.append(value)
+    for tile in iter:
+        row.append(tile)
         if len(row) == w:
             rows.append(row)
             row = []
     return board_from(*rows)
+
+
+def flatten_board(board: Board | FrozenBoard) -> list[int]:
+    """
+    Flattens a board to a list. Useful for quickly compressing the board
+    state. Can be reconstructed using :func:`board_from_iter`.
+
+    Args:
+        board: The board to flatten
+
+    Returns:
+        A flat sequence of ints representing the board.
+    """
+    return [tile for row in board for tile in row]
 
 
 def freeze_board(board: Board) -> FrozenBoard:
@@ -506,4 +520,4 @@ def board_generator(h: int, w: int) -> Iterator[Board]:
     """
     size = h * w
     for values in itertools.permutations(range(size)):
-        yield board_from_values(h, w, values)
+        yield board_from_iter(h, w, values)

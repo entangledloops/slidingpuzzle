@@ -229,8 +229,3 @@ def relaxed_adjacency_distance(board: Board) -> int:
         dist += 1
 
     return dist
-
-
-def checkerboard_adjacency_distance(board: Board) -> int:
-    r""" """
-    pass

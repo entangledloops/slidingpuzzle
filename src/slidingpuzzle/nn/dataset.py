@@ -132,7 +132,7 @@ def save_examples(
 
 
 def get_examples(
-    h: int, w: int, num_examples: int, prior_examples: list, **kwargs
+    h: int, w: int, num_examples: int, prior_examples: list[Example], **kwargs
 ) -> list[Example]:
     """
     Returns ``num_examples`` total unique examples, starting with ``prior_examples`` if

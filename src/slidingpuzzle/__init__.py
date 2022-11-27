@@ -22,8 +22,7 @@ Examples:
     1 2 3
     4 5 6
     7 8
-    >>> shuffle_board(b)
-    >>> print_board(b)
+    >>> print_board(shuffle_board(b))
     1 6 7
     4   8
     5 3 2
@@ -44,11 +43,12 @@ from slidingpuzzle.heuristics import (
 from slidingpuzzle.board import (
     BLANK_TILE,
     board_from,
-    board_from_values,
+    board_from_iter,
     board_generator,
     count_inversions,
     find_blank,
     find_tile,
+    flatten_board,
     freeze_board,
     get_goal_tile,
     get_goal_yx,
