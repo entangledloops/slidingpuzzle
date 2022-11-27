@@ -12,8 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import random
-
 import pytest
 
 from slidingpuzzle import *
@@ -27,14 +25,13 @@ def test_a_star():
     )
 
 
-@pytest.mark.parametrize("algorithm", [IDA_STAR, IDDFS])
-def test_search_slow(algorithm):
-    random.seed(0)
+@pytest.mark.parametrize("alg", [IDA_STAR, IDDFS])
+def test_search_iterative_deepening(alg):
     b = new_board(3, 3)
     shuffle_board_lazy(b, 10)
-    expected_len = len(search(b).solution)
-    actual = search(b, alg=algorithm, heuristic=manhattan_distance)
     # best solution should be found (using default args)
+    expected_len = len(search(b).solution)
+    actual = search(b, alg=alg, heuristic=manhattan_distance)
     actual_len = len(actual.solution)
     assert expected_len == actual_len
 
@@ -50,8 +47,7 @@ def test_search_slow(algorithm):
     ],
 )
 def test_search(algorithm, heuristic):
-    random.seed(0)
-    board = ([5, 2, 4], [3, 0, 1])
+    board = board_from([5, 2, 4], [3, 0, 1])
     weight = 1
     result = search(
         board,
@@ -68,8 +64,7 @@ def test_search(algorithm, heuristic):
 
 
 def test_search_hard():
-    random.seed(0)
-    board = ([8, 6, 7], [3, 5, 1], [2, 0, 4])
+    board = board_from([8, 6, 7], [3, 5, 1], [2, 0, 4])
     result = search(
         board,
         alg=A_STAR,
@@ -94,8 +89,6 @@ def test_solution_as_tiles():
 
 @pytest.mark.slow
 def test_heuristic_behavior():
-    random.seed(0)
-
     # we compute avg generated nodes over multiple runs to confirm that
     # heuristic behavior is in line with expectations
     generated_avg = compare(
@@ -115,7 +108,6 @@ def test_heuristic_behavior():
 def test_heuristic_admissibility():
     # validate that solutions are in line with BFS
     # this does not guarantee admissibility, it's just an empirical sanity check
-    random.seed()  # we want a random seed here
     boards = [shuffle_board(new_board(3, 3)) for _ in range(50)]
     optimal = [len(search(b, "bfs").solution) for b in boards]
     for h in (linear_conflict_distance, manhattan_distance):

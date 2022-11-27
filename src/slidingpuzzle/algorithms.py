@@ -21,6 +21,8 @@ from typing import Optional
 import collections
 import heapq
 
+import numpy as np
+
 from slidingpuzzle.board import (
     Board,
     FrozenBoard,
@@ -63,13 +65,13 @@ def get_next_states(state: State) -> list[State]:
     moves = get_next_moves(state.board, state.blank_pos)
     next_states = []
     for move in moves:
-        # construct new altered board
-        next_board = tuple(row.copy() for row in state.board)
+        # construct altered board
+        next_board = np.copy(state.board)
         swap_tiles(next_board, state.blank_pos, move)
-        # record history
+        # update history
         next_history = state.history.copy()
         next_history.append(move)
-        # after moving, the move_pos is now the blank_pos
+        # after moving, the move is now the blank_pos
         next_state = State(next_board, move, next_history)
         next_states.append(next_state)
     return next_states
@@ -111,9 +113,8 @@ def a_star(board: Board, **kwargs) -> SearchResult:
     weight = kwargs.get("weight", 1)
 
     # initial state
-    goal = new_board(len(board), len(board[0]))
-    blank_pos = find_blank(board)
-    initial_state = State(board, blank_pos)
+    goal = new_board(*board.shape)
+    initial_state = State(np.copy(board), find_blank(board))
     unvisited = [initial_state]
     visited: set[FrozenBoard] = set()
 
@@ -125,7 +126,7 @@ def a_star(board: Board, **kwargs) -> SearchResult:
         expanded += 1
 
         # goal check
-        if goal == state.board:
+        if np.array_equal(goal, state.board):
             return SearchResult(
                 board, generated, expanded, unvisited, visited, state.history
             )
@@ -177,9 +178,8 @@ def beam(board: Board, **kwargs) -> SearchResult:
     width = kwargs.get("width", 3)
 
     # initial state
-    goal = new_board(len(board), len(board[0]))
-    blank_pos = find_blank(board)
-    initial_state = State(board, blank_pos)
+    goal = new_board(*board.shape)
+    initial_state = State(np.copy(board), find_blank(board))
     unvisited = collections.deque([initial_state])
     visited: set[FrozenBoard] = set()
 
@@ -191,7 +191,7 @@ def beam(board: Board, **kwargs) -> SearchResult:
         expanded += 1
 
         # goal check
-        if goal == state.board:
+        if np.array_equal(goal, state.board):
             return SearchResult(
                 board, generated, expanded, unvisited, visited, state.history
             )
@@ -235,9 +235,8 @@ def bfs(board: Board, **kwargs) -> SearchResult:
     detect_dupes = kwargs.get("detect_dupes", True)
 
     # initial state
-    goal = new_board(len(board), len(board[0]))
-    blank_pos = find_blank(board)
-    initial_state = State(board, blank_pos)
+    goal = new_board(*board.shape)
+    initial_state = State(np.copy(board), find_blank(board))
     unvisited = collections.deque([initial_state])
     visited: set[FrozenBoard] = set()
 
@@ -249,7 +248,7 @@ def bfs(board: Board, **kwargs) -> SearchResult:
         expanded += 1
 
         # goal check
-        if goal == state.board:
+        if np.array_equal(goal, state.board):
             return SearchResult(
                 board, generated, expanded, unvisited, visited, state.history
             )
@@ -289,9 +288,8 @@ def dfs(board: Board, **kwargs) -> SearchResult:
     detect_dupes = kwargs.get("detect_dupes", True)
 
     # initial state
-    goal = new_board(len(board), len(board[0]))
-    blank_pos = find_blank(board)
-    initial_state = State(board, blank_pos)
+    goal = new_board(*board.shape)
+    initial_state = State(np.copy(board), find_blank(board))
     unvisited = [initial_state]
     visited: set[FrozenBoard] = set()
 
@@ -303,7 +301,7 @@ def dfs(board: Board, **kwargs) -> SearchResult:
         expanded += 1
 
         # goal check
-        if goal == state.board:
+        if np.array_equal(goal, state.board):
             return SearchResult(
                 board, generated, expanded, unvisited, visited, state.history
             )
@@ -349,9 +347,8 @@ def greedy(board: Board, **kwargs) -> SearchResult:
     heuristic = kwargs.get("heuristic", linear_conflict_distance)
 
     # initial state
-    goal = new_board(len(board), len(board[0]))
-    blank_pos = find_blank(board)
-    initial_state = State(board, blank_pos)
+    goal = new_board(*board.shape)
+    initial_state = State(np.copy(board), find_blank(board))
     unvisited = [initial_state]
     visited: set[FrozenBoard] = set()
 
@@ -363,7 +360,7 @@ def greedy(board: Board, **kwargs) -> SearchResult:
         expanded += 1
 
         # goal check
-        if goal == state.board:
+        if np.array_equal(goal, state.board):
             return SearchResult(
                 board, generated, expanded, unvisited, visited, state.history
             )
@@ -413,10 +410,9 @@ def ida_star(board: Board, **kwargs) -> SearchResult:
     weight = kwargs.get("weight", 1)
 
     # initial state
-    goal = new_board(len(board), len(board[0]))
-    blank_pos = find_blank(board)
+    goal = new_board(*board.shape)
+    initial_state = State(np.copy(board), find_blank(board))
     bound = float(heuristic(board))
-    initial_state = State(board, blank_pos)
     next_bound = float("inf")
     unvisited = [initial_state]
     visited: set[FrozenBoard] = set()
@@ -430,7 +426,7 @@ def ida_star(board: Board, **kwargs) -> SearchResult:
             expanded += 1
 
             # goal check
-            if goal == state.board:
+            if np.array_equal(goal, state.board):
                 return SearchResult(
                     board, generated, expanded, unvisited, visited, state.history
                 )
@@ -472,23 +468,16 @@ def iddfs(board: Board, **kwargs) -> SearchResult:
 
     Args:
         board: The board
-        detect_dupes (bool): Duplicate detection (i.e. track visited states).
-            Default is ``True``.
 
     Returns:
         A :class:`slidingpuzzle.state.SearchResult` with a solution and statistics
     """
-    # args
-    detect_dupes = kwargs.get("detect_dupes", True)
-
     # initial state
     bound = linear_conflict_distance(board)
-    goal = new_board(len(board), len(board[0]))
-    blank_pos = find_blank(board)
-    initial_state = State(board, blank_pos)
+    goal = new_board(*board.shape)
+    initial_state = State(np.copy(board), find_blank(board))
     next_bound = bound
     unvisited = [initial_state]
-    visited: set[FrozenBoard] = set()
 
     # stats
     generated, expanded = 0, 0
@@ -499,18 +488,14 @@ def iddfs(board: Board, **kwargs) -> SearchResult:
             expanded += 1
 
             # goal check
-            if goal == state.board:
+            if np.array_equal(goal, state.board):
                 return SearchResult(
-                    board, generated, expanded, unvisited, visited, state.history
+                    board, generated, expanded, unvisited, set(), state.history
                 )
 
             # bound
             if len(state.history) > bound:
                 next_bound = len(state.history)
-                continue
-
-            # duplicate detection
-            if detect_dupes and visit(visited, state.board):
                 continue
 
             # children
@@ -522,10 +507,9 @@ def iddfs(board: Board, **kwargs) -> SearchResult:
         if bound != next_bound:
             bound = next_bound
             unvisited.append(initial_state)
-            visited.clear()
 
     # if we are here, no solution was found
-    return SearchResult(board, generated, expanded, list(unvisited), visited, None)
+    return SearchResult(board, generated, expanded, list(unvisited), set(), None)
 
 
 ALGORITHMS_MAP = {
@@ -612,6 +596,7 @@ def evaluate(
         board = new_board(h, w)
         shuffle_board(board)
         result = search(board, alg=alg, heuristic=heuristic, **kwargs)
+        print(board, result)
         total += result.generated
     return round(total / num_iters, 2)
 

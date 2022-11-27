@@ -43,8 +43,6 @@ from slidingpuzzle.heuristics import (
 
 from slidingpuzzle.board import (
     BLANK_TILE,
-    apply_move,
-    apply_random_move,
     board_from,
     board_from_values,
     board_generator,
@@ -59,6 +57,7 @@ from slidingpuzzle.board import (
     is_solved,
     new_board,
     print_board,
+    random_move,
     shuffle_board,
     shuffle_board_lazy,
     solution_as_tiles,

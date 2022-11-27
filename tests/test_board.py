@@ -12,31 +12,31 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import random
-
+import numpy as np
 import pytest
 
 from slidingpuzzle import *
 
 
 def test_new_board():
-    ground_truth = ([1, 2, 3], [4, 5, 6], [7, 8, 0])
-    assert new_board(3, 3) == ground_truth
+    ground_truth = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 0]])
+    assert np.array_equal(new_board(3, 3), ground_truth)
 
-    ground_truth = ([1, 2], [3, 4], [5, 0])
-    assert new_board(3, 2) == ground_truth
+    ground_truth = np.array([[1, 2], [3, 4], [5, 0]])
+    assert np.array_equal(new_board(3, 2), ground_truth)
 
 
 def test_board_from():
-    assert board_from([1, 2], [3, 0]) == new_board(2, 2)
+    assert np.array_equal(board_from([1, 2], [3, 0]), new_board(2, 2))
 
 
 @pytest.mark.parametrize("h", [3, 5])
 @pytest.mark.parametrize("w", [3, 5])
 def test_board_from_values(h, w):
-    b = board_from_values(h, w, range(1, 1 + h * w))
-    b[-1][-1] = BLANK_TILE
-    assert b == new_board(h, w)
+    values = list(range(1, 1 + h * w))
+    values[-1] = BLANK_TILE
+    b = board_from_values(h, w, values)
+    assert np.array_equal(b, new_board(h, w))
 
 
 def test_freeze_board():
@@ -44,7 +44,7 @@ def test_freeze_board():
     frozen = freeze_board(b)
     assert id(b) != id(frozen)
     swap_tiles(b, (0, 1), (1, 0))
-    assert b[0][1] != frozen[0][1]
+    assert b[0, 1] != frozen[0][1]
 
 
 def test_print_board():
@@ -64,9 +64,7 @@ def test_find_blank():
     assert find_blank(board) == (2, 2)
     assert find_tile(board, BLANK_TILE) == find_blank(board)
 
-    tmp = board[2][2]
-    board[2][2] = board[0][1]
-    board[0][1] = tmp
+    board[0, 1], board[2, 2] = board[2, 2], board[0, 1]
     assert find_blank(board) == (0, 1)
 
 
@@ -74,27 +72,15 @@ def test_swap_tiles():
     board = new_board(3, 3)
     pos1 = (2, 2)
     pos2 = (1, 1)
-    orig_pos1 = board[pos1[0]][pos1[1]]
-    orig_pos2 = board[pos2[0]][pos2[1]]
+    orig_pos1 = board[pos1[0], pos1[1]]
+    orig_pos2 = board[pos2[0], pos2[1]]
     swap_tiles(board, pos1, pos2)
-    assert orig_pos1 == board[pos2[0]][pos2[1]]
-    assert orig_pos2 == board[pos1[0]][pos1[1]]
-
-
-def test_apply_move():
-    board = new_board(5, 5)
-    pos1 = (2, 2)
-    pos2 = find_blank(board)
-    orig_pos1 = board[pos1[0]][pos1[1]]
-    orig_pos2 = board[pos2[0]][pos2[1]]
-    apply_move(board, pos1)
-    assert orig_pos1 == board[pos2[0]][pos2[1]]
-    assert orig_pos2 == board[pos1[0]][pos1[1]]
+    assert orig_pos1 == board[pos2[0], pos2[1]]
+    assert orig_pos2 == board[pos1[0], pos1[1]]
 
 
 @pytest.mark.parametrize("size", [(2, 2), (3, 2), (2, 3), (3, 3)])
 def test_shuffle_board(size):
-    random.seed(0)
     h, w = size
     board = new_board(h, w)
     shuffle_board(board)
@@ -104,7 +90,6 @@ def test_shuffle_board(size):
 
 @pytest.mark.parametrize("size", [(2, 2), (3, 2), (2, 3), (3, 3)])
 def test_shuffle_board_lazy(size):
-    random.seed(0)
     h, w = size
     board = new_board(h, w)
     shuffle_board_lazy(board)
@@ -135,4 +120,4 @@ def test_get_next_states():
 @pytest.mark.parametrize("w", [3, 5])
 def test_board_generator(h, w):
     gen = board_generator(h, w)
-    assert next(gen) == board_from_values(h, w, range(h * w))
+    assert np.array_equal(next(gen), board_from_values(h, w, range(h * w)))

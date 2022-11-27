@@ -102,7 +102,7 @@ def make_examples(
                 if not len(result.solution):
                     break
                 move = result.solution.pop(0)
-                board_.apply_move(board, move)
+                board_.swap_tiles(board, move)
                 if board_.visit(visited, board):
                     break
 

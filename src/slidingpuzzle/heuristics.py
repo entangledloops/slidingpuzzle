@@ -23,6 +23,8 @@ from typing import Callable, TypeAlias
 
 import math
 
+import numpy as np
+
 from slidingpuzzle.board import (
     BLANK_TILE,
     Board,
@@ -209,7 +211,7 @@ def relaxed_adjacency_distance(board: Board) -> int:
         The estimated distance to goal.
     """
     h, w = len(board), len(board[0])
-    board = [[tile for tile in row] for row in board]
+    board = np.copy(board)
     dist = 0
 
     def swap_first_misplaced(blank_yx: tuple[int, int]) -> None:
@@ -223,7 +225,12 @@ def relaxed_adjacency_distance(board: Board) -> int:
         if blank_yx == get_goal_yx(h, w, BLANK_TILE):
             swap_first_misplaced(blank_yx)
         else:
-            swap_tiles(board, blank_yx, get_goal_tile(h, w, blank_yx))
+            swap_tiles(board, get_goal_tile(h, w, blank_yx), blank_yx)
         dist += 1
 
     return dist
+
+
+def checkerboard_adjacency_distance(board: Board) -> int:
+    r""" """
+    pass

@@ -22,9 +22,12 @@ import itertools
 import random
 import sys
 
+import numpy as np
+import numpy.typing as npt
+
 
 BLANK_TILE = 0
-Board: TypeAlias = tuple[list[int], ...]
+Board: TypeAlias = npt.NDArray[np.unsignedinteger]
 FrozenBoard: TypeAlias = tuple[tuple[int, ...], ...]
 
 
@@ -38,7 +41,7 @@ def is_solved(board: Board) -> bool:
     Returns:
         True if the board is solved, otherwise False.
     """
-    h, w = len(board), len(board[0])
+    h, w = board.shape
     for y, row in enumerate(board):
         for x, tile in enumerate(row):
             if tile != get_goal_tile(h, w, (y, x)):
@@ -46,30 +49,32 @@ def is_solved(board: Board) -> bool:
     return True
 
 
-def new_board(h: int, w: int) -> Board:
+def new_board(h: int, w: int, dtype: Optional[npt.DTypeLike] = None) -> Board:
     """
     Create a new board in the default solved state.
 
     Args:
         h: Height of the board.
         w: Width of the board.
+        dtype: An optional numpy dtype for the board. Will be inferred if not provided.
 
     Returns:
         The new board.
     """
-    board = tuple([(y * w) + x + 1 for x in range(w)] for y in range(h))
-    board[-1][-1] = BLANK_TILE
+    board = np.arange(1, 1 + h * w, dtype=dtype).reshape(h, w)
+    board[-1, -1] = BLANK_TILE
     return board
 
 
-def board_from(*rows: Iterable[int]) -> Board:
-    """
+def board_from(*rows: Iterable[int], dtype: Optional[npt.DTypeLike] = None) -> Board:
+    r"""
     Constructs a new board from a provided iterable of rows.
     May throw a `ValueError` if rows are unequal in size or duplicate values
     are found.
 
     Args:
         rows: One or more rows that constitute a board. Each row should contain ints.
+        dtype: An optional numpy dtype for the board. Will be inferred if not provided.
 
     Raises:
         TypeError: If a non-int value is found in a row.
@@ -84,7 +89,7 @@ def board_from(*rows: Iterable[int]) -> Board:
         new_row = []
         for tile in row:
             # ensure all values are ints
-            if not isinstance(tile, int):
+            if not (isinstance(tile, int) or isinstance(tile, np.integer)):
                 raise TypeError(
                     f"Expected tile to be an int, but received '{type(tile)}'."
                 )
@@ -103,34 +108,37 @@ def board_from(*rows: Iterable[int]) -> Board:
     if tiles != list(range(len(board) * len(board[0]))):
         raise ValueError("Your board is missing tiles or contains duplicates.")
 
-    return tuple(board)
+    return np.array(board, dtype=dtype)
 
 
 def board_from_values(h: int, w: int, values: Iterable[int]) -> Board:
     r"""
     Given an iterable of ints, will construct a board of size ``h x w`` in
-    row-major order. The number of values must exactly equal :math:`h \cdot w` or
-    a :class:`ValueError` will be raised.
+    row-major order. The number of values should equal :math:`h \cdot w` and
+    all values must be provided. (Any partial extra row will be discarded.)
 
     Args:
         h: Height of the board to construct
         w: Width of the board to construct
-        values: Values to construct board from
+        values: Iterable of values to construct board from
+
+    Raises:
+        TypeError: If a non-int value is found in a row.
+        ValueError: If rows have unequal length or tiles are duplicated, missing, or
+            have unexpected gaps.
+
+    Returns:
+        The constructed board.
     """
     # construct board from iterable
-    board = []
+    rows = []
     row = []
     for value in values:
         row.append(value)
         if len(row) == w:
-            board.append(row)
+            rows.append(row)
             row = []
-
-    # validate board shape
-    for row in board:
-        if len(row) != w or len(board) != h:
-            raise ValueError("Not enough values provided")
-    return tuple(board)
+    return board_from(*rows)
 
 
 def freeze_board(board: Board) -> FrozenBoard:
@@ -213,9 +221,15 @@ def find_tile(board: Board | FrozenBoard, tile: int) -> tuple[int, int]:
         board: The puzzle board.
         move: The
 
+    Raises:
+        ValueError: If the tile is not on the board.
+
     Returns:
-        The tile position or None if
+        The tile position.
     """
+    if isinstance(board, np.ndarray):
+        y, x = np.where(board == tile)
+        return y[0], x[0]
     for y, row in enumerate(board):
         for x in range(len(row)):
             if board[y][x] == tile:
@@ -264,32 +278,49 @@ def get_next_moves(
 
 
 def swap_tiles(
-    board: Board, tile1: tuple[int, int] | int, tile2: tuple[int, int] | int
+    board: Board,
+    tile1: tuple[int, int] | int,
+    tile2: Optional[tuple[int, int] | int] = None,
 ) -> Board:
     """
     Mutates the board by swapping a pair of tiles.
 
     Args:
         board: The board to modify.
-        pos1: The first tile position or value.
-        pos2: The second tile position or value.
+        tile1: The first tile position or value.
+        tile2: The second tile position or value. If None, the blank will be located
+            and used.
 
     Return:
         The modified board, for conveience chaining calls.
     """
-    if isinstance(tile1, int):
+    if isinstance(tile1, int) or isinstance(tile1, np.integer):
         tile1 = find_tile(board, tile1)
-    if isinstance(tile2, int):
+    if isinstance(tile2, int) or isinstance(tile2, np.integer):
         tile2 = find_tile(board, tile2)
+    elif tile2 is None:
+        tile2 = find_blank(board)
 
     y1, x1 = tile1
     y2, x2 = tile2
-    board[y1][x1], board[y2][x2] = board[y2][x2], board[y1][x1]
+    board[y1, x1], board[y2, x2] = board[y2, x2], board[y1, x1]
 
     return board
 
 
-def count_inversions(board: Board | FrozenBoard) -> int:
+def random_move(board: Board, blank_pos: Optional[tuple[int, int]] = None) -> Board:
+    """
+    Picks a random legal move and applies it to the board.
+
+    Args:
+        board: The board
+        blank_pos: The position of the blank. If not provided, will be found.
+    """
+    moves = get_next_moves(board, blank_pos)
+    return swap_tiles(board, random.choice(moves), blank_pos)
+
+
+def count_inversions(board: Board) -> int:
     """
     From each tile, count the number of tiles that are out of place after this tile.
     Returns the sum of all counts. See :func:`is_solvable`.
@@ -300,15 +331,15 @@ def count_inversions(board: Board | FrozenBoard) -> int:
     Returns:
         The count of inversions.
     """
-    h, w = len(board), len(board[0])
-    board_size = h * w
+    _, w = board.shape
+    board_size = np.prod(board.shape)
     inversions = 0
     for i in range(board_size):
-        t1 = board[i // w][i % w]
+        t1 = board[i // w, i % w]
         if t1 == BLANK_TILE:
             continue
         for j in range(i + 1, board_size):
-            t2 = board[j // w][j % w]
+            t2 = board[j // w, j % w]
             if t2 == BLANK_TILE:
                 continue
             if t2 < t1:
@@ -316,44 +347,7 @@ def count_inversions(board: Board | FrozenBoard) -> int:
     return inversions
 
 
-def apply_move(
-    board: Board,
-    move: tuple[int, int] | int,
-    blank_pos: Optional[tuple[int, int]] = None,
-) -> Board:
-    """
-    Applies a move to the board in place.
-
-    Args:
-        board: The puzzle board.
-        move: The move to apply. Can be a (y, x)-coord or a tile int.
-        blank_pos: The position of the blank tile. Will be found if not provided.
-
-    Returns:
-        The modified board, for convience chaining calls.
-    """
-    if isinstance(move, int):
-        move = find_tile(board, move)
-    if blank_pos is None:
-        blank_pos = find_blank(board)
-    return swap_tiles(board, move, blank_pos)
-
-
-def apply_random_move(
-    board: Board, blank_pos: Optional[tuple[int, int]] = None
-) -> Board:
-    """
-    Picks a random legal move and applies it to the board.
-
-    Args:
-        board: The board
-        blank_pos: The position of the blank. If not provided, will be found.
-    """
-    moves = get_next_moves(board, blank_pos)
-    return apply_move(board, random.choice(moves))
-
-
-def is_solvable(board: Board | FrozenBoard) -> bool:
+def is_solvable(board: Board) -> bool:
     """
     Determines if it is possible to solve this board.
 
@@ -372,7 +366,7 @@ def is_solvable(board: Board | FrozenBoard) -> bool:
         https://www.cs.princeton.edu/courses/archive/spring21/cos226/assignments/8puzzle/specification.php
     """
     inversions = count_inversions(board)
-    h, w = len(board), len(board[0])
+    h, w = board.shape
     if w % 2 == 0:
         y, _ = find_blank(board)
         if h % 2 == 0:
@@ -388,26 +382,23 @@ def is_solvable(board: Board | FrozenBoard) -> bool:
 
 def shuffle_board(board: Board) -> Board:
     """
-    Shuffles a board (in place) and validates that the result is solvable.
+    Shuffles a board (in place). Board is always solvable.
 
     Args:
         board: The board to shuffle.
 
     Returns:
-        The same board for chaining convience.
+        The shuffled board.
     """
-    h, w = len(board), len(board[0])
+    h, w = board.shape
     while True:
-        # first shuffle the board
         for y in range(h):
             for x in range(w):
                 pos1 = y, x
                 pos2 = random.randrange(h), random.randrange(w)
                 swap_tiles(board, pos1, pos2)
-
         if is_solvable(board):
-            break
-    return board
+            return board
 
 
 def shuffle_board_lazy(
@@ -427,7 +418,7 @@ def shuffle_board_lazy(
     Returns:
         The same board for chaining convience.
     """
-    h, w = len(board), len(board[0])
+    h, w = board.shape
     if num_moves is None:
         num_moves = (h + w) * 2
     blank_pos = find_blank(board)
@@ -472,7 +463,7 @@ def solution_as_tiles(board: Board, solution: list[tuple[int, int]]) -> list[int
     Returns:
         A list of ints, which indicate a sequence of tile numbers to move.
     """
-    board = tuple(row.copy() for row in board)
+    board = np.copy(board)
     tiles = []
     blank_pos = find_blank(board)
     for move in solution:

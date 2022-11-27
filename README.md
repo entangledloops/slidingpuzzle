@@ -30,45 +30,56 @@ pip install slidingpuzzle
 
 ```python
 >>> from slidingpuzzle import *
->>> b = new_board(3, 3)
->>> print_board(b)
+>>> board = new_board(3, 3)
+>>> print_board(board)
 1 2 3
 4 5 6
 7 8
->>> print_board(shuffle_board(b))
+>>> print_board(shuffle_board(board))
 8 3 1 
 4   2 
 5 6 7 
 ```
 
-The number `0` is reserved for the blank. You can easily build your own boards:
+Regular boards are stored as [numpy arrays](https://numpy.org/doc/stable/reference/generated/numpy.array.html). The number `0` is reserved for the blank. 
 
 ```python
->>> b = board_from([4, 5, 6], [7, 8, 0], [1, 2, 3])
->>> print_board(b)
+>>> board
+array([[8, 3, 1],
+       [4, 5, 6],
+       [5, 6, 7]])
+```
+
+You can easily build your own boards using numpy or any of the provided convenience methods:
+
+```python
+>>> board = board_from([4, 5, 6], [7, 8, 0], [1, 2, 3])
+>>> print_board(board)
 4 5 6
 7 8
 1 2 3
->>> manhattan_distance(b)
+>>> board = board_from_values(3, 3, [4, 5, 6, 7, 8, 0, 1, 2, 3])
+>>> print_board(board)
+4 5 6
+7 8
+1 2 3
+>>> manhattan_distance(board)
 11
->>> is_solvable(b)
+>>> is_solvable(board)
 False
 ```
 
 Not all board configurations are solvable. The [`search()`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html#slidingpuzzle.algorithms.search) routine will validate the board before beginning, and may throw a `ValueError` if the board is illegal.
 
-The default search is [`A*`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html#slidingpuzzle.algorithms.a_star) with [`linear_conflict_distance`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html#slidingpuzzle.heuristics.linear_conflict_distance) as the heuristic:
+The default search is [`A*`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html#slidingpuzzle.algorithms.a_star) with [`linear_conflict_distance()`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html#slidingpuzzle.heuristics.linear_conflict_distance) as the heuristic:
 
 ```python
->>> b = shuffle_board(new_board(3, 3))
->>> b
-([7, 5, 4], [3, 0, 1], [8, 6, 2])
->>> search(b)
+>>> board = shuffle_board(new_board(3, 3))
+>>> search(board)
 solution=[5, 4, 1, 2, 6, 5, 3, 7, 4, 1, 2, 3, 5, 8, 7, 4, 1, 2, 3, 6]
 solution_len=20, generated=360, expanded=164, unvisited=197, visited=136
 ```
 
-The solution is a list of tile numbers that should be moved into the empty square. You may be wondering about some of the numbers below. Briefly:
 - `generated` is the total number of nodes generated during the search
 - `expanded` is the total number of nodes that were evaluated (removed from search frontier)
 - `unvisited` is the number of nodes that we never reached because search terminated early (search frontier, "open")
@@ -86,13 +97,29 @@ solution_len=26, generated=556, expanded=374, unvisited=183, visited=202
 
 Notice how many states are generated for BFS to find a solution. Greedy search finds a solution quickly, but the solution is of lower quality.
 
+There are numerous convenience functions available for working with boards. Below are a few examples.
+
 ```python
->>> result = search(b)
+>>> find_blank(board)
+(1, 1)
+>>> find_tile(board, 3)
+(1, 0)
+>>> moves = get_next_moves(board)
+>>> moves
+[(1, 0), (1, 2), (0, 1), (2, 1)]
+>>> swap_tiles(board, moves[0])
+array([[7, 5, 4],
+       [0, 3, 1],
+       [8, 6, 2]])
+```
+
+```python
+>>> result = search(board)
 >>> result.solution
 [(0, 1), (0, 2), (1, 2), (2, 2), (2, 1), (1, 1), (1, 0), (0, 0), (0, 1), (0, 2), (1, 2), (1, 1), (2, 1), (2, 0), (1, 0), (0, 0), (0, 1), (0, 2), (1, 2), (2, 2)]
 ```
 
-If you are working with a physical puzzle and actual tile numbers would be easier to read, you can obtain them the same way `str(`[`SearchResult`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html#slidingpuzzle.state.SearchResult)`)` does, using the convenience function [`solution_as_tiles()`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html#slidingpuzzle.board.solution_as_tiles):
+If you are working with a physical puzzle and actual tile numbers would be easier to read, you can obtain them using the convenience function [`solution_as_tiles()`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html#slidingpuzzle.board.solution_as_tiles):
 
 ```python
 >>> solution_as_tiles(result.board, result.solution)
