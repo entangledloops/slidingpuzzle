@@ -27,11 +27,15 @@ def test_new_board():
     assert new_board(3, 2) == ground_truth
 
 
+def test_board_from():
+    assert board_from([1, 2], [3, 0]) == new_board(2, 2)
+
+
 @pytest.mark.parametrize("h", [3, 5])
 @pytest.mark.parametrize("w", [3, 5])
 def test_board_from_values(h, w):
     b = board_from_values(h, w, range(1, 1 + h * w))
-    b[-1][-1] = EMPTY_TILE
+    b[-1][-1] = BLANK_TILE
     assert b == new_board(h, w)
 
 
@@ -47,26 +51,23 @@ def test_print_board():
     print_board(new_board(5, 5))
 
 
-def test_get_yx():
-    board = new_board(3, 3)
-    tile = 1
+def test_get_goal_yx():
+    h, w = 3, 3
+    board = new_board(h, w)
     for y, row in enumerate(board):
-        for x in range(len(row)):
-            if board[y][x] == EMPTY_TILE:
-                continue
-            assert tile == board[y][x]
-            tile += 1
+        for x, tile in enumerate(row):
+            assert (y, x) == get_goal_yx(h, w, tile)
 
 
-def test_get_empty_yx():
+def test_find_blank():
     board = new_board(3, 3)
-    assert get_empty_yx(board) == (2, 2)
-    assert get_yx(board, EMPTY_TILE) == get_empty_yx(board)
+    assert find_blank(board) == (2, 2)
+    assert find_tile(board, BLANK_TILE) == find_blank(board)
 
     tmp = board[2][2]
     board[2][2] = board[0][1]
     board[0][1] = tmp
-    assert get_empty_yx(board) == (0, 1)
+    assert find_blank(board) == (0, 1)
 
 
 def test_swap_tiles():
@@ -83,7 +84,7 @@ def test_swap_tiles():
 def test_apply_move():
     board = new_board(5, 5)
     pos1 = (2, 2)
-    pos2 = get_empty_yx(board)
+    pos2 = find_blank(board)
     orig_pos1 = board[pos1[0]][pos1[1]]
     orig_pos2 = board[pos2[0]][pos2[1]]
     apply_move(board, pos1)

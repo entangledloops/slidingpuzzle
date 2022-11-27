@@ -7,4 +7,5 @@ per-file-ignores =
     # star imports okay in tests
     test_algorithms.py: F403, F405
     test_board.py: F403, F405
+    test_heuristics.py: F403, F405
     test_nn.py: F403, F405

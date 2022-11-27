@@ -35,18 +35,16 @@ pip install slidingpuzzle
 1 2 3
 4 5 6
 7 8
->>> shuffle_board(b)
-([8, 3, 1], [4, 0, 2], [5, 6, 7])
->>> print_board(b)
+>>> print_board(shuffle_board(b))
 8 3 1 
 4   2 
 5 6 7 
 ```
 
-The boards are just a `tuple` of `list[int]`. The number `0` is reserved for the blank. You can easily build your own board:
+The number `0` is reserved for the blank. You can easily build your own boards:
 
 ```python
->>> b = ([4, 5, 6], [7, 8, 0], [1, 2, 3])
+>>> b = board_from([4, 5, 6], [7, 8, 0], [1, 2, 3])
 >>> print_board(b)
 4 5 6
 7 8
@@ -147,6 +145,7 @@ The available heuristics are:
 - [`linear_conflict_distance`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html#slidingpuzzle.heuristics.linear_conflict_distance) - This is an augmented Manhattan distance. Roughly speaking, adds an additional 2 to each pair of inverted tiles that are already on their goal row/column.
 - [`manhattan_distance`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html#slidingpuzzle.heuristics.manhattan_distance) - Count of how many moves it would take each tile to arrive in the correct position, if other tiles could be ignored
 - [`random_distance`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html#slidingpuzzle.heuristics.random_distance) - This is a random number (but a *consistent* random number for a given board state). It is useful as a baseline.
+- [`relaxed_adjacency_distance`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html#slidingpuzzle.heuristics.relaxed_adjacency_distance) - This is a slight improvement over Hamming distance that includes a penalty for swapping out-of-place tiles.
 - Neural net heuristics from [`slidingpuzzle.nn`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.nn.html) submodule (see section below)
 - Any heuristic you want! Just pass any function that accepts a board and returns a number. The lower the number, the closer the board is to the goal (lower = better).
 

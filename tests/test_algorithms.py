@@ -12,48 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import math
 import random
 
 import pytest
 
 from slidingpuzzle import *
-
-
-def test_hamming_distance():
-    board = new_board(5, 3)
-    assert hamming_distance(board) == 0
-
-    swap_tiles(board, (0, 1), (0, 0))
-    assert hamming_distance(board) == 2
-
-
-def test_linear_conflict():
-    board = ([2, 1, 3], [4, 5, 6], [7, 8, 0])
-    assert linear_conflict_distance(board) == 4
-
-    board = ([4, 2, 3], [1, 5, 6], [7, 8, 0])
-    assert linear_conflict_distance(board) == 4
-
-    board = ([1, 2, 3], [6, 5, 4], [7, 8, 0])
-    assert linear_conflict_distance(board) == 8
-
-
-def test_manhattan_distance():
-    board = new_board(3, 5)
-    assert manhattan_distance(board) == 0
-
-    swap_tiles(board, (1, 2), (0, 0))
-    assert manhattan_distance(board) == 6
-
-
-def test_euclidean_distance():
-    board = new_board(3, 5)
-    assert euclidean_distance(board) == 0
-
-    swap_tiles(board, (1, 2), (0, 0))
-    c = math.sqrt((2 * 1) ** 2 + (2 * 2) ** 2)
-    assert euclidean_distance(board) == c
 
 
 def test_a_star():
@@ -78,7 +41,13 @@ def test_search_slow(algorithm):
 
 @pytest.mark.parametrize("algorithm", [A_STAR, BEAM, BFS, DFS, GREEDY])
 @pytest.mark.parametrize(
-    "heuristic", [euclidean_distance, linear_conflict_distance, manhattan_distance]
+    "heuristic",
+    [
+        euclidean_distance,
+        linear_conflict_distance,
+        manhattan_distance,
+        relaxed_adjacency_distance,
+    ],
 )
 def test_search(algorithm, heuristic):
     random.seed(0)

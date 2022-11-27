@@ -33,7 +33,7 @@ class State:
 
     Args:
         board: The board state.
-        empty_pos: The (y, x)-coord of the empty tile.
+        blank_pos: The (y, x)-coord of the blank tile.
         history: A list of (y, x)-coords representing moves from the initial
             state to the current board state.
         f: The stored value of this node. Used by some search algorithms.
@@ -42,7 +42,7 @@ class State:
     """
 
     board: Board = dataclasses.field(compare=False)
-    empty_pos: tuple[int, int] = dataclasses.field(compare=False)
+    blank_pos: tuple[int, int] = dataclasses.field(compare=False)
     history: list[tuple[int, int]] = dataclasses.field(
         compare=False, default_factory=list
     )

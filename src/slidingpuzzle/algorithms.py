@@ -24,7 +24,7 @@ import heapq
 from slidingpuzzle.board import (
     Board,
     FrozenBoard,
-    get_empty_yx,
+    find_blank,
     get_next_moves,
     is_solvable,
     shuffle_board,
@@ -60,16 +60,16 @@ def get_next_states(state: State) -> list[State]:
     """
     Creates a list of next viable states, given the current state.
     """
-    moves = get_next_moves(state.board, state.empty_pos)
+    moves = get_next_moves(state.board, state.blank_pos)
     next_states = []
     for move in moves:
         # construct new altered board
         next_board = tuple(row.copy() for row in state.board)
-        swap_tiles(next_board, state.empty_pos, move)
+        swap_tiles(next_board, state.blank_pos, move)
         # record history
         next_history = state.history.copy()
         next_history.append(move)
-        # after moving, the move_pos is now the empty_pos
+        # after moving, the move_pos is now the blank_pos
         next_state = State(next_board, move, next_history)
         next_states.append(next_state)
     return next_states
@@ -112,8 +112,8 @@ def a_star(board: Board, **kwargs) -> SearchResult:
 
     # initial state
     goal = new_board(len(board), len(board[0]))
-    empty_pos = get_empty_yx(board)
-    initial_state = State(board, empty_pos)
+    blank_pos = find_blank(board)
+    initial_state = State(board, blank_pos)
     unvisited = [initial_state]
     visited: set[FrozenBoard] = set()
 
@@ -178,8 +178,8 @@ def beam(board: Board, **kwargs) -> SearchResult:
 
     # initial state
     goal = new_board(len(board), len(board[0]))
-    empty_pos = get_empty_yx(board)
-    initial_state = State(board, empty_pos)
+    blank_pos = find_blank(board)
+    initial_state = State(board, blank_pos)
     unvisited = collections.deque([initial_state])
     visited: set[FrozenBoard] = set()
 
@@ -236,8 +236,8 @@ def bfs(board: Board, **kwargs) -> SearchResult:
 
     # initial state
     goal = new_board(len(board), len(board[0]))
-    empty_pos = get_empty_yx(board)
-    initial_state = State(board, empty_pos)
+    blank_pos = find_blank(board)
+    initial_state = State(board, blank_pos)
     unvisited = collections.deque([initial_state])
     visited: set[FrozenBoard] = set()
 
@@ -290,8 +290,8 @@ def dfs(board: Board, **kwargs) -> SearchResult:
 
     # initial state
     goal = new_board(len(board), len(board[0]))
-    empty_pos = get_empty_yx(board)
-    initial_state = State(board, empty_pos)
+    blank_pos = find_blank(board)
+    initial_state = State(board, blank_pos)
     unvisited = [initial_state]
     visited: set[FrozenBoard] = set()
 
@@ -350,8 +350,8 @@ def greedy(board: Board, **kwargs) -> SearchResult:
 
     # initial state
     goal = new_board(len(board), len(board[0]))
-    empty_pos = get_empty_yx(board)
-    initial_state = State(board, empty_pos)
+    blank_pos = find_blank(board)
+    initial_state = State(board, blank_pos)
     unvisited = [initial_state]
     visited: set[FrozenBoard] = set()
 
@@ -414,9 +414,9 @@ def ida_star(board: Board, **kwargs) -> SearchResult:
 
     # initial state
     goal = new_board(len(board), len(board[0]))
-    empty_pos = get_empty_yx(board)
+    blank_pos = find_blank(board)
     bound = float(heuristic(board))
-    initial_state = State(board, empty_pos)
+    initial_state = State(board, blank_pos)
     next_bound = float("inf")
     unvisited = [initial_state]
     visited: set[FrozenBoard] = set()
@@ -484,8 +484,8 @@ def iddfs(board: Board, **kwargs) -> SearchResult:
     # initial state
     bound = linear_conflict_distance(board)
     goal = new_board(len(board), len(board[0]))
-    empty_pos = get_empty_yx(board)
-    initial_state = State(board, empty_pos)
+    blank_pos = find_blank(board)
+    initial_state = State(board, blank_pos)
     next_bound = bound
     unvisited = [initial_state]
     visited: set[FrozenBoard] = set()

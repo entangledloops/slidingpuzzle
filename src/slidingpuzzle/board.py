@@ -23,9 +23,27 @@ import random
 import sys
 
 
-EMPTY_TILE = 0
+BLANK_TILE = 0
 Board: TypeAlias = tuple[list[int], ...]
 FrozenBoard: TypeAlias = tuple[tuple[int, ...], ...]
+
+
+def is_solved(board: Board) -> bool:
+    """
+    Determine if a board is in the solved state.
+
+    Args:
+        board: The board
+
+    Returns:
+        True if the board is solved, otherwise False.
+    """
+    h, w = len(board), len(board[0])
+    for y, row in enumerate(board):
+        for x, tile in enumerate(row):
+            if tile != get_goal_tile(h, w, (y, x)):
+                return False
+    return True
 
 
 def new_board(h: int, w: int) -> Board:
@@ -40,8 +58,52 @@ def new_board(h: int, w: int) -> Board:
         The new board.
     """
     board = tuple([(y * w) + x + 1 for x in range(w)] for y in range(h))
-    board[-1][-1] = 0
+    board[-1][-1] = BLANK_TILE
     return board
+
+
+def board_from(*rows: Iterable[int]) -> Board:
+    """
+    Constructs a new board from a provided iterable of rows.
+    May throw a `ValueError` if rows are unequal in size or duplicate values
+    are found.
+
+    Args:
+        rows: One or more rows that constitute a board. Each row should contain ints.
+
+    Raises:
+        TypeError: If a non-int value is found in a row.
+        ValueError: If rows have unequal length or tiles are duplicated, missing, or
+            have unexpected gaps.
+
+    Returns:
+        The constructed board.
+    """
+    board = []
+    for row in rows:
+        new_row = []
+        for tile in row:
+            # ensure all values are ints
+            if not isinstance(tile, int):
+                raise TypeError(
+                    f"Expected tile to be an int, but received '{type(tile)}'."
+                )
+            new_row.append(tile)
+        board.append(new_row)
+
+    # sanity check row lengths
+    for r1, r2 in zip(board[:-1], board[1:]):
+        if len(r1) != len(r2):
+            raise ValueError(
+                f"All rows must have the same length ({len(r1)} != {len(r2)})."
+            )
+
+    # check all values are present
+    tiles = list(sorted(itertools.chain(*board)))
+    if tiles != list(range(len(board) * len(board[0]))):
+        raise ValueError("Your board is missing tiles or contains duplicates.")
+
+    return tuple(board)
 
 
 def board_from_values(h: int, w: int, values: Iterable[int]) -> Board:
@@ -79,32 +141,71 @@ def freeze_board(board: Board) -> FrozenBoard:
         board: The board to freeze.
 
     Returns:
-        A tuple of tuple[int].
+        A frozen copy of the board.
     """
     return tuple(tuple(row) for row in board)
 
 
-def print_board(board: Board | FrozenBoard, file=sys.stdout) -> None:
+def print_board(board: Board | FrozenBoard, file=sys.stdout) -> Board:
     """
     Convienance function for printing a formatted board.
 
     Args:
         board: The board to print.
         file: The target output file. Defaults to stdout.
+
+    Returns:
+        The input board (useful for call chaining).
     """
     board_size = len(board) * len(board[0])
     # the longest str we need to print is the largest tile number
     max_width = len(str(board_size - 1))
     for row in board:
         for tile in row:
-            if tile == EMPTY_TILE:
+            if tile == BLANK_TILE:
                 print(" " * max_width, end=" ", file=file)
             else:
                 print(str(tile).ljust(max_width), end=" ", file=file)
         print(file=file)
 
+    return board
 
-def get_yx(board: Board | FrozenBoard, tile: int) -> tuple[int, int]:
+
+def get_goal_yx(h: int, w: int, tile: int) -> tuple[int, int]:
+    """
+    Given a board width and tile number, returns the goal (y, x) position of ``tile``.
+
+    Args:
+        h: Height of the board
+        w: Width of the board
+        tile: The tile number of interest
+
+    Returns:
+        A tuple (y, x) indicating the tile's goal position.
+    """
+    if BLANK_TILE == tile:
+        return h - 1, w - 1
+    return (tile - 1) // w, (tile - 1) % w
+
+
+def get_goal_tile(h: int, w: int, pos: tuple[int, int]) -> int:
+    """
+    Given a board width and (y, x)-coord, return the tile number that belongs at (y, x).
+
+    Args:
+        h: Height of the board
+        w: Width of the board
+        pos: A (y, x)-position on the board.
+
+    Returns:
+        The tile number that belongs at (y, x).
+    """
+    if pos == (h - 1, w - 1):
+        return BLANK_TILE
+    return (w * pos[0]) + pos[1] + 1
+
+
+def find_tile(board: Board | FrozenBoard, tile: int) -> tuple[int, int]:
     """
     Given a tile number, find the (y, x)-coord on the board.
 
@@ -122,38 +223,39 @@ def get_yx(board: Board | FrozenBoard, tile: int) -> tuple[int, int]:
     raise ValueError(f'There is no tile "{tile}" on the board.')
 
 
-def get_empty_yx(board: Board | FrozenBoard) -> tuple[int, int]:
+def find_blank(board: Board | FrozenBoard) -> tuple[int, int]:
     """
-    Locate the empty tile's (y, x)-coord.
+    Locate the blank tile's (y, x)-coord.
+    Equivalent to ``find_tile(board, BLANK_TILE)``.
 
     Args:
         board: The puzzle board.
 
     Returns:
-        The (y, x)-coord of the empty tile.
+        The (y, x)-coord of the blank tile.
     """
-    return get_yx(board, EMPTY_TILE)
+    return find_tile(board, BLANK_TILE)
 
 
 def get_next_moves(
     board: Board | FrozenBoard,
-    empty_pos: Optional[tuple[int, int]] = None,
+    blank_pos: Optional[tuple[int, int]] = None,
 ) -> list[tuple[int, int]]:
     """
     Return a list of all possible moves.
 
     Args:
         board: The current puzzle board.
-        empty_pos: The position of the empty tile.
+        blank_pos: The position of the empty tile.
             If not provided, it will be located automatically.
 
     Returns:
         A list of (y, x)-coords that are tile positions capable of
-        swapping with the empty tile.
+        swapping with the blank tile.
     """
-    if empty_pos is None:
-        empty_pos = get_empty_yx(board)
-    y, x = empty_pos
+    if blank_pos is None:
+        blank_pos = find_blank(board)
+    y, x = blank_pos
     moves = []
     for dy, dx in ((0, -1), (0, 1), (-1, 0), (1, 0)):
         if 0 <= y + dy < len(board) and 0 <= x + dx < len(board[0]):
@@ -176,9 +278,9 @@ def swap_tiles(
         The modified board, for conveience chaining calls.
     """
     if isinstance(tile1, int):
-        tile1 = get_yx(board, tile1)
+        tile1 = find_tile(board, tile1)
     if isinstance(tile2, int):
-        tile2 = get_yx(board, tile2)
+        tile2 = find_tile(board, tile2)
 
     y1, x1 = tile1
     y2, x2 = tile2
@@ -189,7 +291,7 @@ def swap_tiles(
 
 def count_inversions(board: Board | FrozenBoard) -> int:
     """
-    From each tile, count the number of tiles that are out of place.
+    From each tile, count the number of tiles that are out of place after this tile.
     Returns the sum of all counts. See :func:`is_solvable`.
 
     Args:
@@ -201,11 +303,13 @@ def count_inversions(board: Board | FrozenBoard) -> int:
     h, w = len(board), len(board[0])
     board_size = h * w
     inversions = 0
-    for tile1 in range(board_size):
-        for tile2 in range(tile1 + 1, board_size):
-            t1 = board[tile1 // w][tile1 % w]
-            t2 = board[tile2 // w][tile2 % w]
-            if EMPTY_TILE in (t1, t2):
+    for i in range(board_size):
+        t1 = board[i // w][i % w]
+        if t1 == BLANK_TILE:
+            continue
+        for j in range(i + 1, board_size):
+            t2 = board[j // w][j % w]
+            if t2 == BLANK_TILE:
                 continue
             if t2 < t1:
                 inversions += 1
@@ -215,7 +319,7 @@ def count_inversions(board: Board | FrozenBoard) -> int:
 def apply_move(
     board: Board,
     move: tuple[int, int] | int,
-    empty_pos: Optional[tuple[int, int]] = None,
+    blank_pos: Optional[tuple[int, int]] = None,
 ) -> Board:
     """
     Applies a move to the board in place.
@@ -223,16 +327,30 @@ def apply_move(
     Args:
         board: The puzzle board.
         move: The move to apply. Can be a (y, x)-coord or a tile int.
-        empty_pos: The position of the empty tile. Will be found if not provided.
+        blank_pos: The position of the blank tile. Will be found if not provided.
 
     Returns:
         The modified board, for convience chaining calls.
     """
     if isinstance(move, int):
-        move = get_yx(board, move)
-    if empty_pos is None:
-        empty_pos = get_empty_yx(board)
-    return swap_tiles(board, move, empty_pos)
+        move = find_tile(board, move)
+    if blank_pos is None:
+        blank_pos = find_blank(board)
+    return swap_tiles(board, move, blank_pos)
+
+
+def apply_random_move(
+    board: Board, blank_pos: Optional[tuple[int, int]] = None
+) -> Board:
+    """
+    Picks a random legal move and applies it to the board.
+
+    Args:
+        board: The board
+        blank_pos: The position of the blank. If not provided, will be found.
+    """
+    moves = get_next_moves(board, blank_pos)
+    return apply_move(board, random.choice(moves))
 
 
 def is_solvable(board: Board | FrozenBoard) -> bool:
@@ -256,7 +374,7 @@ def is_solvable(board: Board | FrozenBoard) -> bool:
     inversions = count_inversions(board)
     h, w = len(board), len(board[0])
     if w % 2 == 0:
-        y, _ = get_empty_yx(board)
+        y, _ = find_blank(board)
         if h % 2 == 0:
             if (inversions + y) % 2 != 0:
                 return True
@@ -312,19 +430,19 @@ def shuffle_board_lazy(
     h, w = len(board), len(board[0])
     if num_moves is None:
         num_moves = (h + w) * 2
-    empty_pos = get_empty_yx(board)
+    blank_pos = find_blank(board)
     visited: set[FrozenBoard] = set()
     for _ in range(num_moves):
-        next_moves = get_next_moves(board, empty_pos)
+        next_moves = get_next_moves(board, blank_pos)
         random.shuffle(next_moves)
         new_move = False  # tracks if this is a new move
         # try to find a new move
         while next_moves:
             next_move = next_moves.pop()
-            swap_tiles(board, empty_pos, next_move)
+            swap_tiles(board, blank_pos, next_move)
             # have we been here before?
             if visit(visited, board):
-                swap_tiles(board, empty_pos, next_move)  # undo move
+                swap_tiles(board, blank_pos, next_move)  # undo move
             else:
                 new_move = True
                 break
@@ -337,8 +455,8 @@ def shuffle_board_lazy(
         if moves is not None:
             moves.append(next_move)
 
-        # update empty_pos
-        empty_pos = next_move
+        # update blank_pos
+        blank_pos = next_move
     return board
 
 
@@ -356,12 +474,12 @@ def solution_as_tiles(board: Board, solution: list[tuple[int, int]]) -> list[int
     """
     board = tuple(row.copy() for row in board)
     tiles = []
-    empty_pos = get_empty_yx(board)
+    blank_pos = find_blank(board)
     for move in solution:
         y, x = move
         tiles.append(board[y][x])
-        swap_tiles(board, empty_pos, move)
-        empty_pos = move
+        swap_tiles(board, blank_pos, move)
+        blank_pos = move
     return tiles
 
 
