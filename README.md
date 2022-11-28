@@ -60,7 +60,7 @@ You can easily build your own boards using numpy or any of the provided convenie
 4 5 6
 7 8
 1 2 3
->>> board = board_from_values(3, 3, [4, 5, 6, 7, 8, 0, 1, 2, 3])
+>>> board = board_from_iter(3, 3, [4, 5, 6, 7, 8, 0, 1, 2, 3])
 >>> print_board(board)
 4 5 6
 7 8
