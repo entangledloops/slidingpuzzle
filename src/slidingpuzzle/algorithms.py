@@ -396,7 +396,8 @@ def ida_star(board: Board, **kwargs) -> SearchResult:
 
     Args:
         board: The board
-        depth_bound (int): A limit to search depth. Default is :math:`\infty`.
+        depth_bound (int): A limit to search depth. Default is :math:`\infty`. This is
+            an optional bound used in addition to the default f-bound.
         detect_dupes (bool): Duplicate detection (i.e. track visited states).
             Default is ``True``.
         heuristic: A function that maps boards to an estimated cost-to-go.
@@ -467,21 +468,29 @@ def ida_star(board: Board, **kwargs) -> SearchResult:
 
 def iddfs(board: Board, **kwargs) -> SearchResult:
     r"""
-    Iterative deepening depth first search. Same as :func:`dfs`, except that the depth
-    bound is incrementally increased until a solution is found.
+    Iterative deepening depth first search. Similar to :func:`dfs`, except that the
+    depth bound is incrementally increased until a solution is found.
 
     Args:
         board: The board
+        depth_bound (int): The initial bound. Default is
+            :func:`slidingpuzzle.heuristics.linear_conflict_distance`.
+        detect_dupes (bool): Duplicate detection (i.e. track visited states).
+            Default is ``True``.
 
     Returns:
         A :class:`slidingpuzzle.state.SearchResult` with a solution and statistics
     """
+    # args
+    depth_bound = kwargs.get("depth_bound", linear_conflict_distance(board))
+    detect_dupes = kwargs.get("detect_dupes", False)
+
     # initial state
-    bound = linear_conflict_distance(board)
     goal = new_board(*board.shape)
     initial_state = State(np.copy(board), find_blank(board))
-    next_bound = bound
+    next_bound = depth_bound
     unvisited = [initial_state]
+    visited: set[FrozenBoard] = set()
 
     # stats
     generated, expanded = 0, 0
@@ -494,12 +503,16 @@ def iddfs(board: Board, **kwargs) -> SearchResult:
             # goal check
             if np.array_equal(goal, state.board):
                 return SearchResult(
-                    board, generated, expanded, unvisited, set(), state.history
+                    board, generated, expanded, unvisited, visited, state.history
                 )
 
             # bound
-            if len(state.history) > bound:
+            if len(state.history) > depth_bound:
                 next_bound = len(state.history)
+                continue
+
+            # duplicate detection
+            if detect_dupes and visit(visited, state.board):
                 continue
 
             # children
@@ -508,12 +521,13 @@ def iddfs(board: Board, **kwargs) -> SearchResult:
             generated += len(next_states)
 
         # do we need to restart?
-        if bound != next_bound:
-            bound = next_bound
+        if depth_bound != next_bound:
+            depth_bound = next_bound
             unvisited.append(initial_state)
+            visited.clear()
 
     # if we are here, no solution was found
-    return SearchResult(board, generated, expanded, list(unvisited), set(), None)
+    return SearchResult(board, generated, expanded, list(unvisited), visited, None)
 
 
 ALGORITHMS_MAP = {
