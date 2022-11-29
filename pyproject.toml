@@ -4,11 +4,14 @@ build-backend = "hatchling.build"
 
 [project]
 name = "slidingpuzzle"
-version = "0.0.20"
 authors = [
   { name="Stephen Dunn", email="dunn.stephen@gmail.com" },
 ]
+dependencies = [
+    "numpy>=1.23.3"
+]
 description = "Sliding Puzzle solver"
+dynamic = ["version"]
 readme = "README.md"
 requires-python = ">=3.10"
 classifiers = [
@@ -26,6 +29,9 @@ classifiers = [
 [tool.black]
 target-version = ["py310"]
 
+[tool.hatch.version]
+path = "src/slidingpuzzle/__about__.py"
+
 [tool.pytest.ini_options]
 addopts = "-v -x --ignore tests/test_nn.py --strict-markers -m 'not slow'"
 markers = [
@@ -35,3 +41,6 @@ minversion = "6.0"
 pythonpath = [
     "src",
 ]
+
+[tool.setuptools.dynamic]
+dependencies = {file = ["requirements.txt"]}

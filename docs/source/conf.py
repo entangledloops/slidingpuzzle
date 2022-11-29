@@ -22,8 +22,10 @@ copyright = "2022, Stephen Dunn"
 author = "Stephen Dunn"
 
 # The full version, including alpha/beta/rc tags
-release = "0.0.20"
+with open("../../src/slidingpuzzle/__about__.py", "rt") as fp:
+    about = fp.readlines()
 
+version = next(line for line in about if "version" in line).split('"')[1]
 
 # -- General configuration ---------------------------------------------------
 
