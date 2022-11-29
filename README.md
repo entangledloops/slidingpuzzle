@@ -4,7 +4,6 @@
 ![tests](https://github.com/entangledloops/slidingpuzzle/actions/workflows/tests.yaml/badge.svg)
 ![PyPI - Version](https://img.shields.io/pypi/v/slidingpuzzle.svg)
 ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/slidingpuzzle)
-![PyPI - License](https://img.shields.io/pypi/l/slidingpuzzle)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 <a href="https://www.buymeacoffee.com/entangledloops" target="_blank"><img src="https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png" alt="Buy Me A Coffee" height=32></a>
 
