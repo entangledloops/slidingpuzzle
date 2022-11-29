@@ -1,6 +1,6 @@
 # Sliding Puzzle
 
-[![docs](https://readthedocs.org/projects/slidingtilepuzzle/badge/?version=latest)](https://slidingtilepuzzle.readthedocs.io/en/latest/?badge=latest)
+![docs](https://readthedocs.org/projects/slidingtilepuzzle/badge/?version=latest)
 ![tests](https://github.com/entangledloops/slidingpuzzle/actions/workflows/tests.yaml/badge.svg)
 ![PyPI - Version](https://img.shields.io/pypi/v/slidingpuzzle.svg)
 ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/slidingpuzzle)
