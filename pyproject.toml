@@ -1,5 +1,5 @@
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling", "hatch-requirements-txt"]
 build-backend = "hatchling.build"
 
 [project]
@@ -7,11 +7,8 @@ name = "slidingpuzzle"
 authors = [
   { name="Stephen Dunn", email="dunn.stephen@gmail.com" },
 ]
-dependencies = [
-    "numpy>=1.23.3"
-]
 description = "Sliding Puzzle solver"
-dynamic = ["version"]
+dynamic = ["dependencies", "version"]
 readme = "README.md"
 requires-python = ">=3.10"
 classifiers = [
@@ -28,6 +25,9 @@ classifiers = [
 
 [tool.black]
 target-version = ["py310"]
+
+[tool.hatch.metadata.hooks.requirements_txt]
+files = ["requirements.txt"]
 
 [tool.hatch.version]
 path = "src/slidingpuzzle/__about__.py"
