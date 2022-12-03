@@ -165,12 +165,9 @@ def linear_conflict_distance(board: Board) -> int:
 
     for line, goals in line_generator():
         line = np.copy(line)  # don't modify original board
-        print(line, goals)
         while np.any(line_conflicts := get_line_conflicts(line, goals)):
-            print("conflicts:", line_conflicts)
             dist += 2
             line[np.argmax(line_conflicts)] = BLANK_TILE
-            print(line)
 
     return dist
 
