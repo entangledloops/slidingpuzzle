@@ -45,10 +45,7 @@ from slidingpuzzle.board import (
 Heuristic: TypeAlias = Callable[[Board], int | float]
 
 log = logging.getLogger(__name__)
-
-# internal caches to do fast repeated lookups
 manhattan_tables = {}  # (h, w): {(r, c, tile): manhattan dist}
-lcd_tables = {}  # (h, w): {(line, row_line): linear conflict dist}
 
 
 def euclidean_distance(board: Board) -> float:
@@ -137,8 +134,7 @@ def linear_conflict_distance(board: Board) -> int:
         Helper to return a list of conflict counts for a line.
 
         Args:
-            line_pos: The row/col index of the line
-            line: The values of the lien
+            line: The values in the line
             goals: The goal positions for each tile in line
 
         Returns:
