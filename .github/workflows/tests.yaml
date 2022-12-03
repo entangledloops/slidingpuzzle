@@ -24,5 +24,4 @@ jobs:
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
       - name: Test with pytest
         run: |
-          pytest
-          pytest -m slow
+          pytest -m "not slow or slow"

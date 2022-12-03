@@ -19,11 +19,14 @@ Each function accepts a puzzle board as input, and returns a numeric value
 that indicates the estimated distance from the goal.
 """
 
-from typing import Callable, TypeAlias
+from typing import Callable, Iterator, TypeAlias
 
+import itertools
+import logging
 import math
 
 import numpy as np
+import numpy.typing as npt
 
 from slidingpuzzle.board import (
     BLANK_TILE,
@@ -40,6 +43,12 @@ from slidingpuzzle.board import (
 
 
 Heuristic: TypeAlias = Callable[[Board], int | float]
+
+log = logging.getLogger(__name__)
+
+# internal caches to do fast repeated lookups
+manhattan_tables = {}  # (h, w): {(r, c, tile): manhattan dist}
+lcd_tables = {}  # (h, w): {(line, row_line): linear conflict dist}
 
 
 def euclidean_distance(board: Board) -> float:
@@ -110,52 +119,74 @@ def linear_conflict_distance(board: Board) -> int:
     h, w = board.shape
     dist = manhattan_distance(board)
 
-    # check out-of-place tiles in each row
-    for y in range(h):
-        max_conflicts = 0
-        for x1 in range(w):
-            if BLANK_TILE == board[y, x1]:
-                continue
-            conflicts = 0
-            tile1 = board[y, x1]
-            target_row1 = get_goal_y(h, w, tile1)
-            if y != target_row1:
-                continue
-            for x2 in range(x1 + 1, w):
-                if BLANK_TILE == board[y, x2]:
-                    continue
-                tile2 = board[y, x2]
-                target_row2 = get_goal_y(h, w, tile2)
-                if y != target_row2:
-                    continue
-                if target_row1 == target_row2 and tile2 < tile1:
-                    conflicts += 1
-            max_conflicts = max(max_conflicts, conflicts)
-        dist += 2 * max_conflicts
+    def line_generator() -> Iterator[tuple[npt.NDArray, list[bool]]]:
+        r"""
+        Helper to generate all lines on a board (rows followed by columns) along with
+        a bool specifying whether the tile is in its goal line.
 
-    # check out-of-place tiles in each col
-    for x in range(w):
-        max_conflicts = 0
-        for y1 in range(h):
-            if BLANK_TILE == board[y1, x]:
+        Returns:
+            A tuple of line index, line values, and goal positions..
+        """
+        for y, row in enumerate(board):
+            yield row, [y == get_goal_y(h, w, tile) for tile in row]
+        for x, col in enumerate(board.T):
+            yield col, [x == get_goal_x(h, w, tile) for tile in col]
+
+    def get_line_conflicts(line, goals) -> npt.NDArray[np.integer]:
+        r"""
+        Helper to return a list of conflict counts for a line.
+
+        Args:
+            line_pos: The row/col index of the line
+            line: The values of the lien
+            goals: The goal positions for each tile in line
+
+        Returns:
+            Conflict counts for each tile
+        """
+        conflicts = np.zeros(len(line), dtype=int)
+        for pos1, (tile1, goal1) in enumerate(zip(line, goals)):
+            # check if this tile is in it's goal line
+            if not goal1 or BLANK_TILE == tile1:
                 continue
-            conflicts = 0
-            tile1 = board[y1, x]
-            target_col1 = get_goal_x(h, w, tile1)
-            if x != target_col1:
-                continue
-            for y2 in range(y1 + 1, h):
-                if BLANK_TILE == board[y2, x]:
+            # now check tiles after this
+            next_pos = pos1 + 1
+            for pos2, (tile2, goal2) in enumerate(
+                zip(line[next_pos:], goals[next_pos:]), next_pos
+            ):
+                # same checks for tile2
+                if not goal2 or BLANK_TILE == tile2:
                     continue
-                tile2 = board[y2, x]
-                target_col2 = get_goal_x(h, w, tile2)
-                if x != target_col2:
-                    continue
-                if target_col1 == target_col2 and tile2 < tile1:
-                    conflicts += 1
-            max_conflicts = max(max_conflicts, conflicts)
-        dist += 2 * max_conflicts
+                # check if these tiles are in conflict
+                if tile2 < tile1:
+                    conflicts[pos1] += 1
+                    conflicts[pos2] += 1
+        return conflicts
+
+    for line, goals in line_generator():
+        line = np.copy(line)  # don't modify original board
+        print(line, goals)
+        while np.any(line_conflicts := get_line_conflicts(line, goals)):
+            print("conflicts:", line_conflicts)
+            dist += 2
+            line[np.argmax(line_conflicts)] = BLANK_TILE
+            print(line)
+
     return dist
+
+
+def prepare_manhattan_table(h, w) -> dict[tuple[int, int, int], int]:
+    log.debug(f"Preparing first use of Manhattan table {h}x{w}x{h*w}...")
+    table = {}
+    for y in range(h):
+        for x in range(w):
+            for tile in range(h * w):
+                if BLANK_TILE == tile:
+                    table[(y, x, tile)] = 0
+                else:
+                    goal_y, goal_x = get_goal_yx(h, w, tile)
+                    table[(y, x, tile)] = abs(y - goal_y) + abs(x - goal_x)
+    return table
 
 
 def manhattan_distance(board: Board) -> int:
@@ -174,13 +205,15 @@ def manhattan_distance(board: Board) -> int:
         The sum of all tile distances from their goal positions
     """
     h, w = board.shape
+    table = manhattan_tables.get((h, w), None)
+    if table is None:
+        table = prepare_manhattan_table(h, w)
+        manhattan_tables[(h, w)] = table
+
     dist = 0
     for y, row in enumerate(board):
         for x, tile in enumerate(row):
-            if BLANK_TILE == tile:
-                continue
-            goal_y, goal_x = get_goal_yx(h, w, tile)
-            dist += abs(y - goal_y) + abs(x - goal_x)
+            dist += table[(y, x, tile)]
     return dist
 
 
@@ -220,7 +253,7 @@ def relaxed_adjacency_distance(board: Board) -> int:
         for y in range(h):
             for x in range(w):
                 if get_goal_yx(h, w, board[y][x]) != (y, x):
-                    return swap_tiles(board, (y, x), blank_yx)
+                    swap_tiles(board, (y, x), blank_yx)
 
     while not is_solved(board):
         blank_yx = find_blank(board)

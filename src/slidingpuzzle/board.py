@@ -27,7 +27,7 @@ import numpy.typing as npt
 
 
 BLANK_TILE = 0
-Board: TypeAlias = npt.NDArray[np.unsignedinteger]
+Board: TypeAlias = npt.NDArray
 FrozenBoard: TypeAlias = tuple[tuple[int, ...], ...]
 
 
@@ -168,7 +168,7 @@ def freeze_board(board: Board) -> FrozenBoard:
     return tuple(tuple(row) for row in board)
 
 
-def print_board(board: Board | FrozenBoard, file=sys.stdout) -> Board:
+def print_board(board: Board | FrozenBoard, file=sys.stdout) -> Board | FrozenBoard:
     """
     Convienance function for printing a formatted board.
 
