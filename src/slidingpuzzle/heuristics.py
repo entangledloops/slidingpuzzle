@@ -21,7 +21,6 @@ that indicates the estimated distance from the goal.
 
 from typing import Callable, Iterator, TypeAlias
 
-import itertools
 import logging
 import math
 
@@ -32,6 +31,7 @@ from slidingpuzzle.board import (
     BLANK_TILE,
     Board,
     find_blank,
+    find_tile,
     get_goal_tile,
     get_goal_y,
     get_goal_x,
@@ -99,13 +99,107 @@ def hamming_distance(board: Board) -> int:
     return dist
 
 
+def last_moves_distance(board: Board) -> int:
+    r"""
+    If the tiles required for the final move are not in appropriate positions, we must
+    make at least 2 more moves to shuffle them. The constraints are weakened
+    intentionally so that this heuristic can be constructively combined with Manhattan
+    without violating admissibility.
+
+    Args:
+        board: The board
+
+    Returns:
+        2 if the both of the last two tiles adj. to the blank corner are outside of the
+        blank row/col.
+    """
+    h, w = board.shape
+    dist = 0
+    # last moves enhancement (helps with tie-breaking)
+    adj1 = get_goal_tile(h, w, (h - 2, w - 1))  # target tile in row next to goal
+    adj2 = get_goal_tile(h, w, (h - 1, w - 2))  # target tile in col next to goal
+    adj1_y, _ = find_tile(board, adj1)  # actual locations of targets on board
+    _, adj2_x = find_tile(board, adj2)
+    # if the tiles that must be the final move are not located in the goal row/col,
+    # there will need to be additional moves made to shuffle them before the final move
+    if adj1_y != h - 1 and adj2_x != w - 1:
+        dist += 2
+    return dist
+
+
+def corner_tiles_distance(board: Board) -> int:
+    r"""
+    If tiles that belong in corners are not there, but the adj. tiles are correct,
+    additional reshuffling will need to occur. We must ensure that row/col conflicts
+    have not already accounted for this in order to combine admissibily with the
+    Linear Conflict heuristic.
+    """
+    h, w = board.shape
+    dist = 0
+
+    def has_row_conflict(y, x) -> bool:
+        for col1 in range(w):
+            if BLANK_TILE == board[y, col1]:
+                continue
+            for col2 in range(col1 + 1, w):
+                if BLANK_TILE == board[y, col2] or (col1 != x and col2 != x):
+                    continue
+                if col2 < col1:
+                    return True
+        return False
+
+    def has_col_conflict(y, x) -> bool:
+        for row1 in range(h):
+            if BLANK_TILE == board[row1, x]:
+                continue
+            for row2 in range(row1 + 1, h):
+                if BLANK_TILE == board[row2, x] or (row1 != y and row2 != y):
+                    continue
+                if row2 < row1:
+                    return True
+        return False
+
+    def has_conflict(y, x) -> bool:
+        return has_row_conflict(y, x) or has_col_conflict(y, x)
+
+    # top-left corner
+    if get_goal_tile(h, w, (0, 0)) != board[0, 0]:
+        adj1 = get_goal_tile(h, w, (0, 1))
+        if board[0, 1] == adj1 and not has_conflict(0, 1):
+            dist += 2
+        adj2 = get_goal_tile(h, w, (1, 0))
+        if board[1, 0] == adj2 and not has_conflict(1, 0):
+            dist += 2
+
+    # top-right corner
+    if get_goal_tile(h, w, (0, w - 1)) != board[0, w - 1]:
+        adj1 = get_goal_tile(h, w, (0, w - 2))
+        if board[0, w - 2] == adj1 and not has_conflict(0, w - 2):
+            dist += 2
+        adj2 = get_goal_tile(h, w, (1, w - 1))
+        if board[1, w - 1] == adj2 and not has_conflict(1, w - 1):
+            dist += 2
+
+    # bottom-left corner
+    if get_goal_tile(h, w, (h - 1, 0)) != board[h - 1, 0]:
+        adj1 = get_goal_tile(h, w, (h - 1, 1))
+        if board[h - 1, 1] == adj1 and not has_conflict(h - 1, 1):
+            dist += 2
+        adj2 = get_goal_tile(h, w, (h - 2, 0))
+        if board[h - 2, 0] == adj2 and not has_conflict(h - 2, 0):
+            dist += 2
+
+    return dist
+
+
 def linear_conflict_distance(board: Board) -> int:
     r"""
-    This is a simplified variant of the original Linear Conflict Distance.
-    It starts with Manhattan distance. Then for each row and column, the maximum number
-    of conflicts are identified, and 2 * this number is added to the distance.
+    Starts with Manhattan distance, then for each row and column, the number of tiles
+    "in conflict" are identified, and 2 * this number is added to the distance.
     (It will take at least 2 additional moves to reshuffle the conflicting tiles into
-    their correct positions.) This is an admissible improvement over Manhattan distance.
+    their correct positions.) This is an admissible improvement over Manhattan
+    distance (Hansson, Mayer, Young, 1985). Additionally, the Last Moves and Corner
+    enhancements are implemented (Korf and Taylor, 1996).
 
     Args:
         board: The board
@@ -116,7 +210,7 @@ def linear_conflict_distance(board: Board) -> int:
     h, w = board.shape
     dist = manhattan_distance(board)
 
-    def line_generator() -> Iterator[tuple[npt.NDArray, list[bool]]]:
+    def line_generator() -> Iterator[tuple[npt.NDArray, npt.NDArray]]:
         r"""
         Helper to generate all lines on a board (rows followed by columns) along with
         a bool specifying whether the tile is in its goal line.
@@ -125,9 +219,13 @@ def linear_conflict_distance(board: Board) -> int:
             A tuple of line index, line values, and goal positions..
         """
         for y, row in enumerate(board):
-            yield row, [y == get_goal_y(h, w, tile) for tile in row]
+            yield row, np.fromiter(
+                (y == get_goal_y(h, w, tile) for tile in row), dtype=bool
+            )
         for x, col in enumerate(board.T):
-            yield col, [x == get_goal_x(h, w, tile) for tile in col]
+            yield col, np.fromiter(
+                (x == get_goal_x(h, w, tile) for tile in col), dtype=bool
+            )
 
     def get_line_conflicts(line, goals) -> npt.NDArray[np.integer]:
         r"""
@@ -164,6 +262,9 @@ def linear_conflict_distance(board: Board) -> int:
         while np.any(line_conflicts := get_line_conflicts(line, goals)):
             dist += 2
             line[np.argmax(line_conflicts)] = BLANK_TILE
+
+    dist += last_moves_distance(board)
+    dist += corner_tiles_distance(board)
 
     return dist
 

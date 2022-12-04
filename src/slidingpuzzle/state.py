@@ -47,6 +47,7 @@ class State:
         compare=False, default_factory=list
     )
     f: int | float = 0
+    g: int | float = 0  # stored separately for tie-breaking
 
 
 @dataclasses.dataclass

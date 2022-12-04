@@ -31,24 +31,6 @@ Board: TypeAlias = npt.NDArray
 FrozenBoard: TypeAlias = tuple[tuple[int, ...], ...]
 
 
-def is_solved(board: Board) -> bool:
-    """
-    Determine if a board is in the solved state.
-
-    Args:
-        board: The board
-
-    Returns:
-        True if the board is solved, otherwise False.
-    """
-    h, w = board.shape
-    for y, row in enumerate(board):
-        for x, tile in enumerate(row):
-            if tile != get_goal_tile(h, w, (y, x)):
-                return False
-    return True
-
-
 def new_board(h: int, w: int, dtype: Optional[npt.DTypeLike] = None) -> Board:
     """
     Create a new board in the default solved state.
@@ -257,6 +239,24 @@ def get_goal_tile(h: int, w: int, pos: tuple[int, int]) -> int:
     if pos == (h - 1, w - 1):
         return BLANK_TILE
     return (w * pos[0]) + pos[1] + 1
+
+
+def is_solved(board: Board) -> bool:
+    """
+    Determine if a board is in the solved state.
+
+    Args:
+        board: The board
+
+    Returns:
+        True if the board is solved, otherwise False.
+    """
+    h, w = board.shape
+    for y, row in enumerate(board):
+        for x, tile in enumerate(row):
+            if tile != get_goal_tile(h, w, (y, x)):
+                return False
+    return True
 
 
 def find_tile(board: Board | FrozenBoard, tile: int) -> tuple[int, int]:

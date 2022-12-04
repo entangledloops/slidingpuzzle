@@ -142,7 +142,8 @@ def a_star(board: Board, **kwargs) -> SearchResult:
         # children
         next_states = get_next_states(state)
         for state in next_states:
-            state.f = len(state.history) + weight * heuristic(state.board)
+            state.g = len(state.history)
+            state.f = state.g + weight * heuristic(state.board)
             heapq.heappush(unvisited, state)
         generated += len(next_states)
 
@@ -152,10 +153,10 @@ def a_star(board: Board, **kwargs) -> SearchResult:
 
 def beam(board: Board, **kwargs) -> SearchResult:
     r"""
-    Beam search is a variant of breadth-first search that sorts its children using a
-    heuristic function and then drops child states to match the beam width. This search
-    is incomplete, meaning it may miss a solution although it exists. It is useful for
-    limiting memory usage in large search spaces.
+    Beam search is a variant of breadth-first search that sorts its children greedily
+    using a heuristic function and then drops child states to match the beam width.
+    This search is incomplete, meaning it may miss a solution although it exists.
+    It is useful for limiting memory usage in large search spaces.
 
     Args:
         board: The board
@@ -450,7 +451,8 @@ def ida_star(board: Board, **kwargs) -> SearchResult:
             # children
             next_states = get_next_states(state)
             for state in next_states:
-                state.f = len(state.history) + weight * heuristic(state.board)
+                state.g = len(state.history)
+                state.f = state.g + weight * heuristic(state.board)
             next_states.sort(reverse=True)
             unvisited.extend(next_states)
             generated += len(next_states)

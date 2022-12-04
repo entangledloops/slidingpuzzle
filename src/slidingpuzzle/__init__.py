@@ -32,8 +32,10 @@ Examples:
 """
 
 from slidingpuzzle.heuristics import (
+    corner_tiles_distance,
     euclidean_distance,
     hamming_distance,
+    last_moves_distance,
     linear_conflict_distance,
     manhattan_distance,
     random_distance,
