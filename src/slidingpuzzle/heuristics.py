@@ -102,9 +102,9 @@ def hamming_distance(board: Board) -> int:
 def last_moves_distance(board: Board) -> int:
     r"""
     If the tiles required for the final move are not in appropriate positions, we must
-    make at least 2 more moves to shuffle them. The constraints are weakened
-    intentionally so that this heuristic can be constructively combined with Manhattan
-    without violating admissibility.
+    make at least 2 more moves to shuffle them. The constraints are weakened so that
+    this heuristic can be constructively combined with :func:`manhattan_distance`
+    without violating admissibility, as these are more powerful together than alone.
 
     Args:
         board: The board
@@ -115,79 +115,74 @@ def last_moves_distance(board: Board) -> int:
     """
     h, w = board.shape
     dist = 0
-    # last moves enhancement (helps with tie-breaking)
     adj1 = get_goal_tile(h, w, (h - 2, w - 1))  # target tile in row next to goal
     adj2 = get_goal_tile(h, w, (h - 1, w - 2))  # target tile in col next to goal
     adj1_y, _ = find_tile(board, adj1)  # actual locations of targets on board
     _, adj2_x = find_tile(board, adj2)
     # if the tiles that must be the final move are not located in the goal row/col,
     # there will need to be additional moves made to shuffle them before the final move
-    if adj1_y != h - 1 and adj2_x != w - 1:
+    if adj1_y != h - 1 and adj2_x != w - 1 and BLANK_TILE != board[-1, -1]:
         dist += 2
     return dist
 
 
 def corner_tiles_distance(board: Board) -> int:
     r"""
-    If tiles that belong in corners are not there, but the adj. tiles are correct,
+    If tiles that belong in corners are not there, but the adjacent tiles are correct,
     additional reshuffling will need to occur. We must ensure that row/col conflicts
     have not already accounted for this in order to combine admissibily with the
-    Linear Conflict heuristic.
+    :func:`linear_conflict_distance`.
     """
     h, w = board.shape
     dist = 0
 
     def has_row_conflict(y, x) -> bool:
         for col1 in range(w):
-            if BLANK_TILE == board[y, col1]:
+            tile1 = board[y, col1]
+            if BLANK_TILE == tile1:
                 continue
             for col2 in range(col1 + 1, w):
-                if BLANK_TILE == board[y, col2] or (col1 != x and col2 != x):
+                tile2 = board[y, col2]
+                # skip tiles that don't involve our x of interest
+                if BLANK_TILE == tile2 or (col1 != x and col2 != x):
                     continue
-                if col2 < col1:
+                if tile2 < tile1:
                     return True
         return False
 
     def has_col_conflict(y, x) -> bool:
         for row1 in range(h):
-            if BLANK_TILE == board[row1, x]:
+            tile1 = board[row1, x]
+            if BLANK_TILE == tile1:
                 continue
             for row2 in range(row1 + 1, h):
-                if BLANK_TILE == board[row2, x] or (row1 != y and row2 != y):
+                tile2 = board[row2, x]
+                # skip tiles that don't involve our y of interest
+                if BLANK_TILE == tile2 or (row1 != y and row2 != y):
                     continue
-                if row2 < row1:
+                if tile2 < tile1:
                     return True
         return False
 
     def has_conflict(y, x) -> bool:
         return has_row_conflict(y, x) or has_col_conflict(y, x)
 
+    def check_adjacent(y, x) -> int:
+        if get_goal_tile(h, w, (y, x)) == board[y, x] and not has_conflict(y, x):
+            return 2
+        return 0
+
+    def check_corner(y, x, adj1, adj2) -> int:
+        if board[y, x] != BLANK_TILE and board[y, x] != get_goal_tile(h, w, (y, x)):
+            return check_adjacent(*adj1) + check_adjacent(*adj2)
+        return 0
+
     # top-left corner
-    if get_goal_tile(h, w, (0, 0)) != board[0, 0]:
-        adj1 = get_goal_tile(h, w, (0, 1))
-        if board[0, 1] == adj1 and not has_conflict(0, 1):
-            dist += 2
-        adj2 = get_goal_tile(h, w, (1, 0))
-        if board[1, 0] == adj2 and not has_conflict(1, 0):
-            dist += 2
-
+    dist += check_corner(0, 0, (0, 1), (1, 0))
     # top-right corner
-    if get_goal_tile(h, w, (0, w - 1)) != board[0, w - 1]:
-        adj1 = get_goal_tile(h, w, (0, w - 2))
-        if board[0, w - 2] == adj1 and not has_conflict(0, w - 2):
-            dist += 2
-        adj2 = get_goal_tile(h, w, (1, w - 1))
-        if board[1, w - 1] == adj2 and not has_conflict(1, w - 1):
-            dist += 2
-
+    dist += check_corner(0, w - 1, (0, w - 2), (1, w - 1))
     # bottom-left corner
-    if get_goal_tile(h, w, (h - 1, 0)) != board[h - 1, 0]:
-        adj1 = get_goal_tile(h, w, (h - 1, 1))
-        if board[h - 1, 1] == adj1 and not has_conflict(h - 1, 1):
-            dist += 2
-        adj2 = get_goal_tile(h, w, (h - 2, 0))
-        if board[h - 2, 0] == adj2 and not has_conflict(h - 2, 0):
-            dist += 2
+    dist += check_corner(h - 1, 0, (h - 1, 1), (h - 2, 0))
 
     return dist
 
@@ -197,15 +192,22 @@ def linear_conflict_distance(board: Board) -> int:
     Starts with Manhattan distance, then for each row and column, the number of tiles
     "in conflict" are identified, and 2 * this number is added to the distance.
     (It will take at least 2 additional moves to reshuffle the conflicting tiles into
-    their correct positions.) This is an admissible improvement over Manhattan
-    distance (Hansson, Mayer, Young, 1985). Additionally, the Last Moves and Corner
-    enhancements are implemented (Korf and Taylor, 1996).
+    their correct positions.) This is an admissible improvement over
+    :func:`manhattan_distance` (`Hansson, Mayer, Young, 1985 <hannson_>`_).
+    The :func:`last_moves_distance` and :func:`corner_tiles_distance` are included
+    (`Korf and Taylor, 1996 <korf_>`_).
 
     Args:
         board: The board
 
     Returns:
         Estimated distance to goal.
+
+    .. _hannson:
+        https://academiccommons.columbia.edu/doi/10.7916/D8154QZT/download
+
+    .. _korf:
+        https://www.aaai.org/Library/AAAI/1996/aaai96-178.php
     """
     h, w = board.shape
     dist = manhattan_distance(board)

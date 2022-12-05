@@ -113,3 +113,12 @@ def test_heuristic_admissibility():
     for h in (linear_conflict_distance, manhattan_distance):
         for b, o in zip(boards, optimal):
             assert len(search(b, heuristic=h).solution) == o
+
+
+@pytest.mark.skip
+def test_linear_conflict_distance_exhaustive():
+    # test all solvable boards
+    for b in board_generator(3, 3):
+        expected = len(search(b, heuristic=manhattan_distance).solution)
+        actual = len(search(b, heuristic=linear_conflict_distance).solution)
+        assert expected == actual, b

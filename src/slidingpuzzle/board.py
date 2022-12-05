@@ -541,7 +541,7 @@ def visit(visited: set[FrozenBoard], board: Board) -> bool:
 
 def board_generator(h: int, w: int) -> Iterator[Board]:
     """
-    Returns a generator that yields all possible boards, in numerical order.
+    Returns a generator that yields all solvable boards in lexicographical order.
 
     Args:
         h: Height of board
@@ -550,6 +550,7 @@ def board_generator(h: int, w: int) -> Iterator[Board]:
     Yields:
         A board permutation
     """
-    size = h * w
-    for values in itertools.permutations(range(size)):
-        yield board_from_iter(h, w, values)
+    for values in itertools.permutations(range(h * w)):
+        board = board_from_iter(h, w, values)
+        if is_solvable(board):
+            yield board
