@@ -32,7 +32,7 @@ def test_corner_tiles_distance():
     board = board_from([1, 2, 8], [4, 6, 5], [7, 0, 3])
     assert corner_tiles_distance(board) == 2
 
-    board = board_from([1, 2, 8], [4, 5, 6], [7, 0, 3])
+    board = board_from([1, 2, 8], [3, 5, 6], [4, 0, 7])
     assert corner_tiles_distance(board) == 4
 
     # bottom-left corner
@@ -64,7 +64,7 @@ def test_last_moves_distance():
     board = board_from([1, 2, 3], [4, 5, 6], [7, 0, 8])
     assert last_moves_distance(board) == 0
 
-    board = board_from([8, 2, 3], [4, 5, 6], [7, 1, 0])
+    board = board_from([8, 2, 3], [4, 5, 6], [7, 0, 1])
     assert last_moves_distance(board) == 2
 
 
@@ -72,17 +72,17 @@ def test_linear_conflict_distance():
     board = board_from([1, 2, 3], [4, 5, 6], [7, 0, 8])
     assert linear_conflict_distance(board) == 1
 
+    board = board_from([2, 1, 3], [4, 5, 6], [7, 8, 0])
+    assert linear_conflict_distance(board) == 6
+
+    board = board_from([4, 2, 3], [1, 5, 6], [7, 8, 0])
+    assert linear_conflict_distance(board) == 6
+
     board = board_from([2, 1, 3], [4, 5, 6], [7, 0, 8])
     assert linear_conflict_distance(board) == 7
 
-    board = board_from([2, 1, 3], [4, 5, 6], [7, 8, 0])
-    assert linear_conflict_distance(board) == 8
-
-    board = board_from([4, 2, 3], [1, 5, 6], [7, 8, 0])
-    assert linear_conflict_distance(board) == 8
-
     board = board_from([1, 2, 3], [6, 5, 4], [7, 8, 0])
-    assert linear_conflict_distance(board) == 10
+    assert linear_conflict_distance(board) == 8
 
 
 def test_manhattan_distance():

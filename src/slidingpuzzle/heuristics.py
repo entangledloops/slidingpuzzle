@@ -115,9 +115,9 @@ def last_moves_distance(board: Board) -> int:
     """
     h, w = board.shape
     dist = 0
-    adj1 = get_goal_tile(h, w, (h - 2, w - 1))  # target tile in row next to goal
-    adj2 = get_goal_tile(h, w, (h - 1, w - 2))  # target tile in col next to goal
-    adj1_y, _ = find_tile(board, adj1)  # actual locations of targets on board
+    adj1 = get_goal_tile(h, w, (h - 2, w - 1))  # tile in row next to goal
+    adj2 = get_goal_tile(h, w, (h - 1, w - 2))  # tile in col next to goal
+    adj1_y, _ = find_tile(board, adj1)  # coords of these tiles on cur. board
     _, adj2_x = find_tile(board, adj2)
     # if the tiles that must be the final move are not located in the goal row/col,
     # there will need to be additional moves made to shuffle them before the final move
@@ -126,55 +126,71 @@ def last_moves_distance(board: Board) -> int:
     return dist
 
 
-def corner_tiles_distance(board: Board) -> int:
+def corner_tiles_distance(board: Board, ignore_conflicts: bool = False) -> int:
     r"""
     If tiles that belong in corners are not there, but the adjacent tiles are correct,
     additional reshuffling will need to occur. We must ensure that row/col conflicts
     have not already accounted for this in order to combine admissibily with the
     :func:`linear_conflict_distance`.
+
+    Args:
+        board: The board
+        ignore_conflicts: If True, tiles adjacent to corners that have conflicts in
+            their row/col will still be counted. When True, this cannot be admissibly
+            combined with :func:`linear_conflict_distance`.
     """
     h, w = board.shape
     dist = 0
 
-    def has_row_conflict(y, x) -> bool:
+    def has_row_conflict(y, x, skip_x) -> bool:
+        """
+        On row `y`, we check every tile for conflict with column `x` (ignoring
+        `skip_x`). The skip variable is used to ignore the corner column.
+        We need to know if column `x` has any conflicts, b/c if it does, we cannot
+        add additional distance
+        """
         for col1 in range(w):
             tile1 = board[y, col1]
-            if BLANK_TILE == tile1:
+            if BLANK_TILE == tile1 or col1 == skip_x:
                 continue
             for col2 in range(col1 + 1, w):
                 tile2 = board[y, col2]
                 # skip tiles that don't involve our x of interest
-                if BLANK_TILE == tile2 or (col1 != x and col2 != x):
+                if BLANK_TILE == tile2 or col2 == skip_x or (col1 != x and col2 != x):
                     continue
                 if tile2 < tile1:
                     return True
         return False
 
-    def has_col_conflict(y, x) -> bool:
+    def has_col_conflict(y, x, skip_y) -> bool:
         for row1 in range(h):
             tile1 = board[row1, x]
-            if BLANK_TILE == tile1:
+            if BLANK_TILE == tile1 or row1 == skip_y:
                 continue
             for row2 in range(row1 + 1, h):
                 tile2 = board[row2, x]
-                # skip tiles that don't involve our y of interest
-                if BLANK_TILE == tile2 or (row1 != y and row2 != y):
+                if BLANK_TILE == tile2 or row2 == skip_y or (row1 != y and row2 != y):
                     continue
                 if tile2 < tile1:
                     return True
         return False
 
-    def has_conflict(y, x) -> bool:
-        return has_row_conflict(y, x) or has_col_conflict(y, x)
+    def has_conflict(y, x, corner) -> bool:
+        if ignore_conflicts:
+            return False
+        corner_y, corner_x = corner
+        return has_row_conflict(y, x, corner_x) or has_col_conflict(y, x, corner_y)
 
-    def check_adjacent(y, x) -> int:
-        if get_goal_tile(h, w, (y, x)) == board[y, x] and not has_conflict(y, x):
+    def check_adjacent(y, x, corner) -> int:
+        if get_goal_tile(h, w, (y, x)) == board[y, x] and not has_conflict(
+            y, x, corner
+        ):
             return 2
         return 0
 
     def check_corner(y, x, adj1, adj2) -> int:
         if board[y, x] != BLANK_TILE and board[y, x] != get_goal_tile(h, w, (y, x)):
-            return check_adjacent(*adj1) + check_adjacent(*adj2)
+            return check_adjacent(*adj1, (y, x)) + check_adjacent(*adj2, (y, x))
         return 0
 
     # top-left corner
