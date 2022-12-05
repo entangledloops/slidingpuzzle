@@ -36,9 +36,11 @@ class State:
         blank_pos: The (y, x)-coord of the blank tile.
         history: A list of (y, x)-coords representing moves from the initial
             state to the current board state.
-        f: The stored value of this node. Used by some search algorithms.
-            The value stored here has no meaning if not using a relevant
+        f: The stored value of this node. Used by some search algorithms to order
+            states. The value stored here has no meaning if not using a relevant
             search algorithm.
+        g: For some search algorithms, this will hold the number of moves made to reach
+            this state. Used to tie-break when `f` values are identical.
     """
 
     board: Board = dataclasses.field(compare=False)
@@ -47,7 +49,7 @@ class State:
         compare=False, default_factory=list
     )
     f: int | float = 0
-    g: int | float = 0  # stored separately for tie-breaking
+    g: int = 0  # stored separately for tie-breaking
 
 
 @dataclasses.dataclass
