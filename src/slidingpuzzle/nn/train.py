@@ -35,7 +35,7 @@ import tqdm
 from tqdm.contrib.logging import tqdm_logging_redirect
 
 import slidingpuzzle.nn.paths as paths
-from slidingpuzzle.nn.dataset import load_or_build_dataset
+from slidingpuzzle.nn.dataset import SlidingPuzzleDataset
 from slidingpuzzle.nn.eval import accuracy, evaluate
 
 
@@ -165,8 +165,7 @@ def linear_regression_beta(data):
 
 def train(
     model: nn.Module,
-    num_examples: int = 2**14,
-    dataset: Optional[torch.utils.data.Dataset] = None,
+    dataset: SlidingPuzzleDataset,
     train_fraction: float = 0.95,
     num_epochs: int = 0,
     batch_size: int = 256,
@@ -192,9 +191,7 @@ def train(
 
     Args:
         model: The model instance to train
-        num_examples: Total number of examples to use for training / test. Ignored
-            if ``dataset`` is provided
-        dataset: A custom dataset to use. If not provided, it will be generated.
+        dataset: A dataset to use.
         train_fraction: The train/test split
         num_epochs: Total number of epochs model should be trained for. Use 0 to run
             until the ``early_quit_epochs`` logic is hit.
@@ -213,10 +210,6 @@ def train(
             still be checkpointed and also final checkpoint on termination.)
         tensorboard_dir: The root tensorboard dir for logs. Default is "tensorboard".
         seed: Seed used for torch random utilities for reproducibility
-        kwargs: Additional args that may be passed to
-            :func:`slidingpuzzle.nn.dataset.make_examples` when generating a new
-            dataset. Can be used to customize the search algorithm used to find
-            training examples if, for example, it is taking too long.
     """
     set_seed(seed)
     h, w = model.w, model.h
@@ -225,6 +218,7 @@ def train(
     url = launch_tensorboard(tensorboard_dir)
     log.info(f"Tensorboard launched: {url}")
     log_dir = paths.get_log_dir(tensorboard_dir, h, w)
+    num_examples = len(dataset)
     comment = f"EXAMPLES_{num_examples}_BS_{batch_size}"
     writer = SummaryWriter(log_dir, comment=comment)
     layout = {
@@ -238,8 +232,6 @@ def train(
     # prepare dataset
     train_size = math.floor(num_examples * train_fraction)
     test_size = num_examples - train_size
-    if dataset is None:
-        dataset = load_or_build_dataset(h, w, num_examples, **kwargs)
     train_dataset, test_dataset = torch.utils.data.random_split(
         dataset, [train_size, test_size], generator=torch.Generator().manual_seed(seed)
     )
@@ -253,7 +245,7 @@ def train(
         "test_accuracy"
     ]
     epoch = load_checkpoint(model, tag="latest", optimizer=optimizer)["epoch"]
-    criterion = nn.MSELoss(reduction="sum")
+    criterion = nn.MSELoss()
     test_loss_window: Collection[float] = collections.deque(maxlen=early_quit_epochs)
 
     # prepare training loop
@@ -275,11 +267,13 @@ def train(
             model.train()  # every epoch b/c eval happens every epoch
             running_loss = 0.0
             running_accuracy = 0.0
+            num_batches = 0
             num_train_examples = 0
 
             for batch, expected in iter(
                 DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
             ):
+                num_batches += 1
                 num_train_examples += batch.shape[0]
                 batch = batch.to(device)
                 expected = expected.to(device)
@@ -292,7 +286,7 @@ def train(
                 running_accuracy += accuracy(expected, predicted)
 
             # need to normalize loss and acc for the examples we actually saw
-            running_loss /= num_train_examples
+            running_loss /= num_batches  # loss is already averaged per-batch
             running_accuracy /= num_train_examples
             test_loss, test_accuracy = evaluate(model, criterion, test_dataset)
             test_loss_window.append(test_loss)

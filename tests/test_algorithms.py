@@ -21,11 +21,11 @@ def test_a_star():
     board = new_board(3, 3)
     shuffle_board_lazy(board, num_moves=10)
     assert len(search(board).solution) == len(
-        search(board, A_STAR, heuristic=manhattan_distance).solution
+        search(board, Algorithm.A_STAR, heuristic=manhattan_distance).solution
     )
 
 
-@pytest.mark.parametrize("alg", [IDA_STAR, IDDFS])
+@pytest.mark.parametrize("alg", [Algorithm.IDA_STAR, Algorithm.IDDFS])
 def test_search_iterative_deepening(alg):
     b = new_board(3, 3)
     shuffle_board_lazy(b, 10)
@@ -36,7 +36,10 @@ def test_search_iterative_deepening(alg):
     assert expected_len == actual_len
 
 
-@pytest.mark.parametrize("algorithm", [A_STAR, BEAM, BFS, DFS, GREEDY])
+@pytest.mark.parametrize(
+    "algorithm",
+    [Algorithm.A_STAR, Algorithm.BEAM, Algorithm.BFS, Algorithm.DFS, Algorithm.GREEDY],
+)
 @pytest.mark.parametrize(
     "heuristic",
     [
@@ -57,7 +60,12 @@ def test_search(algorithm, heuristic):
         width=128,
     )
     assert result.solution is not None
-    if algorithm in (A_STAR, BEAM, BFS, IDA_STAR):
+    if algorithm in (
+        Algorithm.A_STAR,
+        Algorithm.BEAM,
+        Algorithm.BFS,
+        Algorithm.IDA_STAR,
+    ):
         assert len(result.solution) == 15
     print(repr(result))
     print(str(result))
@@ -65,17 +73,18 @@ def test_search(algorithm, heuristic):
 
 def test_search_hard():
     board = board_from([8, 6, 7], [3, 5, 1], [2, 0, 4])
-    result = search(
-        board,
-        alg=A_STAR,
-        heuristic=manhattan_distance,
-        weight=1,
-    )
+    result = search(board, weight=1)
     assert len(result.solution) == 27
 
 
 def test_evaluate():
     assert evaluate(3, 3, num_iters=1) > 0
+
+
+@pytest.mark.slow
+def test_compare():
+    ha, hb = compare(3, 3, hb=manhattan_distance)
+    assert ha < hb
 
 
 def test_solution_as_tiles():
@@ -85,40 +94,3 @@ def test_solution_as_tiles():
     swap_tiles(b, (h - 2, w - 1), (h - 2, w - 2))
     r = search(b)
     assert [5, 6] == solution_as_tiles(b, r.solution)
-
-
-@pytest.mark.slow
-def test_heuristic_behavior():
-    # we compute avg generated nodes over multiple runs to confirm that
-    # heuristic behavior is in line with expectations
-    generated_avg = compare(
-        3, 3, linear_conflict_distance, manhattan_distance, num_iters=4
-    )
-    assert generated_avg[0] < generated_avg[1]
-
-    generated_avg = compare(3, 3, manhattan_distance, hamming_distance, num_iters=4)
-    assert generated_avg[0] < generated_avg[1]
-
-    # lcd/manhattan/euclidean are good contenders, so we don't compare them
-    generated_avg = compare(3, 3, euclidean_distance, hamming_distance, num_iters=4)
-    assert generated_avg[0] < generated_avg[1]
-
-
-@pytest.mark.slow
-def test_heuristic_admissibility():
-    # validate that solutions are in line with BFS
-    # this does not guarantee admissibility, it's just an empirical sanity check
-    boards = [shuffle_board(new_board(3, 3)) for _ in range(50)]
-    optimal = [len(search(b, "bfs").solution) for b in boards]
-    for h in (linear_conflict_distance, manhattan_distance):
-        for b, o in zip(boards, optimal):
-            assert len(search(b, heuristic=h).solution) == o
-
-
-@pytest.mark.skip
-def test_linear_conflict_distance_exhaustive():
-    # test all solvable boards
-    for b in board_generator(3, 3):
-        expected = len(search(b, heuristic=manhattan_distance).solution)
-        actual = len(search(b, heuristic=linear_conflict_distance).solution)
-        assert expected == actual, b

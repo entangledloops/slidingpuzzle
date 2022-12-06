@@ -147,9 +147,11 @@ The solutions are actually stored as a list of (y, x)-coords of moves, indicatin
 ## Algorithms
 
 ```python
->>> print(ALGORITHMS)
-('a*', 'beam', 'bfs', 'dfs', 'greedy', 'ida*', 'iddfs')
+>>> list(Algorithm)
+[<Algorithm.A_STAR: 'a*'>, <Algorithm.BEAM: 'beam'>, <Algorithm.BFS: 'bfs'>, <Algorithm.DFS: 'dfs'>, <Algorithm.GREEDY: 'greedy'>, <Algorithm.IDA_STAR: 'ida*'>, <Algorithm.IDDFS: 'iddfs'>]
 ```
+
+The `search()` method accepts the enum values or the `str` name.
 
 The available algorithms are:
 - `"a*"` (*default*) - [Docs](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html#slidingpuzzle.algorithms.a_star), [Wiki](https://en.wikipedia.org/wiki/A*_search_algorithm)
@@ -223,15 +225,19 @@ You can then train a new network easily:
 ```python
 >>> import slidingpuzzle.nn as nn
 >>> nn.set_seed(0)  # if you want reproducible weights
->>> model = nn.Model_v1(3, 3)
->>> nn.train(model)
+>>> h, w = 3, 3
+>>> dataset = nn.load_or_build_dataset(h, w, 2**14)
+>>> model = nn.Model_v1(h, w)
+>>> nn.train(model, dataset)
 ```
 > **_Note:_**  Unless you are providing your own dataset, for model sizes larger than `3 x 3` you probably need to pass `kwargs` to [`train()`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.nn.html#slidingpuzzle.nn.train.train) so that the search algorithm used for generating training example can find solutions in a reasonable timeframe. For example:
 
 ```python
 >>> import slidingpuzzle.nn as nn
->>> model = nn.Model_v1(4, 4, weight=2)  # use Weighted A* with weight of 2; all kwargs forwarded to search()
->>> nn.train(model)
+>>> h, w = 4, 4
+>>> dataset = nn.load_or_build_dataset(h, w, 2**14, weight=2)  # use Weighted A* with weight of 2; all kwargs forwarded to search()
+>>> model = nn.Model_v1(h, w)
+>>> nn.train(model, dataset)
 ```
 
 The default behavior runs until it appears test accuracy has been declining for "a while". See the docs for for details.

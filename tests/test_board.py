@@ -34,7 +34,7 @@ def test_board_from():
 @pytest.mark.parametrize("w", [3, 5])
 def test_board_from_iter(h, w):
     values = list(range(1, 1 + h * w))
-    values[-1] = BLANK_TILE
+    values[-1] = BLANK
     b = board_from_iter(h, w, values)
     assert np.array_equal(b, new_board(h, w))
 
@@ -62,7 +62,7 @@ def test_get_goal_yx():
 def test_find_blank():
     board = new_board(3, 3)
     assert find_blank(board) == (2, 2)
-    assert find_tile(board, BLANK_TILE) == find_blank(board)
+    assert find_tile(board, BLANK) == find_blank(board)
 
     board[0, 1], board[2, 2] = board[2, 2], board[0, 1]
     assert find_blank(board) == (0, 1)
@@ -121,3 +121,7 @@ def test_get_next_states():
 def test_board_generator(h, w):
     gen = board_generator(h, w)
     assert np.array_equal(next(gen), board_from_iter(h, w, range(h * w)))
+
+    gen = board_generator(h, w, 1, 10)
+    boards = [board for board in gen]
+    assert len(boards) == 10 - 1

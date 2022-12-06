@@ -19,6 +19,7 @@ Search algorithms
 from typing import Optional
 
 import collections
+import enum
 import heapq
 
 import numpy as np
@@ -34,28 +35,21 @@ from slidingpuzzle.board import (
     swap_tiles,
     visit,
 )
-from slidingpuzzle.heuristics import linear_conflict_distance
+from slidingpuzzle.heuristics import Heuristic, linear_conflict_distance
 from slidingpuzzle.state import State, SearchResult
 
 
-# all supported algorithms
-
-A_STAR = "a*"
-BEAM = "beam"
-BFS = "bfs"
-DFS = "dfs"
-GREEDY = "greedy"
-IDA_STAR = "ida*"
-IDDFS = "iddfs"
-ALGORITHMS = (
-    A_STAR,
-    BEAM,
-    BFS,
-    DFS,
-    GREEDY,
-    IDA_STAR,
-    IDDFS,
-)
+class Algorithm(enum.Enum):
+    r"""
+    All supported algorithms.
+    """
+    A_STAR = "a*"
+    BEAM = "beam"
+    BFS = "bfs"
+    DFS = "dfs"
+    GREEDY = "greedy"
+    IDA_STAR = "ida*"
+    IDDFS = "iddfs"
 
 
 def get_next_states(state: State) -> list[State]:
@@ -533,23 +527,24 @@ def iddfs(board: Board, **kwargs) -> SearchResult:
 
 
 ALGORITHMS_MAP = {
-    A_STAR: a_star,
-    BEAM: beam,
-    BFS: bfs,
-    DFS: dfs,
-    GREEDY: greedy,
-    IDA_STAR: ida_star,
-    IDDFS: iddfs,
+    Algorithm.A_STAR: a_star,
+    Algorithm.BEAM: beam,
+    Algorithm.BFS: bfs,
+    Algorithm.DFS: dfs,
+    Algorithm.GREEDY: greedy,
+    Algorithm.IDA_STAR: ida_star,
+    Algorithm.IDDFS: iddfs,
 }
 
 
-def search(board: Board, alg: str = A_STAR, **kwargs) -> SearchResult:
+def search(
+    board: Board, alg: Algorithm | str = Algorithm.A_STAR, **kwargs
+) -> SearchResult:
     r"""
     Searches for a set of moves that take the provided board state to the
     solved state.
 
-    Requested ``alg`` may be one of:
-        "a*", "beam", "bfs", "dfs", "greedy", "ida*", "iddfs"
+    Requested ``alg`` may be one of :class:`Algorithm` (or `str` name).
 
     See :mod:`slidingpuzzle.heuristics` for heuristic functions or provide
     your own.
@@ -579,20 +574,17 @@ def search(board: Board, alg: str = A_STAR, **kwargs) -> SearchResult:
         Returns a :class:`slidingpuzzle.state.SearchResult` containing a list of moves
         to solve the puzzle from the initial state along with some search statistics.
     """
-
+    alg = Algorithm(alg)
     if not is_solvable(board):
-        raise ValueError("The provided board is not solvable.")
-    alg_ = alg.strip().lower()
-    if alg_ not in ALGORITHMS:
-        raise ValueError(f'Unknown algorithm: "{alg}"')
-    return ALGORITHMS_MAP[alg_](board, **kwargs)
+        raise ValueError(f"The provided board is not solvable:\n{board}")
+    return ALGORITHMS_MAP[alg](board, **kwargs)
 
 
 def evaluate(
     h: int,
     w: int,
-    heuristic=linear_conflict_distance,
-    alg=A_STAR,
+    heuristic: Heuristic = linear_conflict_distance,
+    alg: Algorithm | str = Algorithm.A_STAR,
     num_iters: int = 64,
     **kwargs,
 ) -> float:
@@ -609,7 +601,7 @@ def evaluate(
         kwargs: Additional args for ``algorithm``
 
     Returns:
-        The average number of states generated.
+        The average number of states generated
     """
     total = 0
     for _ in range(num_iters):
@@ -623,11 +615,11 @@ def evaluate(
 def compare(
     h: int,
     w: int,
-    ha=linear_conflict_distance,
-    hb=linear_conflict_distance,
-    alga=A_STAR,
-    algb=A_STAR,
     num_iters: int = 32,
+    alga: Algorithm | str = Algorithm.A_STAR,
+    algb: Algorithm | str = Algorithm.A_STAR,
+    ha: Heuristic = linear_conflict_distance,
+    hb: Heuristic = linear_conflict_distance,
     kwargsa: Optional[dict] = None,
     kwargsb: Optional[dict] = None,
     **kwargs,
@@ -640,17 +632,17 @@ def compare(
     Args:
         h: Height of the board
         w: Width of the board
-        ha: First heuristic function to evaluate
-        hb: Second heuristic function to evaluate
+        num_iters: Number of iterations to compute average nodes generated
         alga: Search algorithm paired with ``ha``
         algb: Search algorithm paired with ``hb``
-        num_iters: Number of iterations to average
+        ha: First heuristic function to evaluate
+        hb: Second heuristic function to evaluate
         kwargsa: Keyword args for only ``alga``
         kwargsb: Keyword args for only ``algb``
         kwargs: Keyword args for both algorithms
 
     Returns:
-        A tuple containing (avg. generated A, avg. generated B).
+        A tuple containing (avg. generated A, avg. generated B)
     """
     if not kwargsa:
         kwargsa = {}

@@ -43,7 +43,7 @@ from slidingpuzzle.heuristics import (
 )
 
 from slidingpuzzle.board import (
-    BLANK_TILE,
+    BLANK,
     board_from,
     board_from_iter,
     board_generator,
@@ -68,14 +68,7 @@ from slidingpuzzle.board import (
 )
 
 from slidingpuzzle.algorithms import (
-    ALGORITHMS,
-    A_STAR,
-    BEAM,
-    BFS,
-    DFS,
-    GREEDY,
-    IDA_STAR,
-    IDDFS,
+    Algorithm,
     compare,
     evaluate,
     get_next_states,

@@ -38,16 +38,17 @@ class Model_v1(nn.Module):
 
     def __init__(self, h: int, w: int) -> None:
         super().__init__()
+        dtype = torch.float32
         self.version = VERSION_1  # required
         self.h = h  # required
         self.w = w  # required
         size = h * w
         self.flatten = nn.Flatten()
-        self.linear1 = nn.Linear(size, size * 8, dtype=torch.float32)
-        self.linear2 = nn.Linear(size * 8, size * 8, dtype=torch.float32)
-        self.linear3 = nn.Linear(size * 8, size * 4, dtype=torch.float32)
-        self.linear4 = nn.Linear(size * 4, size, dtype=torch.float32)
-        self.linear5 = nn.Linear(size, 1, dtype=torch.float32)
+        self.linear1 = nn.Linear(size, size * 8, dtype=dtype)
+        self.linear2 = nn.Linear(size * 8, size * 8, dtype=dtype)
+        self.linear3 = nn.Linear(size * 8, size * 4, dtype=dtype)
+        self.linear4 = nn.Linear(size * 4, size, dtype=dtype)
+        self.linear5 = nn.Linear(size, 1, dtype=dtype)
 
     def forward(self, x):
         x = self.flatten(x)

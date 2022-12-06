@@ -26,12 +26,18 @@ import torch.utils
 import tqdm
 
 import slidingpuzzle.algorithms as algorithms
-import slidingpuzzle.board as board_
 import slidingpuzzle.nn.paths as paths
-from slidingpuzzle.board import FrozenBoard
+from slidingpuzzle.board import (
+    FrozenBoard,
+    freeze_board,
+    new_board,
+    shuffle_board,
+    swap_tiles,
+    visit,
+)
 
 
-Example: TypeAlias = tuple[FrozenBoard, int | float]
+Example: TypeAlias = tuple[FrozenBoard, int]
 log = logging.getLogger(__name__)
 
 
@@ -78,7 +84,7 @@ def make_examples(
     if ignore_examples is not None:
         dupe_found = False
         for board, _ in ignore_examples:
-            if board_.visit(visited, board):
+            if visit(visited, board):
                 dupe_found = True
         if dupe_found:
             log.warning("Duplicate found in prior examples.")
@@ -86,9 +92,9 @@ def make_examples(
     # TODO: parallelize
     with tqdm.tqdm(total=num_examples) as pbar:
         while len(examples) < num_examples:
-            board = board_.new_board(h, w)
-            board_.shuffle_board(board)
-            if board_.visit(visited, board):
+            board = new_board(h, w)
+            shuffle_board(board)
+            if visit(visited, board):
                 continue
 
             # find a path to use as an accurate training reference
@@ -97,13 +103,13 @@ def make_examples(
             # we can use all intermediate boards as examples
             while len(examples) < num_examples:
                 distance = len(result.solution)
-                examples.append((board_.freeze_board(board), distance))
+                examples.append((freeze_board(board), distance))
                 pbar.update(1)
                 if not len(result.solution):
                     break
                 move = result.solution.pop(0)
-                board_.swap_tiles(board, move)
-                if board_.visit(visited, board):
+                swap_tiles(board, move)
+                if visit(visited, board):
                     break
 
     return examples
@@ -148,7 +154,7 @@ def get_examples(
     return examples
 
 
-def load_or_build_dataset(
+def build_or_load_dataset(
     h: int,
     w: int,
     num_examples: int,

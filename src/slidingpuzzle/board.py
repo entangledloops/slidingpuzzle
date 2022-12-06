@@ -26,13 +26,13 @@ import numpy as np
 import numpy.typing as npt
 
 
-BLANK_TILE = 0
+BLANK = 0
 Board: TypeAlias = npt.NDArray
 FrozenBoard: TypeAlias = tuple[tuple[int, ...], ...]
 
 
 def new_board(h: int, w: int, dtype: Optional[npt.DTypeLike] = None) -> Board:
-    """
+    r"""
     Create a new board in the default solved state.
 
     Args:
@@ -44,14 +44,14 @@ def new_board(h: int, w: int, dtype: Optional[npt.DTypeLike] = None) -> Board:
         The new board.
     """
     board = np.arange(1, 1 + h * w, dtype=dtype).reshape(h, w)
-    board[-1, -1] = BLANK_TILE
+    board[-1, -1] = BLANK
     return board
 
 
 def board_from(*rows: Iterable[int], dtype: Optional[npt.DTypeLike] = None) -> Board:
     r"""
     Constructs a new board from a provided iterable of rows.
-    May throw a `ValueError` if rows are unequal in size or duplicate values
+    May throw a :class:`ValueError` if rows are unequal in size or duplicate values
     are found.
 
     Args:
@@ -124,7 +124,7 @@ def board_from_iter(h: int, w: int, iter: Iterable[int]) -> Board:
 
 
 def flatten_board(board: Board | FrozenBoard) -> list[int]:
-    """
+    r"""
     Flattens a board to a list. Useful for quickly compressing the board
     state. Can be reconstructed using :func:`board_from_iter`.
 
@@ -138,7 +138,7 @@ def flatten_board(board: Board | FrozenBoard) -> list[int]:
 
 
 def freeze_board(board: Board) -> FrozenBoard:
-    """
+    r"""
     Obtain a frozen copy of the board that is hashable.
 
     Args:
@@ -151,7 +151,7 @@ def freeze_board(board: Board) -> FrozenBoard:
 
 
 def print_board(board: Board | FrozenBoard, file=sys.stdout) -> Board | FrozenBoard:
-    """
+    r"""
     Convienance function for printing a formatted board.
 
     Args:
@@ -166,7 +166,7 @@ def print_board(board: Board | FrozenBoard, file=sys.stdout) -> Board | FrozenBo
     max_width = len(str(board_size - 1))
     for row in board:
         for tile in row:
-            if tile == BLANK_TILE:
+            if tile == BLANK:
                 print(" " * max_width, end=" ", file=file)
             else:
                 print(str(tile).ljust(max_width), end=" ", file=file)
@@ -176,7 +176,7 @@ def print_board(board: Board | FrozenBoard, file=sys.stdout) -> Board | FrozenBo
 
 
 def get_goal_y(h: int, w: int, tile: int) -> int:
-    """
+    r"""
     Given a board width and tile number, returns the goal row position of ``tile``.
 
     Args:
@@ -187,13 +187,13 @@ def get_goal_y(h: int, w: int, tile: int) -> int:
     Returns:
         The goal row (y-coord)
     """
-    if BLANK_TILE == tile:
+    if BLANK == tile:
         return h - 1
     return (tile - 1) // w
 
 
 def get_goal_x(h: int, w: int, tile: int) -> int:
-    """
+    r"""
     Given a board width and tile number, returns the goal column position of ``tile``.
 
     Args:
@@ -204,13 +204,13 @@ def get_goal_x(h: int, w: int, tile: int) -> int:
     Returns:
         The goal column (x-coord)
     """
-    if BLANK_TILE == tile:
+    if BLANK == tile:
         return w - 1
     return (tile - 1) % w
 
 
 def get_goal_yx(h: int, w: int, tile: int) -> tuple[int, int]:
-    """
+    r"""
     Given a board width and tile number, returns the goal (y, x) position of ``tile``.
 
     Args:
@@ -225,7 +225,7 @@ def get_goal_yx(h: int, w: int, tile: int) -> tuple[int, int]:
 
 
 def get_goal_tile(h: int, w: int, pos: tuple[int, int]) -> int:
-    """
+    r"""
     Given a board width and (y, x)-coord, return the tile number that belongs at (y, x).
 
     Args:
@@ -237,12 +237,12 @@ def get_goal_tile(h: int, w: int, pos: tuple[int, int]) -> int:
         The tile number that belongs at (y, x).
     """
     if pos == (h - 1, w - 1):
-        return BLANK_TILE
+        return BLANK
     return (w * pos[0]) + pos[1] + 1
 
 
 def is_solved(board: Board) -> bool:
-    """
+    r"""
     Determine if a board is in the solved state.
 
     Args:
@@ -260,7 +260,7 @@ def is_solved(board: Board) -> bool:
 
 
 def find_tile(board: Board | FrozenBoard, tile: int) -> tuple[int, int]:
-    """
+    r"""
     Given a tile number, find the (y, x)-coord on the board.
 
     Args:
@@ -284,9 +284,9 @@ def find_tile(board: Board | FrozenBoard, tile: int) -> tuple[int, int]:
 
 
 def find_blank(board: Board | FrozenBoard) -> tuple[int, int]:
-    """
+    r"""
     Locate the blank tile's (y, x)-coord.
-    Equivalent to ``find_tile(board, BLANK_TILE)``.
+    Equivalent to ``find_tile(board, BLANK)``.
 
     Args:
         board: The puzzle board.
@@ -294,14 +294,14 @@ def find_blank(board: Board | FrozenBoard) -> tuple[int, int]:
     Returns:
         The (y, x)-coord of the blank tile.
     """
-    return find_tile(board, BLANK_TILE)
+    return find_tile(board, BLANK)
 
 
 def get_next_moves(
     board: Board | FrozenBoard,
     blank_pos: Optional[tuple[int, int]] = None,
 ) -> list[tuple[int, int]]:
-    """
+    r"""
     Return a list of all possible moves.
 
     Args:
@@ -328,7 +328,7 @@ def swap_tiles(
     tile1: tuple[int, int] | int,
     tile2: Optional[tuple[int, int] | int] = None,
 ) -> Board:
-    """
+    r"""
     Mutates the board by swapping a pair of tiles.
 
     Args:
@@ -355,7 +355,7 @@ def swap_tiles(
 
 
 def random_move(board: Board, blank_pos: Optional[tuple[int, int]] = None) -> Board:
-    """
+    r"""
     Picks a random legal move and applies it to the board.
 
     Args:
@@ -367,7 +367,7 @@ def random_move(board: Board, blank_pos: Optional[tuple[int, int]] = None) -> Bo
 
 
 def count_inversions(board: Board) -> int:
-    """
+    r"""
     From each tile, count the number of tiles that are out of place after this tile.
     Returns the sum of all counts. See :func:`is_solvable`.
 
@@ -382,11 +382,11 @@ def count_inversions(board: Board) -> int:
     inversions = 0
     for i in range(board_size):
         t1 = board[i // w, i % w]
-        if t1 == BLANK_TILE:
+        if t1 == BLANK:
             continue
         for j in range(i + 1, board_size):
             t2 = board[j // w, j % w]
-            if t2 == BLANK_TILE:
+            if t2 == BLANK:
                 continue
             if t2 < t1:
                 inversions += 1
@@ -394,7 +394,7 @@ def count_inversions(board: Board) -> int:
 
 
 def is_solvable(board: Board) -> bool:
-    """
+    r"""
     Determines if it is possible to solve this board.
 
     Note:
@@ -427,7 +427,7 @@ def is_solvable(board: Board) -> bool:
 
 
 def shuffle_board(board: Board) -> Board:
-    """
+    r"""
     Shuffles a board (in place). Board is always solvable.
 
     Args:
@@ -450,7 +450,7 @@ def shuffle_board(board: Board) -> Board:
 def shuffle_board_lazy(
     board: Board, num_moves: Optional[int] = None, moves: Optional[list] = None
 ) -> Board:
-    """
+    r"""
     Shuffles a board in place by making random legal moves.
     Each move is first checked to avoid repeated states, although
     this does not guarantee the
@@ -498,7 +498,7 @@ def shuffle_board_lazy(
 
 
 def solution_as_tiles(board: Board, solution: list[tuple[int, int]]) -> list[int]:
-    """
+    r"""
     Converts a list of (y, x)-coords indicating moves into tile numbers,
     given a starting board configuration.
 
@@ -521,7 +521,7 @@ def solution_as_tiles(board: Board, solution: list[tuple[int, int]]) -> list[int
 
 
 def visit(visited: set[FrozenBoard], board: Board) -> bool:
-    """
+    r"""
     Helper to check if this state already exists. Otherwise, record it.
     Returns True if we have already been here, False otherwise.
 
@@ -539,18 +539,29 @@ def visit(visited: set[FrozenBoard], board: Board) -> bool:
     return False
 
 
-def board_generator(h: int, w: int) -> Iterator[Board]:
-    """
+def board_generator(
+    h: int, w: int, start: int = 0, stop: Optional[int] = None
+) -> Iterator[Board]:
+    r"""
     Returns a generator that yields all solvable boards in lexicographical order.
 
     Args:
         h: Height of board
         w: Width of board
+        start: Index of board to start with
+        stop: The board index to stop at, or None if we should run until completion.
+            The board at ``stop`` is not included, similar to :func:`range`.
 
     Yields:
         A board permutation
     """
+    board_id = -1
     for values in itertools.permutations(range(h * w)):
         board = board_from_iter(h, w, values)
         if is_solvable(board):
+            board_id += 1
+            if stop is not None and board_id == stop:
+                return
+            if board_id < start:
+                continue
             yield board
