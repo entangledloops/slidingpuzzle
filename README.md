@@ -226,7 +226,7 @@ You can then train a new network easily:
 >>> import slidingpuzzle.nn as nn
 >>> nn.set_seed(0)  # if you want reproducible weights
 >>> h, w = 3, 3
->>> dataset = nn.load_or_build_dataset(h, w, 2**14)
+>>> dataset = nn.build_or_load_dataset(h, w, 2**14)
 >>> model = nn.Model_v1(h, w)
 >>> nn.train(model, dataset)
 ```
@@ -235,7 +235,7 @@ You can then train a new network easily:
 ```python
 >>> import slidingpuzzle.nn as nn
 >>> h, w = 4, 4
->>> dataset = nn.load_or_build_dataset(h, w, 2**14, weight=2)  # use Weighted A* with weight of 2; all kwargs forwarded to search()
+>>> dataset = nn.build_or_load_dataset(h, w, 2**14, weight=2)  # use Weighted A* with weight of 2; all kwargs forwarded to search()
 >>> model = nn.Model_v1(h, w)
 >>> nn.train(model, dataset)
 ```
