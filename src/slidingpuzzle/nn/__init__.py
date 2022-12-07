@@ -28,6 +28,7 @@ from slidingpuzzle.nn.eval import (
     accuracy,
     evaluate,
     eval_checkpoint,
+    eval_heuristic,
 )
 
 from slidingpuzzle.nn.heuristics import (

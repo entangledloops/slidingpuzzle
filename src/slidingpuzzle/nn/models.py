@@ -18,8 +18,6 @@ Defines a PyTorch model to evaluate sliding puzzle boards.
 
 from typing import Optional
 
-import math
-
 import torch
 import torch.nn as nn
 
@@ -27,6 +25,8 @@ import slidingpuzzle.nn.paths as paths
 import slidingpuzzle.board as board_
 
 
+DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
+DTYPE = torch.float32
 VERSION_1 = "v1"
 
 
@@ -38,17 +38,16 @@ class Model_v1(nn.Module):
 
     def __init__(self, h: int, w: int) -> None:
         super().__init__()
-        dtype = torch.float32
         self.version = VERSION_1  # required
         self.h = h  # required
         self.w = w  # required
         size = h * w
         self.flatten = nn.Flatten()
-        self.linear1 = nn.Linear(size, size * 8, dtype=dtype)
-        self.linear2 = nn.Linear(size * 8, size * 8, dtype=dtype)
-        self.linear3 = nn.Linear(size * 8, size * 4, dtype=dtype)
-        self.linear4 = nn.Linear(size * 4, size, dtype=dtype)
-        self.linear5 = nn.Linear(size, 1, dtype=dtype)
+        self.linear1 = nn.Linear(size, size * 8, dtype=DTYPE)
+        self.linear2 = nn.Linear(size * 8, size * 8, dtype=DTYPE)
+        self.linear3 = nn.Linear(size * 8, size * 4, dtype=DTYPE)
+        self.linear4 = nn.Linear(size * 4, size, dtype=DTYPE)
+        self.linear5 = nn.Linear(size, 1, dtype=DTYPE)
 
     def forward(self, x):
         x = self.flatten(x)
@@ -70,7 +69,7 @@ def save_model(model: nn.Module, device: Optional[str] = None) -> None:
             be guessed.
     """
     if device is None:
-        device = "cuda" if torch.cuda.is_available() else "cpu"
+        device = DEVICE
     model.eval()
     model.to(device)
     path = paths.get_model_path(model.h, model.w, model.version)
@@ -88,7 +87,7 @@ def load_model(
     Reload a pre-trained frozen model.
     """
     if device is None:
-        device = "cuda" if torch.cuda.is_available() else "cpu"
+        device = DEVICE
     model_path = paths.get_model_path(h, w, version)
     model = torch.jit.load(str(model_path), map_location=device)
     model.eval()

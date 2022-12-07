@@ -21,6 +21,7 @@ that indicates the estimated distance from the goal.
 
 from typing import Callable, Iterator, Optional, TypeAlias
 
+import enum
 import logging
 import math
 
@@ -172,7 +173,7 @@ def last_moves_distance(board: Board) -> int:
     :func:`corner_tiles_distance`, but specifically targets the goal corner, which has
     slightly different constraints.
 
-    .. note::
+    Note:
         Currently this only considers the very last moves, not the moves also prior to
         the last moves (2-removed) as discussed in Korf.
 

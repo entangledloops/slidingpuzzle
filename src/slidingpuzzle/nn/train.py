@@ -34,6 +34,7 @@ from torch.utils.tensorboard import SummaryWriter
 import tqdm
 from tqdm.contrib.logging import tqdm_logging_redirect
 
+import slidingpuzzle.nn.models as models
 import slidingpuzzle.nn.paths as paths
 from slidingpuzzle.nn.dataset import SlidingPuzzleDataset
 from slidingpuzzle.nn.eval import accuracy, evaluate
@@ -170,12 +171,11 @@ def train(
     num_epochs: int = 0,
     batch_size: int = 256,
     early_quit_epochs: int = 256,
-    early_quit_threshold: float = 1e-5,
+    early_quit_beta: float = 1e-5,
     device: Optional[str] = None,
     checkpoint_freq: int = 50,
     tensorboard_dir: str = paths.TENSORBOARD_DIR,
     seed: int = 0,
-    **kwargs,
 ) -> None:
     """
     Trains a model for ``num_epochs``. If no prior model is found, a new one is
@@ -185,9 +185,9 @@ def train(
     so that training may be paused and resumed without leaking test data.
 
     Note:
-        If you change your dataset between runs, the train/test split will no longer
-        be consistent with original training, so training will need to be restarted
-        to prevent leaking test data.
+        If you change your dataset or seed between runs, the train/test split will
+        no longer be consistent with original training, so training will need to be
+        restarted (or other measures taken) to prevent leaking test data.
 
     Args:
         model: The model instance to train
@@ -198,21 +198,29 @@ def train(
         batch_size: Batch size to use for training
         early_quit_epochs: We will hold an ``early_quit_epochs``-sized window of test
             loss values. If the linear regression slope of these data points is
-            > ``early_quit_threshold``, we will terminate training early. Use 0 to
-            disable this feature and always run until ``num_epochs`` of training have
+            > ``early_quit_beta``, we will terminate training early. Use 0 to disable
+            this feature and always run until ``num_epochs`` of training have
             completed. If both this and ``num_epochs`` are 0, training will run until
             manually interrupted.
         early_quit_beta: If the slope of the test loss rises above this value, training
             is terminated.
         device: Device to train on. Default will autodetect CUDA or use CPU
         checkpoint_freq: Model will be checkpointed each time this many epochs
-            elapse. If 0, no epoch checkpointint will be used. (Highest test acc. will
+            elapse. If 0, no epoch checkpoints will be used. (Highest test acc. will
             still be checkpointed and also final checkpoint on termination.)
         tensorboard_dir: The root tensorboard dir for logs. Default is "tensorboard".
         seed: Seed used for torch random utilities for reproducibility
+
+    Note:
+        Every time a new test/acc high is observed, the early_quit_window will be
+        cleared so that training may continue for longer.
     """
-    set_seed(seed)
     h, w = model.w, model.h
+
+    if device is None:
+        device = models.DEVICE
+
+    set_seed(seed)
 
     # prepare tensorboard to record training
     url = launch_tensorboard(tensorboard_dir)
@@ -237,10 +245,8 @@ def train(
     )
 
     # prepare model
-    if device is None:
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model.to(device)
-    optimizer = optim.SGD(model.parameters(), lr=0.0001, momentum=0.9)
+    optimizer = optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
     highest_acc = load_checkpoint(model, tag="acc", optimizer=optimizer)[
         "test_accuracy"
     ]
@@ -300,6 +306,7 @@ def train(
             if test_accuracy > highest_acc:
                 # save a tagged checkpoint for highest acc
                 highest_acc = test_accuracy
+                test_loss_window.clear()
                 state = get_state_dict(
                     model, optimizer, epoch=epoch, test_accuracy=test_accuracy
                 )
@@ -312,7 +319,7 @@ def train(
                 save_checkpoint(state, f"epoch_{epoch}")
             if early_quit_epochs > 0 and len(test_loss_window) == early_quit_epochs:
                 # if we are using early quitting, check the overall trendline is down
-                if linear_regression_beta(test_loss_window) > early_quit_threshold:
+                if linear_regression_beta(test_loss_window) > early_quit_beta:
                     with tqdm_logging_redirect():
                         log.info(
                             f"Early quit threshold reached at epoch {epoch}, "

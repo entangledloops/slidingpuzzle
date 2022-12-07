@@ -20,6 +20,9 @@ from typing import Optional
 import torch
 import torch.utils
 
+from slidingpuzzle.heuristics import Heuristic
+from slidingpuzzle.nn.dataset import SlidingPuzzleDataset
+
 
 def accuracy(expected, predicted) -> float:
     r"""
@@ -99,3 +102,15 @@ def eval_checkpoint(
         return evaluate_(
             model.h, model.h, weuristic=heuristic, num_iters=num_iters, **kwargs
         )
+
+
+def eval_heuristic(dataset: SlidingPuzzleDataset, heuristic: Heuristic) -> float:
+    r"""
+    Runs all examples through heuristic and evaluates accuracy as a function of
+    heuristic proximity to the true distance. Can be used to compare model performance
+    against other heuristics.
+    """
+    acc = 0.0
+    for x, y in dataset:
+        acc += accuracy(y, heuristic(x.numpy()))
+    return acc / len(dataset)

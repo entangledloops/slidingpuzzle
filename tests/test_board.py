@@ -26,16 +26,16 @@ def test_new_board():
     assert np.array_equal(new_board(3, 2), ground_truth)
 
 
-def test_board_from():
-    assert np.array_equal(board_from([1, 2], [3, 0]), new_board(2, 2))
+def test_from_rows():
+    assert np.array_equal(from_rows([1, 2], [3, 0]), new_board(2, 2))
 
 
 @pytest.mark.parametrize("h", [3, 5])
 @pytest.mark.parametrize("w", [3, 5])
-def test_board_from_iter(h, w):
+def test_from_iter(h, w):
     values = list(range(1, 1 + h * w))
     values[-1] = BLANK
-    b = board_from_iter(h, w, values)
+    b = from_iter(h, w, values)
     assert np.array_equal(b, new_board(h, w))
 
 
@@ -80,19 +80,19 @@ def test_swap_tiles():
 
 
 @pytest.mark.parametrize("size", [(2, 2), (3, 2), (2, 3), (3, 3)])
-def test_shuffle_board(size):
+def test_shuffle(size):
     h, w = size
     board = new_board(h, w)
-    shuffle_board(board)
+    shuffle(board)
     r = search(board, alg="greedy", heuristic=linear_conflict_distance)
     assert r.solution is not None
 
 
 @pytest.mark.parametrize("size", [(2, 2), (3, 2), (2, 3), (3, 3)])
-def test_shuffle_board_lazy(size):
+def test_shuffle_lazy(size):
     h, w = size
     board = new_board(h, w)
-    shuffle_board_lazy(board)
+    shuffle_lazy(board)
     r = search(board, alg="greedy", heuristic=manhattan_distance)
     assert r.solution is not None
 
@@ -120,7 +120,7 @@ def test_get_next_states():
 @pytest.mark.parametrize("w", [3, 5])
 def test_board_generator(h, w):
     gen = board_generator(h, w)
-    assert np.array_equal(next(gen), board_from_iter(h, w, range(h * w)))
+    assert np.array_equal(next(gen), from_iter(h, w, range(h * w)))
 
     gen = board_generator(h, w, 1, 10)
     boards = [board for board in gen]

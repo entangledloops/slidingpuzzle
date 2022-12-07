@@ -23,7 +23,7 @@ from slidingpuzzle.board import Board
 from slidingpuzzle.heuristics import Heuristic
 
 
-MODEL_HEURISTICS = {}
+model_heuristics = {}
 
 
 def get_heuristic_key(h: int, w: int, version: str):
@@ -44,18 +44,18 @@ def make_heuristic(model: torch.nn.Module | torch.ScriptModule):
 def set_heuristic(model: torch.nn.Module | torch.ScriptModule):
     key = get_heuristic_key(model.w, model.h, model.version)
     heuristic = make_heuristic(model)
-    MODEL_HEURISTICS[key] = heuristic
+    model_heuristics[key] = heuristic
     return heuristic
 
 
 def get_heuristic(h: int, w: int, version: str) -> Heuristic:
     key = get_heuristic_key(h, w, version)
-    heuristic = MODEL_HEURISTICS.get(key, None)
+    heuristic = model_heuristics.get(key, None)
     if heuristic is None:
         model = models.load_model(h, w, version)
         key = get_heuristic_key(h, w, version)
         heuristic = make_heuristic(model)
-        MODEL_HEURISTICS[key] = heuristic
+        model_heuristics[key] = heuristic
     return heuristic
 
 

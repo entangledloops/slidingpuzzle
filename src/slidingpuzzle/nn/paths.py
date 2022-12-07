@@ -32,8 +32,8 @@ def clear_training() -> None:
     r"""
     Removes checkpoints and tensorboard logs.
     """
-    shutil.rmtree(CHECKPOINT_DIR)
-    shutil.rmtree(TENSORBOARD_DIR)
+    shutil.rmtree(CHECKPOINT_DIR, ignore_errors=True)
+    shutil.rmtree(TENSORBOARD_DIR, ignore_errors=True)
 
 
 def get_board_size_str(h: int, w: int) -> str:

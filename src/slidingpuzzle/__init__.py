@@ -44,14 +44,14 @@ from slidingpuzzle.heuristics import (
 
 from slidingpuzzle.board import (
     BLANK,
-    board_from,
-    board_from_iter,
     board_generator,
     count_inversions,
     find_blank,
     find_tile,
     flatten_board,
     freeze_board,
+    from_rows,
+    from_iter,
     get_goal_tile,
     get_goal_x,
     get_goal_y,
@@ -62,8 +62,8 @@ from slidingpuzzle.board import (
     new_board,
     print_board,
     random_move,
-    shuffle_board,
-    shuffle_board_lazy,
+    shuffle,
+    shuffle_lazy,
     solution_as_tiles,
 )
 

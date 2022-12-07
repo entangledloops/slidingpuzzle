@@ -48,7 +48,7 @@ def new_board(h: int, w: int, dtype: Optional[npt.DTypeLike] = None) -> Board:
     return board
 
 
-def board_from(*rows: Iterable[int], dtype: Optional[npt.DTypeLike] = None) -> Board:
+def from_rows(*rows: Iterable[int], dtype: Optional[npt.DTypeLike] = None) -> Board:
     r"""
     Constructs a new board from a provided iterable of rows.
     May throw a :class:`ValueError` if rows are unequal in size or duplicate values
@@ -93,7 +93,7 @@ def board_from(*rows: Iterable[int], dtype: Optional[npt.DTypeLike] = None) -> B
     return np.array(board, dtype=dtype)
 
 
-def board_from_iter(h: int, w: int, iter: Iterable[int]) -> Board:
+def from_iter(h: int, w: int, iter: Iterable[int]) -> Board:
     r"""
     Given an iterable of ints, will construct a board of size ``h x w`` in
     row-major order. The number of values should equal :math:`h \cdot w` and
@@ -120,7 +120,7 @@ def board_from_iter(h: int, w: int, iter: Iterable[int]) -> Board:
         if len(row) == w:
             rows.append(row)
             row = []
-    return board_from(*rows)
+    return from_rows(*rows)
 
 
 def flatten_board(board: Board | FrozenBoard) -> list[int]:
@@ -426,7 +426,7 @@ def is_solvable(board: Board) -> bool:
     return False
 
 
-def shuffle_board(board: Board) -> Board:
+def shuffle(board: Board) -> Board:
     r"""
     Shuffles a board (in place). Board is always solvable.
 
@@ -447,7 +447,7 @@ def shuffle_board(board: Board) -> Board:
             return board
 
 
-def shuffle_board_lazy(
+def shuffle_lazy(
     board: Board, num_moves: Optional[int] = None, moves: Optional[list] = None
 ) -> Board:
     r"""
@@ -557,7 +557,7 @@ def board_generator(
     """
     board_id = -1
     for values in itertools.permutations(range(h * w)):
-        board = board_from_iter(h, w, values)
+        board = from_iter(h, w, values)
         if is_solvable(board):
             board_id += 1
             if stop is not None and board_id == stop:

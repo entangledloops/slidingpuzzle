@@ -31,7 +31,7 @@ from slidingpuzzle.board import (
     FrozenBoard,
     freeze_board,
     new_board,
-    shuffle_board,
+    shuffle,
     swap_tiles,
     visit,
 )
@@ -44,17 +44,19 @@ log = logging.getLogger(__name__)
 class SlidingPuzzleDataset(torch.utils.data.Dataset):
     def __init__(self, examples: list[Example]) -> None:
         super().__init__()
-        self.examples = examples
+        self.examples = [
+            (
+                torch.tensor(x, dtype=torch.float32),
+                torch.tensor([y], dtype=torch.float32),
+            )
+            for x, y in examples
+        ]
 
     def __len__(self):
         return len(self.examples)
 
     def __getitem__(self, idx):
-        x, y = self.examples[idx]
-        return (
-            torch.tensor(x, dtype=torch.float32),
-            torch.tensor([y], dtype=torch.float32),
-        )
+        return self.examples[idx]
 
 
 def make_examples(
@@ -90,27 +92,30 @@ def make_examples(
             log.warning("Duplicate found in prior examples.")
 
     # TODO: parallelize
-    with tqdm.tqdm(total=num_examples) as pbar:
-        while len(examples) < num_examples:
-            board = new_board(h, w)
-            shuffle_board(board)
-            if visit(visited, board):
-                continue
-
-            # find a path to use as an accurate training reference
-            result = algorithms.search(board, **kwargs)
-
-            # we can use all intermediate boards as examples
+    try:
+        with tqdm.tqdm(total=num_examples) as pbar:
             while len(examples) < num_examples:
-                distance = len(result.solution)
-                examples.append((freeze_board(board), distance))
-                pbar.update(1)
-                if not len(result.solution):
-                    break
-                move = result.solution.pop(0)
-                swap_tiles(board, move)
+                board = new_board(h, w)
+                shuffle(board)
                 if visit(visited, board):
-                    break
+                    continue
+
+                # find a path to use as an accurate training reference
+                result = algorithms.search(board, **kwargs)
+
+                # we can use all intermediate boards as examples
+                while len(examples) < num_examples:
+                    distance = len(result.solution)
+                    examples.append((freeze_board(board), distance))
+                    pbar.update(1)
+                    if not len(result.solution):
+                        break
+                    move = result.solution.pop(0)
+                    swap_tiles(board, move)
+                    if visit(visited, board):
+                        break
+    except KeyboardInterrupt:
+        log.info(f"Example generation interrupted, returning {len(examples)} examples")
 
     return examples
 

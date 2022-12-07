@@ -19,7 +19,7 @@ from slidingpuzzle import *
 
 def test_a_star():
     board = new_board(3, 3)
-    shuffle_board_lazy(board, num_moves=10)
+    shuffle_lazy(board, num_moves=10)
     assert len(search(board).solution) == len(
         search(board, Algorithm.A_STAR, heuristic=manhattan_distance).solution
     )
@@ -28,7 +28,7 @@ def test_a_star():
 @pytest.mark.parametrize("alg", [Algorithm.IDA_STAR, Algorithm.IDDFS])
 def test_search_iterative_deepening(alg):
     b = new_board(3, 3)
-    shuffle_board_lazy(b, 10)
+    shuffle_lazy(b, 10)
     # best solution should be found (using default args)
     expected_len = len(search(b).solution)
     actual = search(b, alg=alg, heuristic=manhattan_distance)
@@ -50,7 +50,7 @@ def test_search_iterative_deepening(alg):
     ],
 )
 def test_search(algorithm, heuristic):
-    board = board_from([5, 2, 4], [3, 0, 1])
+    board = from_rows([5, 2, 4], [3, 0, 1])
     weight = 1
     result = search(
         board,
@@ -72,7 +72,7 @@ def test_search(algorithm, heuristic):
 
 
 def test_search_hard():
-    board = board_from([8, 6, 7], [3, 5, 1], [2, 0, 4])
+    board = from_rows([8, 6, 7], [3, 5, 1], [2, 0, 4])
     result = search(board, weight=1)
     assert len(result.solution) == 27
 

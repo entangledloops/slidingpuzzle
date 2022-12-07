@@ -36,7 +36,7 @@ pip install slidingpuzzle
 1 2 3
 4 5 6
 7 8
->>> print_board(shuffle_board(board))
+>>> print_board(shuffle(board))
 8 3 1 
 4   2 
 5 6 7 
@@ -54,12 +54,12 @@ array([[8, 3, 1],
 You can easily build your own boards using numpy or any of the provided convenience methods:
 
 ```python
->>> board = board_from([4, 5, 6], [7, 8, 0], [1, 2, 3])
+>>> board = from_rows([4, 5, 6], [7, 8, 0], [1, 2, 3])
 >>> print_board(board)
 4 5 6
 7 8
 1 2 3
->>> board = board_from_iter(3, 3, [4, 5, 6, 7, 8, 0, 1, 2, 3])
+>>> board = from_iter(3, 3, [4, 5, 6, 7, 8, 0, 1, 2, 3])
 >>> print_board(board)
 4 5 6
 7 8
@@ -75,7 +75,7 @@ Not all board configurations are solvable. The [`search()`](https://slidingtilep
 The default search is [`A*`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html#slidingpuzzle.algorithms.a_star) with [`linear_conflict_distance()`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html#slidingpuzzle.heuristics.linear_conflict_distance) as the heuristic:
 
 ```python
->>> board = shuffle_board(new_board(3, 3))
+>>> board = shuffle(new_board(3, 3))
 >>> search(board)
 solution=[5, 4, 1, 2, 6, 5, 3, 7, 4, 1, 2, 3, 5, 8, 7, 4, 1, 2, 3, 6]
 solution_len=20, generated=360, expanded=164, unvisited=197, visited=136

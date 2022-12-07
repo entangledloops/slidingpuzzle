@@ -30,7 +30,7 @@ from slidingpuzzle.board import (
     find_blank,
     get_next_moves,
     is_solvable,
-    shuffle_board,
+    shuffle,
     new_board,
     swap_tiles,
     visit,
@@ -606,7 +606,7 @@ def evaluate(
     total = 0
     for _ in range(num_iters):
         board = new_board(h, w)
-        shuffle_board(board)
+        shuffle(board)
         result = search(board, alg=alg, heuristic=heuristic, **kwargs)
         total += result.generated
     return round(total / num_iters, 2)
@@ -651,7 +651,7 @@ def compare(
     total_a, total_b = 0, 0
     for _ in range(num_iters):
         board = new_board(h, w)
-        shuffle_board(board)
+        shuffle(board)
         result = search(board, alg=alga, heuristic=ha, **kwargsa, **kwargs)
         total_a += result.generated
         result = search(board, alg=algb, heuristic=hb, **kwargsb, **kwargs)

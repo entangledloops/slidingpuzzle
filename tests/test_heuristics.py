@@ -24,24 +24,24 @@ def test_corner_tiles_distance():
     assert corner_tiles_distance(board) == 0
 
     # top-left corner
-    board = board_from([8, 5, 3], [4, 2, 6], [7, 1, 0])
+    board = from_rows([8, 5, 3], [4, 2, 6], [7, 1, 0])
     assert corner_tiles_distance(board) == 2
 
-    board = board_from([8, 2, 3], [4, 5, 6], [7, 0, 1])
+    board = from_rows([8, 2, 3], [4, 5, 6], [7, 0, 1])
     assert corner_tiles_distance(board) == 4
 
     # top-right corner
-    board = board_from([1, 2, 8], [4, 6, 5], [7, 0, 3])
+    board = from_rows([1, 2, 8], [4, 6, 5], [7, 0, 3])
     assert corner_tiles_distance(board) == 2
 
-    board = board_from([1, 2, 8], [3, 5, 6], [4, 0, 7])
+    board = from_rows([1, 2, 8], [3, 5, 6], [4, 0, 7])
     assert corner_tiles_distance(board) == 4
 
     # bottom-left corner
-    board = board_from([1, 2, 3], [4, 7, 6], [5, 0, 8])
+    board = from_rows([1, 2, 3], [4, 7, 6], [5, 0, 8])
     assert corner_tiles_distance(board) == 2
 
-    board = board_from([1, 2, 3], [4, 7, 6], [5, 8, 0])
+    board = from_rows([1, 2, 3], [4, 7, 6], [5, 8, 0])
     assert corner_tiles_distance(board) == 4
 
 
@@ -63,27 +63,27 @@ def test_hamming_distance():
 
 
 def test_last_moves_distance():
-    board = board_from([1, 2, 3], [4, 5, 6], [7, 0, 8])
+    board = from_rows([1, 2, 3], [4, 5, 6], [7, 0, 8])
     assert last_moves_distance(board) == 0
 
-    board = board_from([8, 6, 0], [4, 5, 2], [7, 3, 1])
+    board = from_rows([8, 6, 0], [4, 5, 2], [7, 3, 1])
     assert last_moves_distance(board) == 2
 
 
 def test_linear_conflict_distance():
-    board = board_from([1, 2, 3], [4, 5, 6], [7, 0, 8])
+    board = from_rows([1, 2, 3], [4, 5, 6], [7, 0, 8])
     assert linear_conflict_distance(board) == 1
 
-    board = board_from([2, 1, 3], [4, 5, 6], [7, 8, 0])
+    board = from_rows([2, 1, 3], [4, 5, 6], [7, 8, 0])
     assert linear_conflict_distance(board) == 4
 
-    board = board_from([4, 2, 3], [1, 5, 6], [7, 8, 0])
+    board = from_rows([4, 2, 3], [1, 5, 6], [7, 8, 0])
     assert linear_conflict_distance(board) == 4
 
-    board = board_from([2, 1, 3], [4, 5, 6], [7, 0, 8])
+    board = from_rows([2, 1, 3], [4, 5, 6], [7, 0, 8])
     assert linear_conflict_distance(board) == 5
 
-    board = board_from([1, 2, 3], [6, 5, 4], [7, 8, 0])
+    board = from_rows([1, 2, 3], [6, 5, 4], [7, 8, 0])
     assert linear_conflict_distance(board) == 8
 
 
@@ -136,11 +136,11 @@ def test_heuristic_behavior():
 def test_heuristic_admissibility():
     # validate that solutions are in line with BFS
     # this does not guarantee admissibility, it's just an empirical sanity check
-    boards = [shuffle_board(new_board(3, 3)) for _ in range(50)]
+    boards = [shuffle(new_board(3, 3)) for _ in range(50)]
     optimal = [len(search(b, "bfs").solution) for b in boards]
     for h in (linear_conflict_distance, manhattan_distance):
         for b, o in zip(boards, optimal):
-            assert len(search(b, heuristic=h).solution) == o
+            assert len(search(b, heuristic=h).solution) == o, b
 
 
 @pytest.mark.skip
