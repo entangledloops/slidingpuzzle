@@ -88,10 +88,10 @@ solution_len=20, generated=360, expanded=164, unvisited=197, visited=136
 
 
 ```python
->>> search(b, "bfs")
+>>> search(board, "bfs")
 solution=[3, 7, 5, 4, 1, 2, 6, 8, 7, 5, 4, 1, 2, 3, 5, 4, 1, 2, 3, 6]
 solution_len=20, generated=125450, expanded=88173, unvisited=37278, visited=45763
->>> search(b, "greedy")
+>>> search(board, "greedy")
 solution=[3, 7, 5, 4, 1, 3, 4, 1, 3, 2, 6, 8, 7, 4, 2, 6, 8, 7, 4, 5, 1, 2, 5, 4, 7, 8]
 solution_len=26, generated=556, expanded=374, unvisited=183, visited=202
 ```
