@@ -16,7 +16,7 @@
 Utilities for creating, saving, and loading board datasets.
 """
 
-from typing import Optional, TypeAlias
+from typing import Iterable, Optional, TypeAlias
 
 import json
 import logging
@@ -42,7 +42,7 @@ log = logging.getLogger(__name__)
 
 
 class SlidingPuzzleDataset(torch.utils.data.Dataset):
-    def __init__(self, examples: list[Example]) -> None:
+    def __init__(self, examples: Iterable[Example]) -> None:
         super().__init__()
         self.examples = [
             (
