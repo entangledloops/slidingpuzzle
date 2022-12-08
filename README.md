@@ -47,7 +47,7 @@ Regular boards are stored as [numpy arrays](https://numpy.org/doc/stable/referen
 ```python
 >>> board
 array([[8, 3, 1],
-       [4, 5, 6],
+       [4, 0, 2],
        [5, 6, 7]])
 ```
 
