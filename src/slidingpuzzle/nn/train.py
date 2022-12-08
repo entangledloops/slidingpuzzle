@@ -167,7 +167,7 @@ def linear_regression_beta(data):
 def train(
     model: nn.Module,
     dataset: SlidingPuzzleDataset,
-    train_fraction: float = 0.95,
+    train_fraction: float = 0.9,
     num_epochs: int = 0,
     batch_size: int = 256,
     early_quit_epochs: int = 256,
