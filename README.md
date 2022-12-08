@@ -27,6 +27,14 @@ A package for solving sliding tile puzzles.
 pip install slidingpuzzle
 ```
 
+If you wish to use neural nets, at a minimum you will also need:
+
+```console
+pip install torch
+```
+
+The [requirements-nn.txt](https://github.com/entangledloops/slidingpuzzle/blob/main/requirements-nn.txt) file contains specific known working dependencies for training. (Details can be found below in [Neural Nets](#neural-nets).)
+
 ## Examples
 
 ```python
