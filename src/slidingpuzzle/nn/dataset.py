@@ -130,13 +130,14 @@ def load_examples(h: int, w: int, examples_file: Optional[str] = None) -> list[E
         return json.load(fp)
 
 
-def save_examples(
-    h: int, w: int, examples: list, examples_file: Optional[str] = None
-) -> None:
+def save_examples(examples: list[Example], examples_file: Optional[str] = None) -> None:
     """
     Save a list of examples to disk as JSON.
     """
+    if 0 == len(examples):
+        return
     if examples_file is None:
+        h, w = len(examples[0]), len(examples[0][0])
         examples_file = paths.get_examples_path(h, w)
     with open(examples_file, "wt") as fp:
         json.dump(examples, fp)
@@ -165,7 +166,7 @@ def build_or_load_dataset(
     num_examples: int,
     examples_file: Optional[str] = None,
     **kwargs,
-) -> torch.utils.data.Dataset:
+) -> SlidingPuzzleDataset:
     """
     Loads examples, constructs a SlidingPuzzleDataset from them, and returns it.
     If there is a mismatch between the requested num_examples and the loaded
@@ -197,7 +198,8 @@ def build_or_load_dataset(
         new_examples = get_examples(h, w, num_examples, examples, **kwargs)
         # if we made new examples, save them for next time
         if len(new_examples) > len(examples):
-            save_examples(h, w, new_examples, examples_file)
+            print(new_examples)
+            save_examples(new_examples, examples_file)
             log.info("Dataset saved.")
         examples = new_examples
 
