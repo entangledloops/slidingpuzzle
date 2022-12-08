@@ -33,7 +33,7 @@ If you wish to use neural nets, at a minimum you will also need:
 pip install torch
 ```
 
-The [requirements-nn.txt](https://github.com/entangledloops/slidingpuzzle/blob/main/requirements-nn.txt) file contains specific known working dependencies for training. (Details can be found below in [Neural Nets](#neural-nets).)
+The [requirements-nn.txt](https://github.com/entangledloops/slidingpuzzle/blob/main/requirements-nn.txt) file contains specific known working dependencies for training. Details can be found below in [Neural Nets](#neural-nets).
 
 ## Examples
 
@@ -226,7 +226,7 @@ Well-trained neural networks are generally superior to the other heuristics. Pre
 ```console
 pip install -r requirements-nn.txt
 ```
-> **_Note:_**  This will install the CUDA 11.6 version of PyTorch. If you want another version, you will need to follow the [official instructions](https://pytorch.org/).
+> **_Note:_**  This will install a specific tested version of PyTorch. If you want another version, you will need to follow the [official instructions](https://pytorch.org/).
 
 You can then train a new network easily:
 
@@ -238,7 +238,7 @@ You can then train a new network easily:
 >>> model = nn.Model_v1(h, w)
 >>> nn.train(model, dataset)
 ```
-> **_Note:_**  Unless you are providing your own dataset, for model sizes larger than `3 x 3` you probably need to pass `kwargs` to [`train()`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.nn.html#slidingpuzzle.nn.train.train) so that the search algorithm used for generating training example can find solutions in a reasonable timeframe. For example:
+Unless you are providing your own dataset, for model sizes larger than `3 x 3` you may need to pass `kwargs` to [`build_or_load_dataset()`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.nn.html#slidingpuzzle.nn.dataset.build_or_load_dataset) so that the search algorithm used for generating training example can find solutions in a reasonable timeframe. For example:
 
 ```python
 >>> import slidingpuzzle.nn as nn
@@ -315,7 +315,7 @@ You can now copy-paste the model-based heuristic function below:
 
 ```python
 def my_model_distance(board) -> float:
-    h, w = len(board), len(board[0])
+    h, w = board.shape
     heuristic = nn.get_heuristic(h, w, "my_model_version")
     return heuristic(board)
 ```
