@@ -163,7 +163,7 @@ def get_examples(
 def build_or_load_dataset(
     h: int,
     w: int,
-    num_examples: int,
+    num_examples: Optional[int] = None,
     examples_file: Optional[str] = None,
     **kwargs,
 ) -> SlidingPuzzleDataset:
@@ -178,7 +178,7 @@ def build_or_load_dataset(
         w: The width of the board to locate a dataset for
         num_examples: The total number of examples desired. If there are too many,
             examples will be truncated. If there are too few, new examples will be
-            constructed.
+            constructed. If ``None``, the entire dataset loaded will be used.
         examples_file: The name of the examples file to save or load.
         kwargs: Will be forwaded to :func:`make_examples` if it is called.
 
@@ -192,6 +192,10 @@ def build_or_load_dataset(
     except FileNotFoundError:
         log.info("No dataset found.")
         examples = []
+
+    # if a specific number was not requested, use all loaded examples
+    if num_examples is None:
+        num_examples = len(examples)
 
     # if we were asked for a different number of examples than we have on hand
     if len(examples) != num_examples:

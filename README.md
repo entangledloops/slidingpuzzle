@@ -302,7 +302,7 @@ Training uses GPU if available and falls back to CPU otherwise.
 
 First define your `torch.nn.Module` somewhere.
 Your model class must:
-- have a unique `self.version` string that is safe to use in filenames (e.g. `"my_model_v1"`)
+- have a unique `self.version` string that is safe to use in filenames (e.g. `"my_model_version"`)
 - have `self.h` and `self.w` indicating the input board dimensions it expects,
 - have a `forward()` that accepts board as a tensor constructed by:
   - `torch.tensor(board, dtype=torch.float32)`

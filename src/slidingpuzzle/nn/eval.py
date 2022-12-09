@@ -33,12 +33,17 @@ def accuracy(expected, predicted) -> float:
 
         f(e, p) = 1 - \frac{|e - p|}{1 + |e - p|}
 
+    It returns the sum along the batch dimension.
+
+    Notes:
+        Any NaNs/infs will be replaced by 0.
+
     Args:
         expected: A tensor with the expected value
         predicted: A tensor with the predicted value
 
     Returns:
-        The accuracy as a float in the range [0, 1].
+        The accuracy as a float in the range [0, 1] summed along batch dim.
     """
     diff = torch.abs(expected - predicted)
     diff /= 1 + diff
@@ -66,7 +71,7 @@ def evaluate(
     running_loss = 0.0
     running_accuracy = 0.0
     dataloader = torch.utils.data.DataLoader(dataset)
-    with torch.no_grad():
+    with torch.inference_mode():
         for batch, expected in iter(dataloader):
             predicted = model(batch.to(device))
             expected = expected.to(device)

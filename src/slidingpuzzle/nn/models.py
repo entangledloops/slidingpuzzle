@@ -41,21 +41,21 @@ class Model_v1(nn.Module):
         self.version = VERSION_1  # required
         self.h = h  # required
         self.w = w  # required
-        size = h * w
+        hidden_size = 512
+        n_layers = 5
         self.flatten = nn.Flatten()
-        self.linear1 = nn.Linear(size, size * 8, dtype=DTYPE)
-        self.linear2 = nn.Linear(size * 8, size * 8, dtype=DTYPE)
-        self.linear3 = nn.Linear(size * 8, size * 4, dtype=DTYPE)
-        self.linear4 = nn.Linear(size * 4, size, dtype=DTYPE)
-        self.linear5 = nn.Linear(size, 1, dtype=DTYPE)
+        self.first_linear = nn.Linear(h * w, hidden_size, dtype=DTYPE)
+        self.linears = nn.ModuleList(
+            nn.Linear(hidden_size, hidden_size, dtype=DTYPE) for _ in range(n_layers)
+        )
+        self.last_linear = nn.Linear(hidden_size, 1, dtype=DTYPE)
 
     def forward(self, x):
         x = self.flatten(x)
-        x = torch.relu(self.linear1(x))
-        x = torch.relu(self.linear2(x))
-        x = torch.relu(self.linear3(x))
-        x = torch.relu(self.linear4(x))
-        x = self.linear5(x)
+        x = torch.relu(self.first_linear(x))
+        for linear in self.linears:
+            x = torch.relu(linear(x))
+        x = self.last_linear(x)
         return x
 
 

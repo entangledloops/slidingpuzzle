@@ -147,7 +147,7 @@ def freeze_board(board: Board) -> FrozenBoard:
     Returns:
         A frozen copy of the board.
     """
-    return tuple(tuple(row) for row in board)
+    return tuple(tuple(int(col) for col in row) for row in board)
 
 
 def print_board(board: Board | FrozenBoard, file=sys.stdout) -> Board | FrozenBoard:

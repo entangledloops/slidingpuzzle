@@ -170,8 +170,8 @@ def train(
     train_fraction: float = 0.9,
     num_epochs: int = 0,
     batch_size: int = 256,
-    early_quit_epochs: int = 256,
-    early_quit_beta: float = 1e-5,
+    early_quit_epochs: int = 100,
+    early_quit_beta: float = 1e-4,
     device: Optional[str] = None,
     checkpoint_freq: int = 50,
     tensorboard_dir: str = paths.TENSORBOARD_DIR,
@@ -243,6 +243,7 @@ def train(
     train_dataset, test_dataset = torch.utils.data.random_split(
         dataset, [train_size, test_size], generator=torch.Generator().manual_seed(seed)
     )
+    log.info(f"train_size={train_size}, test_size={test_size}")
 
     # prepare model
     model.to(device)
@@ -321,10 +322,7 @@ def train(
                 # if we are using early quitting, check the overall trendline is down
                 if linear_regression_beta(test_loss_window) > early_quit_beta:
                     with tqdm_logging_redirect():
-                        log.info(
-                            f"Early quit threshold reached at epoch {epoch}, "
-                            f"highest_acc={highest_acc}"
-                        )
+                        log.info(f"Early quit threshold reached at epoch {epoch}.")
                     break
             if num_epochs and epoch == num_epochs - 1:
                 with tqdm_logging_redirect():
@@ -337,6 +335,7 @@ def train(
     finally:
         pbar.close()
 
+    log.info(f"highest_acc={round(highest_acc, 4)}")
     # save final state in case we were interrupted
     state = get_state_dict(model, optimizer, epoch=epoch, test_accuracy=test_accuracy)
     save_checkpoint(state, "latest")
