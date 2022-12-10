@@ -40,6 +40,7 @@ from slidingpuzzle.nn.heuristics import (
 
 from slidingpuzzle.nn.models import (
     Model_v1,
+    Model_v2,
     load_model,
     save_model,
 )

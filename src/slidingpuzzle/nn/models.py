@@ -28,12 +28,21 @@ import slidingpuzzle.board as board_
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 DTYPE = torch.float32
 VERSION_1 = "v1"
+VERSION_2 = "v2"
 
 
 class Model_v1(nn.Module):
     """
     A stack of linear layers that accepts a board as input and outputs the
     estimated distance to the goal.
+
+    Trained with::
+
+        SGD(lr = 0.001, momentum = 0.9)
+        MSELoss
+
+    Achieves a peak test accuracy of 56.74% after 138 epochs.
+    Total parameters: 1056257
     """
 
     def __init__(self, h: int, w: int) -> None:
@@ -42,7 +51,7 @@ class Model_v1(nn.Module):
         self.h = h  # required
         self.w = w  # required
         hidden_size = 512
-        n_layers = 5
+        n_layers = 4
         self.flatten = nn.Flatten()
         self.first_linear = nn.Linear(h * w, hidden_size, dtype=DTYPE)
         self.linears = nn.ModuleList(
@@ -55,6 +64,56 @@ class Model_v1(nn.Module):
         x = torch.relu(self.first_linear(x))
         for linear in self.linears:
             x = torch.relu(linear(x))
+        x = self.last_linear(x)
+        return x
+
+
+class Model_v2(nn.Module):
+    """
+    A multi-headed attention-based network with about the same number of parameters
+    as v1. (WIP)
+
+    Trained with::
+
+        SGD(lr = 0.0001, momentum = 0.9)
+        MSELoss
+
+    Achieves a peak test accuracy of 55.75% after 270 epochs.
+    Total parameters: 1095553
+    """
+
+    def __init__(self, h: int, w: int) -> None:
+        super().__init__()
+        self.version = VERSION_2  # required
+        self.h = h  # required
+        self.w = w  # required
+        size = h * w
+        hidden_size = size * 32  # should be chosen so that is divisible by h*w
+        self.flatten = nn.Flatten()
+        self.q = nn.ModuleList(
+            nn.Linear(1, hidden_size, dtype=DTYPE) for _ in range(size)
+        )
+        self.k = nn.ModuleList(
+            nn.Linear(1, hidden_size, dtype=DTYPE) for _ in range(size)
+        )
+        self.v = nn.ModuleList(
+            nn.Linear(1, hidden_size, dtype=DTYPE) for _ in range(size)
+        )
+        self.attention1 = nn.MultiheadAttention(
+            hidden_size, size, batch_first=True, dtype=DTYPE
+        )
+        self.attention_linear1 = nn.Linear(size * hidden_size, hidden_size, dtype=DTYPE)
+        self.last_linear = nn.Linear(hidden_size, 1, dtype=DTYPE)
+
+    def forward(self, x):
+        x = self.flatten(x)
+        tiles = torch.split(x, 1, dim=1)
+        q = torch.stack([torch.relu(q(tile)) for q, tile in zip(self.q, tiles)], dim=1)
+        k = torch.stack([torch.relu(k(tile)) for k, tile in zip(self.k, tiles)], dim=1)
+        v = torch.stack([torch.relu(v(tile)) for v, tile in zip(self.v, tiles)], dim=1)
+        x, _ = self.attention1(q, k, v)
+        x = self.flatten(x)  # (N, L, E) -> (N, L*E)
+        x = torch.relu(self.attention_linear1(x))
         x = self.last_linear(x)
         return x
 

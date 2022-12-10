@@ -70,6 +70,7 @@ def load_checkpoint(
     model: nn.Module,
     tag: str = "acc",
     optimizer: Optional[optim.Optimizer] = None,
+    path: Optional[str] = None,
 ) -> dict:
     """
     Loads a model and optimizer state from the specified epoch.
@@ -87,15 +88,17 @@ def load_checkpoint(
     Args:
         model: The module to load weights into
         optimizer: The optimizer state to restore. If ``None``, ignored.
-        tag: The checkpoint tag to load. If ``None``, latest checkpo
+        tag: The checkpoint tag to load. If ``None``, latest checkpoint is used
+        path: Path to checkpoint. If None, is default path is determined from tag
 
     Returns:
         The checkpoint ``dict``. If not found, returns ``dict`` with default values
         that can be used at the start of search.
     """
-    checkpoint_path = paths.get_checkpoint_path(model.h, model.w, tag)
+    if path is None:
+        path = paths.get_checkpoint_path(model.h, model.w, tag)
     try:
-        checkpoint = torch.load(str(checkpoint_path))
+        checkpoint = torch.load(str(path))
         model.load_state_dict(checkpoint["model_state_dict"])
         if optimizer is not None:
             optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
@@ -168,6 +171,7 @@ def train(
     model: nn.Module,
     dataset: SlidingPuzzleDataset,
     train_fraction: float = 0.9,
+    lr=0.0001,
     num_epochs: int = 0,
     batch_size: int = 256,
     early_quit_epochs: int = 100,
@@ -193,6 +197,7 @@ def train(
         model: The model instance to train
         dataset: A dataset to use.
         train_fraction: The train/test split
+        lr: The learning rate for the optimizer
         num_epochs: Total number of epochs model should be trained for. Use 0 to run
             until the ``early_quit_epochs`` logic is hit.
         batch_size: Batch size to use for training
@@ -247,7 +252,7 @@ def train(
 
     # prepare model
     model.to(device)
-    optimizer = optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
+    optimizer = optim.SGD(model.parameters(), lr=lr, momentum=0.9)
     highest_acc = load_checkpoint(model, tag="acc", optimizer=optimizer)[
         "test_accuracy"
     ]

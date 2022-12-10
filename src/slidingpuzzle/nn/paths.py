@@ -16,8 +16,6 @@
 Utilities for dealing with paths required during model training and inference.
 """
 
-from typing import Optional
-
 import pathlib
 import shutil
 

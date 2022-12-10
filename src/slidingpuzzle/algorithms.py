@@ -142,7 +142,7 @@ def a_star(board: Board, **kwargs) -> SearchResult:
         generated += len(next_states)
 
     # if we are here, no solution was found
-    return SearchResult(board, generated, expanded, list(unvisited), visited, None)
+    return SearchResult(board, generated, expanded, unvisited, visited, None)
 
 
 def beam(board: Board, **kwargs) -> SearchResult:
@@ -213,7 +213,7 @@ def beam(board: Board, **kwargs) -> SearchResult:
         unvisited = next_level[-width:]
 
     # if we are here, no solution was found
-    return SearchResult(board, generated, expanded, list(unvisited), visited, None)
+    return SearchResult(board, generated, expanded, unvisited, visited, None)
 
 
 def bfs(board: Board, **kwargs) -> SearchResult:
@@ -266,7 +266,7 @@ def bfs(board: Board, **kwargs) -> SearchResult:
         generated += len(next_states)
 
     # if we are here, no solution was found
-    return SearchResult(board, generated, expanded, list(unvisited), visited, None)
+    return SearchResult(board, generated, expanded, unvisited, visited, None)
 
 
 def dfs(board: Board, **kwargs) -> SearchResult:
@@ -319,7 +319,7 @@ def dfs(board: Board, **kwargs) -> SearchResult:
         generated += len(next_states)
 
     # if we are here, no solution was found
-    return SearchResult(board, generated, expanded, list(unvisited), visited, None)
+    return SearchResult(board, generated, expanded, unvisited, visited, None)
 
 
 def greedy(board: Board, **kwargs) -> SearchResult:
@@ -380,7 +380,7 @@ def greedy(board: Board, **kwargs) -> SearchResult:
         generated += len(next_states)
 
     # if we are here, no solution was found
-    return SearchResult(board, generated, expanded, list(unvisited), visited, None)
+    return SearchResult(board, generated, expanded, unvisited, visited, None)
 
 
 def ida_star(board: Board, **kwargs) -> SearchResult:
@@ -459,7 +459,7 @@ def ida_star(board: Board, **kwargs) -> SearchResult:
             visited.clear()
 
     # if we are here, no solution was found
-    return SearchResult(board, generated, expanded, list(unvisited), visited, None)
+    return SearchResult(board, generated, expanded, unvisited, visited, None)
 
 
 def iddfs(board: Board, **kwargs) -> SearchResult:
@@ -523,7 +523,7 @@ def iddfs(board: Board, **kwargs) -> SearchResult:
             visited.clear()
 
     # if we are here, no solution was found
-    return SearchResult(board, generated, expanded, list(unvisited), visited, None)
+    return SearchResult(board, generated, expanded, unvisited, visited, None)
 
 
 ALGORITHMS_MAP = {

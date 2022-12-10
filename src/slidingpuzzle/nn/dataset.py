@@ -137,7 +137,8 @@ def save_examples(examples: list[Example], examples_file: Optional[str] = None) 
     if 0 == len(examples):
         return
     if examples_file is None:
-        h, w = len(examples[0]), len(examples[0][0])
+        board, _ = examples[0]
+        h, w = len(board), len(board[0])
         examples_file = paths.get_examples_path(h, w)
     with open(examples_file, "wt") as fp:
         json.dump(examples, fp)
