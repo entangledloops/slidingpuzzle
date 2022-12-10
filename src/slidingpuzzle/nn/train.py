@@ -131,7 +131,7 @@ def launch_tensorboard(dirname: str = paths.TENSORBOARD_DIR) -> str:
     return url
 
 
-def linear_regression_beta(data: Collection[float]):
+def linear_regression_beta(data: Collection[float]) -> float:
     r"""
     Calculates the :math:`\beta` (slope) of the linear regresion of ``data``.
     Used to determine which direction a trend appears to be moving. The formula
