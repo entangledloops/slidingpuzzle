@@ -292,8 +292,8 @@ You can freeze your preferred model to disk to be used as the default for `nn.v1
 Your model will now be available whenever you import `slidingpuzzle.nn`.
 
 ```python
->>> compare(3, 3, ha=nn.v1_distance, hb=manhattan_distance, num_iters=128, weight=7)
-(73.375, 514.1328125)
+>>> compare(3, 3, ha=nn.v1_distance, hb=linear_conflict_distance, num_iters=256)
+(85.43, 1445.38)
 ```
 
 Training uses GPU if available and falls back to CPU otherwise.
