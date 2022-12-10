@@ -29,9 +29,9 @@ import tensorboard
 import torch
 import torch.nn as nn
 import torch.optim as optim
+import tqdm
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
-import tqdm
 from tqdm.contrib.logging import tqdm_logging_redirect
 
 import slidingpuzzle.nn.models as models
@@ -131,7 +131,7 @@ def launch_tensorboard(dirname: str = paths.TENSORBOARD_DIR) -> str:
     return url
 
 
-def linear_regression_beta(data):
+def linear_regression_beta(data: Collection[float]):
     r"""
     Calculates the :math:`\beta` (slope) of the linear regresion of ``data``.
     Used to determine which direction a trend appears to be moving. The formula
