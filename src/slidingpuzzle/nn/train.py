@@ -171,7 +171,7 @@ def train(
     model: nn.Module,
     dataset: SlidingPuzzleDataset,
     train_fraction: float = 0.9,
-    lr=0.0001,
+    lr: float = 0.0001,
     num_epochs: int = 0,
     batch_size: int = 256,
     early_quit_epochs: int = 100,
