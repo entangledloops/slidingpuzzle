@@ -497,7 +497,7 @@ def shuffle_lazy(
     return board
 
 
-def solution_as_tiles(board: Board, solution: list[tuple[int, int]]) -> list[int]:
+def solution_as_tiles(board: Board, solution: Iterable[tuple[int, int]]) -> list[int]:
     r"""
     Converts a list of (y, x)-coords indicating moves into tile numbers,
     given a starting board configuration.
@@ -514,7 +514,7 @@ def solution_as_tiles(board: Board, solution: list[tuple[int, int]]) -> list[int
     blank_pos = find_blank(board)
     for move in solution:
         y, x = move
-        tiles.append(board[y][x])
+        tiles.append(int(board[y][x]))
         swap_tiles(board, blank_pos, move)
         blank_pos = move
     return tiles

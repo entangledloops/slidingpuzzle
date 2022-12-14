@@ -18,9 +18,11 @@ Neural networks for guiding heuristic search.
 
 from slidingpuzzle.nn.dataset import (
     SlidingPuzzleDataset,
+    all_examples,
     build_or_load_dataset,
+    load_dataset,
     load_examples,
-    make_examples,
+    random_examples,
     save_examples,
 )
 
@@ -36,11 +38,13 @@ from slidingpuzzle.nn.heuristics import (
     make_heuristic,
     set_heuristic,
     v1_distance,
+    v2_distance,
 )
 
 from slidingpuzzle.nn.models import (
     Model_v1,
     Model_v2,
+    get_num_params,
     load_model,
     save_model,
 )

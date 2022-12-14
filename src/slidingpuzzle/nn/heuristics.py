@@ -78,3 +78,18 @@ def v1_distance(board: Board) -> float:
     h, w = len(board), len(board[0])
     heuristic = get_heuristic(h, w, models.VERSION_1)
     return heuristic(board)
+
+
+def v2_distance(board: Board) -> float:
+    """
+    A neural network that estimates distance to goal
+
+    Args:
+        board: The board
+
+    Returns:
+        An estimated number of moves to reach the goal
+    """
+    h, w = len(board), len(board[0])
+    heuristic = get_heuristic(h, w, models.VERSION_2)
+    return heuristic(board)

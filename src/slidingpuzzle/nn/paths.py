@@ -26,15 +26,18 @@ MODELS_DIR = "models"
 TENSORBOARD_DIR = "tensorboard"
 
 
-def clear_training() -> None:
+def clear_training(h: int, w: int) -> None:
     r"""
     Removes checkpoints and tensorboard logs.
     """
-    shutil.rmtree(CHECKPOINT_DIR, ignore_errors=True)
-    shutil.rmtree(TENSORBOARD_DIR, ignore_errors=True)
+    shutil.rmtree(get_checkpoint_dir(h, w), ignore_errors=True)
+    shutil.rmtree(get_log_dir(h, w), ignore_errors=True)
 
 
 def get_board_size_str(h: int, w: int) -> str:
+    """
+    Helper to get a string encoding height and width.
+    """
     return f"{h}x{w}"
 
 
@@ -55,6 +58,20 @@ def get_path(dirname: str, filename: str) -> pathlib.Path:
     return dirpath / filename
 
 
+def get_checkpoint_dir(h: int, w: int) -> pathlib.Path:
+    """
+    Get the path to store checkpoints for this board size.
+
+    Args:
+        h: Board height
+        w: Board width
+
+    Returns:
+        The checkpoint dir path
+    """
+    return pathlib.Path(CHECKPOINT_DIR) / get_board_size_str(h, w)
+
+
 def get_checkpoint_path(h: int, w: int, tag: str) -> pathlib.Path:
     """
     Get the path to a checkpoint, given a board size and optional tag.
@@ -63,9 +80,11 @@ def get_checkpoint_path(h: int, w: int, tag: str) -> pathlib.Path:
         h: Board height
         w: Board width
         tag: Checkpoint tag to load
+
+    Returns:
+        The path to the checkpoint file
     """
-    checkpoint_name = f"{get_board_size_str(h, w)}_{tag}"
-    return get_path(CHECKPOINT_DIR, f"checkpoint_{checkpoint_name}")
+    return get_path(get_checkpoint_dir(h, w), f"checkpoint_{tag}")
 
 
 def get_examples_path(h: int, w: int) -> pathlib.Path:
@@ -78,6 +97,6 @@ def get_model_path(h: int, w: int, version: str) -> pathlib.Path:
     return get_path(MODELS_DIR, f"{version}_{board_size_str}.pt")
 
 
-def get_log_dir(tensorboard_dir: str, h: int, w: int) -> pathlib.Path:
+def get_log_dir(h: int, w: int) -> pathlib.Path:
     board_size_str = get_board_size_str(h, w)
-    return get_path(tensorboard_dir, f"slidingpuzzle_{board_size_str}")
+    return get_path(TENSORBOARD_DIR, f"slidingpuzzle_{board_size_str}")

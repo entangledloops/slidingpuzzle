@@ -17,6 +17,8 @@ A package for solving sliding tile puzzles.
   - [Algorithms](#algorithms)
   - [Heuristics](#heuristics)
     - [Neural Nets](#neural-nets)
+    - [Datasets](#datasets)
+    - [Train](#train)
   - [Custom Models](#custom-models)
   - [Contributing](#contributing)
 
@@ -221,34 +223,69 @@ plt.show()
 
 ### Neural Nets
 
-Well-trained neural networks are generally superior to the other heuristics. Pre-trained nets will be available for download soon. For now, you can follow the steps below to train and use your own net from scratch using the models defined in [`slidingpuzzle.nn.models`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.nn.html#module-slidingpuzzle.nn.models).
+([Download Pretrained Models](https://huggingface.co/entangledloops/slidingpuzzle))
 
 ```console
 pip install -r requirements-nn.txt
 ```
 > **_Note:_**  This will install a specific tested version of PyTorch. If you want another version, you will need to follow the [official instructions](https://pytorch.org/).
 
+After downloading a model, create a `models` directory and paste the `pt` file there. The model is now available. For example:
+
+```python
+>>> evaluate(3, 3, heuristic=nn.v1_distance)
+88.75
+```
+
+Well-trained neural networks are far superior to the other heuristics.
+
+To train them yourself, you can generate the datasets locally or download datasets from the HuggingFace link above.
+
+### Datasets
+([Download Datasets](https://huggingface.co/datasets/entangledloops/slidingpuzzle))
+
+You can download existing datasets and use them directly. Place a dataset file into a local directory `datasets` and it will be available.
+
+**If you've downloaded a dataset, you can skip to [Train](#Train) directly. The examples below are for creating new datasets.**
+
+You can also build your build your own dataset.
+Here are some options, from easiest to most difficult:
+
+1. Use reverse BFS to generate all boards in order
+```python
+examples = nn.all_examples(4, 4)  # interrupt this after you have enough boards
+nn.save_examples(examples)
+```
+2. Randomly sample boards and solve them
+```python
+examples = nn.random_examples(4, 4, 2**14)
+nn.save_examples(examples)
+```
+3. Generate all boards in lexicographical order and solve them
+```python
+examples = []
+for board in board_generator(4, 4):
+    result = search(board)
+    solution = tuple(solution_as_tiles(result.solution))
+    examples.append((freeze_board(board), solution))
+```
+> **_Note:_**  Code in number 3 is a slight oversimplification. To save more time, you would want to use the intermediate board states as examples. Take a look at the source code for [`random_examples()`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.nn.html#slidingpuzzle.nn.dataset.random_examples).
+### Train
+
+Follow the steps below to train and use your own net from scratch using the models defined in [`slidingpuzzle.nn.models`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.nn.html#module-slidingpuzzle.nn.models).
+
 You can then train a new network easily:
 
 ```python
->>> import slidingpuzzle.nn as nn
->>> nn.set_seed(0)  # if you want reproducible weights
->>> h, w = 3, 3
->>> dataset = nn.build_or_load_dataset(h, w, 2**14)
->>> model = nn.Model_v1(h, w)
->>> nn.train(model, dataset)
+import slidingpuzzle.nn as nn
+import torch.optim as optim
+h, w = 3, 3
+dataset = nn.load_dataset(h, w)
+nn.set_seed(0)  # if you want reproducible weights
+model = nn.Model_v1(h, w)
+optimizer = optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
+nn.train(model, optimizer, dataset)
 ```
-Unless you are providing your own dataset, for model sizes larger than `3 x 3` you may need to pass `kwargs` to [`build_or_load_dataset()`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.nn.html#slidingpuzzle.nn.dataset.build_or_load_dataset) so that the search algorithm used for generating training example can find solutions in a reasonable timeframe. For example:
-
-```python
->>> import slidingpuzzle.nn as nn
->>> h, w = 4, 4
->>> dataset = nn.build_or_load_dataset(h, w, 2**14, weight=2)  # use Weighted A* with weight of 2; all kwargs forwarded to search()
->>> model = nn.Model_v1(h, w)
->>> nn.train(model, dataset)
-```
-
-The default behavior runs until it appears test accuracy has been declining for "a while". See the docs for for details.
 
 If you left the default settings for ``checkpoint_freq``, you will now have various model checkpoints available from training.
 
@@ -287,16 +324,16 @@ You can freeze your preferred model to disk to be used as the default for `nn.v1
 ```python
 >>> nn.save_model(model)
 ```
-> **_Note:_** This may overwrite a previously saved model.
+> **_Note:_** Model will be saved into a ``./models`` directory as torchscript. This may overwrite a previously saved model.
 
-Your model will now be available whenever you import `slidingpuzzle.nn`.
+The model will now be available whenever you import `slidingpuzzle.nn`.
 
 ```python
 >>> compare(3, 3, ha=nn.v1_distance, hb=linear_conflict_distance, num_iters=256)
 (85.43, 1445.38)
 ```
 
-Training uses GPU if available and falls back to CPU otherwise.
+By default, training uses GPU if available and falls back to CPU otherwise.
 
 ## Custom Models
 
@@ -304,10 +341,9 @@ First define your `torch.nn.Module` somewhere.
 Your model class must:
 - have a unique `self.version` string that is safe to use in filenames (e.g. `"my_model_version"`)
 - have `self.h` and `self.w` indicating the input board dimensions it expects,
-- have a `forward()` that accepts board as a tensor constructed by:
+- have a `forward()` that accepts a batch of board tensors constructed by:
   - `torch.tensor(board, dtype=torch.float32)`
-  - (The tensor above does not include the batch dimension.)
-  - For example, expect: `model(board)`
+  - For example, expect: `model(batch)`
 
 Train and save your model as above.
 

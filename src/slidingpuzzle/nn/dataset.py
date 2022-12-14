@@ -18,6 +18,8 @@ Utilities for creating, saving, and loading board datasets.
 
 from typing import Iterable, Optional, TypeAlias
 
+import collections
+import gc
 import json
 import logging
 
@@ -28,16 +30,20 @@ import tqdm
 import slidingpuzzle.algorithms as algorithms
 import slidingpuzzle.nn.paths as paths
 from slidingpuzzle.board import (
+    Board,
     FrozenBoard,
+    find_blank,
     freeze_board,
     new_board,
     shuffle,
+    solution_as_tiles,
     swap_tiles,
     visit,
 )
+from slidingpuzzle.state import State
 
 
-Example: TypeAlias = tuple[FrozenBoard, int]
+Example: TypeAlias = tuple[FrozenBoard, list[int]]
 log = logging.getLogger(__name__)
 
 
@@ -47,7 +53,7 @@ class SlidingPuzzleDataset(torch.utils.data.Dataset):
         self.examples = [
             (
                 torch.tensor(x, dtype=torch.float32),
-                torch.tensor([y], dtype=torch.float32),
+                torch.tensor([len(y)], dtype=torch.float32),
             )
             for x, y in examples
         ]
@@ -59,7 +65,55 @@ class SlidingPuzzleDataset(torch.utils.data.Dataset):
         return self.examples[idx]
 
 
-def make_examples(
+def all_examples(
+    h: int, w: int, start: int = 0, stop: Optional[int] = None
+) -> list[Example]:
+    """
+    Helper to generate all training examples for a board size by performing reverse BFS.
+
+    .. note::
+        It is safe to interrupt this function any time with a keyboard interrupt and
+        receive back the examples generated so far.
+
+    Args:
+        h: Height of the board
+        w: Width of the board
+        start: Start index (0 starts at the initial solved board)
+        stop: Index to stop at (``None`` will product all boards)
+
+    Returns:
+         A list of examples.
+    """
+    visited: set[FrozenBoard] = set()
+    examples = []
+    board = new_board(h, w)
+    initial_state = State(board, find_blank(board))
+    unvisited = collections.deque([initial_state])
+    count = 0
+    pbar = tqdm.tqdm()
+    try:
+        while unvisited and (stop is None or count < stop):
+            count += 1
+            state = unvisited.popleft()
+            if count < start or visit(visited, state.board):
+                continue
+            board = freeze_board(state.board)
+            solution = tuple(solution_as_tiles(state.board, reversed(state.history)))
+            examples.append((board, solution))
+            pbar.update(1)
+            next_states = algorithms.get_next_states(state)
+            # patch the history to reflect that this search is backwards
+            for ns in next_states:
+                ns.history[-1] = state.blank_pos
+            unvisited.extend(next_states)
+    except KeyboardInterrupt:
+        log.info(f"Example generation interrupted, returning {len(examples)} examples.")
+    finally:
+        pbar.close()
+    return examples
+
+
+def random_examples(
     h: int,
     w: int,
     num_examples: int,
@@ -91,31 +145,33 @@ def make_examples(
         if dupe_found:
             log.warning("Duplicate found in prior examples.")
 
+    def add_examples(board: Board) -> None:
+        # free memory from prior searches
+        gc.collect()
+
+        # find a path to use as an accurate training reference
+        result = algorithms.search(board, **kwargs)
+
+        # we can use all intermediate boards as examples
+        while len(examples) < num_examples:
+            solution = tuple(solution_as_tiles(result.board, result.solution))
+            examples.append((freeze_board(board), solution))
+            pbar.update(1)
+            if not len(result.solution):
+                break
+            swap_tiles(board, result.solution.pop(0))
+            if visit(visited, board):
+                break
+
     # TODO: parallelize
     try:
         with tqdm.tqdm(total=num_examples) as pbar:
             while len(examples) < num_examples:
-                board = new_board(h, w)
-                shuffle(board)
-                if visit(visited, board):
-                    continue
-
-                # find a path to use as an accurate training reference
-                result = algorithms.search(board, **kwargs)
-
-                # we can use all intermediate boards as examples
-                while len(examples) < num_examples:
-                    distance = len(result.solution)
-                    examples.append((freeze_board(board), distance))
-                    pbar.update(1)
-                    if not len(result.solution):
-                        break
-                    move = result.solution.pop(0)
-                    swap_tiles(board, move)
-                    if visit(visited, board):
-                        break
+                board = shuffle(new_board(h, w))
+                if not visit(visited, board):
+                    add_examples(board)
     except KeyboardInterrupt:
-        log.info(f"Example generation interrupted, returning {len(examples)} examples")
+        log.info(f"Example generation interrupted, returning {len(examples)} examples.")
 
     return examples
 
@@ -157,7 +213,9 @@ def get_examples(
     if len(examples) < num_examples:
         num_new_examples = num_examples - len(prior_examples)
         log.info(f"Constructing {num_new_examples} new examples...")
-        examples.extend(make_examples(h, w, num_new_examples, prior_examples, **kwargs))
+        examples.extend(
+            random_examples(h, w, num_new_examples, prior_examples, **kwargs)
+        )
     return examples
 
 
@@ -208,4 +266,28 @@ def build_or_load_dataset(
             log.info("Dataset saved.")
         examples = new_examples
 
+    return SlidingPuzzleDataset(examples)
+
+
+def load_dataset(
+    h: int, w: int, examples_file: Optional[str] = None
+) -> SlidingPuzzleDataset:
+    """
+    Loads examples, constructs a SlidingPuzzleDataset from them, and returns it.
+
+    Args:
+        h: The height of the board to locate a dataset for
+        w: The width of the board to locate a dataset for
+        examples_file: Path to file. Default will check local ``datasets`` directory.
+
+    Returns:
+        A dataset for the requested puzzle size.
+    """
+    log.info("Loading dataset...")
+    try:
+        examples = load_examples(h, w, examples_file)
+        log.info(f"Dataset loaded with {len(examples)} examples.")
+    except FileNotFoundError:
+        log.info("No dataset found.")
+        examples = []
     return SlidingPuzzleDataset(examples)

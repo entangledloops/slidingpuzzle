@@ -41,8 +41,7 @@ class Model_v1(nn.Module):
         SGD(lr = 0.001, momentum = 0.9)
         MSELoss
 
-    Achieves a peak test accuracy of 56.74% after 138 epochs.
-    Total parameters: 1056257
+    Total parameters: 1322496
     """
 
     def __init__(self, h: int, w: int) -> None:
@@ -51,20 +50,29 @@ class Model_v1(nn.Module):
         self.h = h  # required
         self.w = w  # required
         hidden_size = 512
-        n_layers = 4
-        self.flatten = nn.Flatten()
-        self.first_linear = nn.Linear(h * w, hidden_size, dtype=DTYPE)
-        self.linears = nn.ModuleList(
-            nn.Linear(hidden_size, hidden_size, dtype=DTYPE) for _ in range(n_layers)
+        self.input = nn.Sequential(
+            nn.Flatten(),
+            nn.Linear(h * w, hidden_size, dtype=DTYPE),
+            nn.ReLU(),
+            nn.BatchNorm1d(hidden_size, dtype=DTYPE),
         )
-        self.last_linear = nn.Linear(hidden_size, 1, dtype=DTYPE)
+        n_layers = 5
+        self.linears = nn.Sequential(
+            *[
+                nn.Sequential(
+                    nn.Linear(hidden_size, hidden_size, bias=False, dtype=DTYPE),
+                    nn.ReLU(),
+                    nn.BatchNorm1d(hidden_size, dtype=DTYPE),
+                )
+                for _ in range(n_layers)
+            ]
+        )
+        self.output = nn.Linear(hidden_size, 1, bias=False, dtype=DTYPE)
 
     def forward(self, x):
-        x = self.flatten(x)
-        x = torch.relu(self.first_linear(x))
-        for linear in self.linears:
-            x = torch.relu(linear(x))
-        x = self.last_linear(x)
+        x = self.input(x)
+        x = self.linears(x)
+        x = self.output(x)
         return x
 
 
@@ -78,8 +86,7 @@ class Model_v2(nn.Module):
         SGD(lr = 0.0001, momentum = 0.9)
         MSELoss
 
-    Achieves a peak test accuracy of 55.75% after 270 epochs.
-    Total parameters: 1095553
+    Total parameters: 1170785
     """
 
     def __init__(self, h: int, w: int) -> None:
@@ -90,31 +97,53 @@ class Model_v2(nn.Module):
         size = h * w
         hidden_size = size * 32  # should be chosen so that is divisible by h*w
         self.flatten = nn.Flatten()
-        self.q = nn.ModuleList(
-            nn.Linear(1, hidden_size, dtype=DTYPE) for _ in range(size)
+        self.embed = nn.Sequential(
+            *[nn.Linear(1, hidden_size, dtype=DTYPE) for _ in range(size)]
         )
-        self.k = nn.ModuleList(
-            nn.Linear(1, hidden_size, dtype=DTYPE) for _ in range(size)
-        )
-        self.v = nn.ModuleList(
-            nn.Linear(1, hidden_size, dtype=DTYPE) for _ in range(size)
-        )
-        self.attention1 = nn.MultiheadAttention(
+        self.first_attention = nn.MultiheadAttention(
             hidden_size, size, batch_first=True, dtype=DTYPE
         )
-        self.attention_linear1 = nn.Linear(size * hidden_size, hidden_size, dtype=DTYPE)
-        self.last_linear = nn.Linear(hidden_size, 1, dtype=DTYPE)
+        self.first_attention_linear = nn.Linear(hidden_size, hidden_size, dtype=DTYPE)
+        self.first_attention_norm = nn.BatchNorm1d(size)
+        n_layers = 1
+        self.attentions = nn.Sequential(
+            *[
+                nn.Sequential(
+                    nn.MultiheadAttention(
+                        hidden_size, size, batch_first=True, dtype=DTYPE
+                    ),
+                    nn.Linear(hidden_size, hidden_size, dtype=DTYPE),
+                    nn.ReLU(),
+                    nn.BatchNorm1d(size, dtype=DTYPE),
+                )
+                for _ in range(n_layers)
+            ]
+        )
+        self.last_attention = nn.MultiheadAttention(
+            hidden_size, size, batch_first=True, dtype=DTYPE
+        )
+        self.last_attention_linear = nn.Linear(hidden_size, 1, dtype=DTYPE)
+        self.last_attention_norm = nn.BatchNorm1d(size)
+        self.output = nn.Linear(size, 1, bias=False, dtype=DTYPE)
 
     def forward(self, x):
+        # first embed and create initial q, k, v
         x = self.flatten(x)
-        tiles = torch.split(x, 1, dim=1)
-        q = torch.stack([torch.relu(q(tile)) for q, tile in zip(self.q, tiles)], dim=1)
-        k = torch.stack([torch.relu(k(tile)) for k, tile in zip(self.k, tiles)], dim=1)
-        v = torch.stack([torch.relu(v(tile)) for v, tile in zip(self.v, tiles)], dim=1)
-        x, _ = self.attention1(q, k, v)
-        x = self.flatten(x)  # (N, L, E) -> (N, L*E)
-        x = torch.relu(self.attention_linear1(x))
-        x = self.last_linear(x)
+        x = torch.split(x, 1, dim=-1)  # break up board into individual tile tensors
+        x = torch.stack([torch.relu(e(t)) for e, t in zip(self.embed, x)], dim=1)
+
+        # attention layers
+        x, _ = self.first_attention(x, x, x)
+        x = torch.relu(self.first_attention_linear(x))
+        x = self.first_attention_norm(x)
+        x = self.attentions(x)
+        x, _ = self.last_attention(x, x, x)
+        x = torch.relu(self.last_attention_linear(x))
+        x = self.last_attention_norm(x)
+
+        # output
+        x = self.flatten(x)
+        x = self.output(x)
         return x
 
 
@@ -151,3 +180,16 @@ def load_model(
     model = torch.jit.load(str(model_path), map_location=device)
     model.eval()
     return model
+
+
+def get_num_params(model: nn.Module) -> int:
+    """
+    Compute the total number of parameters in a model.
+
+    Args:
+        model: A model
+
+    Returns:
+        The total number of trainable parameters
+    """
+    return sum(p.numel() for p in model.parameters() if p.requires_grad)

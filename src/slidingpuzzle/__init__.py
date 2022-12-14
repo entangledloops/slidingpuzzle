@@ -65,6 +65,7 @@ from slidingpuzzle.board import (
     shuffle,
     shuffle_lazy,
     solution_as_tiles,
+    visit,
 )
 
 from slidingpuzzle.algorithms import (

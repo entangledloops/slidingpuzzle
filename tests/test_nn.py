@@ -16,14 +16,19 @@ from slidingpuzzle import *
 from slidingpuzzle.nn import *
 
 
-def test_make_examples():
-    examples = make_examples(3, 3, 100)
+def test_all_examples():
+    examples = all_examples(3, 3, 0, 10)
+    assert len(examples) == 7  # <10 b/c of duplicates
+
+
+def test_random_examples():
+    examples = random_examples(3, 3, 100)
     assert len(examples) == 100
 
 
-def test_make_examples2():
-    train_examples = make_examples(3, 3, 1)
-    test_examples = make_examples(3, 3, 1, train_examples)
+def test_random_examples2():
+    train_examples = tuple(ex for ex in random_examples(3, 3, 1))
+    test_examples = tuple(ex for ex in random_examples(3, 3, 1, train_examples))
     assert len(train_examples) + len(test_examples) == len(
         set(train_examples) | set(test_examples)
     )

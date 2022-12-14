@@ -54,6 +54,7 @@ def set_seed(seed: int) -> None:
     np.random.seed(seed)
     torch.manual_seed(seed)
     torch.cuda.manual_seed_all(seed)
+    torch.backends.cudnn.deterministic = True
 
 
 def get_state_dict(model: nn.Module, optimizer: optim.Optimizer, **kwargs) -> dict:
@@ -164,21 +165,20 @@ def linear_regression_beta(data: Collection[float]) -> float:
     y_mean = sum(data) / len(data)
     numerator = sum((x - x_mean) * (y - y_mean) for x, y in zip(range(len(data)), data))
     denominator = sum((x - x_mean) ** 2 for x in data)
-    return numerator / denominator
+    return (numerator / denominator) if 0 != denominator else 0
 
 
 def train(
     model: nn.Module,
+    optimizer: optim.Optimizer,
     dataset: SlidingPuzzleDataset,
     train_fraction: float = 0.9,
-    lr: float = 0.0001,
-    num_epochs: int = 0,
     batch_size: int = 256,
-    early_quit_epochs: int = 100,
+    num_epochs: int = 0,
+    early_quit_epochs: int = 0,
     early_quit_beta: float = 1e-4,
     device: Optional[str] = None,
     checkpoint_freq: int = 50,
-    tensorboard_dir: str = paths.TENSORBOARD_DIR,
     seed: int = 0,
 ) -> None:
     """
@@ -195,12 +195,12 @@ def train(
 
     Args:
         model: The model instance to train
+        optimizer: Optimizer to train with
         dataset: A dataset to use.
         train_fraction: The train/test split
-        lr: The learning rate for the optimizer
+        batch_size: Batch size to use for training
         num_epochs: Total number of epochs model should be trained for. Use 0 to run
             until the ``early_quit_epochs`` logic is hit.
-        batch_size: Batch size to use for training
         early_quit_epochs: We will hold an ``early_quit_epochs``-sized window of test
             loss values. If the linear regression slope of these data points is
             > ``early_quit_beta``, we will terminate training early. Use 0 to disable
@@ -213,7 +213,6 @@ def train(
         checkpoint_freq: Model will be checkpointed each time this many epochs
             elapse. If 0, no epoch checkpoints will be used. (Highest test acc. will
             still be checkpointed and also final checkpoint on termination.)
-        tensorboard_dir: The root tensorboard dir for logs. Default is "tensorboard".
         seed: Seed used for torch random utilities for reproducibility
 
     Note:
@@ -228,9 +227,9 @@ def train(
     set_seed(seed)
 
     # prepare tensorboard to record training
-    url = launch_tensorboard(tensorboard_dir)
+    url = launch_tensorboard()
     log.info(f"Tensorboard launched: {url}")
-    log_dir = paths.get_log_dir(tensorboard_dir, h, w)
+    log_dir = paths.get_log_dir(h, w)
     num_examples = len(dataset)
     comment = f"EXAMPLES_{num_examples}_BS_{batch_size}"
     writer = SummaryWriter(log_dir, comment=comment)
@@ -251,8 +250,8 @@ def train(
     log.info(f"train_size={train_size}, test_size={test_size}")
 
     # prepare model
+    log.info(f"Model has {models.get_num_params(model)} trainable parameters.")
     model.to(device)
-    optimizer = optim.SGD(model.parameters(), lr=lr, momentum=0.9)
     highest_acc = load_checkpoint(model, tag="acc", optimizer=optimizer)[
         "test_accuracy"
     ]
@@ -309,6 +308,9 @@ def train(
             pbar.set_description(f"test/acc: {test_accuracy:0.5f}")
             pbar.update(1)
 
+            if test_loss < 1e-5:
+                log.info("Quitting early due to 0 training loss.")
+                break
             if test_accuracy > highest_acc:
                 # save a tagged checkpoint for highest acc
                 highest_acc = test_accuracy
