@@ -122,7 +122,7 @@ def random_examples(
 ) -> list[Example]:
     """
     Constructs a list of training examples, which are tuples of:
-        (board, num_moves_to_goal)
+        (board, solution)
 
     Args:
         h: Height of board.
@@ -163,7 +163,6 @@ def random_examples(
             if visit(visited, board):
                 break
 
-    # TODO: parallelize
     try:
         with tqdm.tqdm(total=num_examples) as pbar:
             while len(examples) < num_examples:

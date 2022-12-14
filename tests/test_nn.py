@@ -18,7 +18,9 @@ from slidingpuzzle.nn import *
 
 def test_all_examples():
     examples = all_examples(3, 3, 0, 10)
-    assert len(examples) == 7  # <10 b/c of duplicates
+    assert len(examples) == 7, examples  # <10 b/c of duplicates
+    # ensure there is at least 1 solution with size > 1
+    assert any(len(y) > 1 for _, y in examples), examples
 
 
 def test_random_examples():

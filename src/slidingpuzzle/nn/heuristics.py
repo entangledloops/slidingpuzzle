@@ -32,10 +32,11 @@ def get_heuristic_key(h: int, w: int, version: str):
 
 
 def make_heuristic(model: torch.nn.Module | torch.ScriptModule):
-    device = "cuda" if torch.cuda.is_available() else "cpu"
+    device = models.DEVICE
+    dtype = models.DTYPE
 
     def heuristic(board: tuple[list[int], ...]) -> float:
-        tensor = torch.tensor(board, dtype=torch.float32).unsqueeze(0).to(device)
+        tensor = torch.tensor(board, dtype=dtype).unsqueeze(0).to(device)
         return model(tensor).item()
 
     return heuristic

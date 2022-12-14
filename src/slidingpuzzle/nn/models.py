@@ -86,7 +86,7 @@ class Model_v2(nn.Module):
         SGD(lr = 0.0001, momentum = 0.9)
         MSELoss
 
-    Total parameters: 1170785
+    Total parameters: 1170767
     """
 
     def __init__(self, h: int, w: int) -> None:
@@ -97,34 +97,32 @@ class Model_v2(nn.Module):
         size = h * w
         hidden_size = size * 32  # should be chosen so that is divisible by h*w
         self.flatten = nn.Flatten()
-        self.embed = nn.Sequential(
-            *[nn.Linear(1, hidden_size, dtype=DTYPE) for _ in range(size)]
+        self.embed = nn.ModuleList(
+            nn.Linear(1, hidden_size, dtype=DTYPE) for _ in range(size)
         )
         self.first_attention = nn.MultiheadAttention(
             hidden_size, size, batch_first=True, dtype=DTYPE
         )
         self.first_attention_linear = nn.Linear(hidden_size, hidden_size, dtype=DTYPE)
         self.first_attention_norm = nn.BatchNorm1d(size)
+
         n_layers = 1
-        self.attentions = nn.Sequential(
-            *[
-                nn.Sequential(
-                    nn.MultiheadAttention(
-                        hidden_size, size, batch_first=True, dtype=DTYPE
-                    ),
-                    nn.Linear(hidden_size, hidden_size, dtype=DTYPE),
-                    nn.ReLU(),
-                    nn.BatchNorm1d(size, dtype=DTYPE),
-                )
-                for _ in range(n_layers)
-            ]
+        self.attentions = nn.ModuleList(
+            nn.MultiheadAttention(hidden_size, size, batch_first=True, dtype=DTYPE)
+            for _ in range(n_layers)
         )
+        self.linears = nn.ModuleList(
+            nn.Linear(hidden_size, hidden_size, dtype=DTYPE) for _ in range(n_layers)
+        )
+        self.norms = nn.ModuleList(
+            nn.BatchNorm1d(size, dtype=DTYPE) for _ in range(n_layers)
+        )
+
         self.last_attention = nn.MultiheadAttention(
             hidden_size, size, batch_first=True, dtype=DTYPE
         )
         self.last_attention_linear = nn.Linear(hidden_size, 1, dtype=DTYPE)
-        self.last_attention_norm = nn.BatchNorm1d(size)
-        self.output = nn.Linear(size, 1, bias=False, dtype=DTYPE)
+        self.output = nn.Linear(size, 1, dtype=DTYPE)
 
     def forward(self, x):
         # first embed and create initial q, k, v
@@ -136,10 +134,14 @@ class Model_v2(nn.Module):
         x, _ = self.first_attention(x, x, x)
         x = torch.relu(self.first_attention_linear(x))
         x = self.first_attention_norm(x)
-        x = self.attentions(x)
+
+        for atn, lin, nrm in zip(self.attentions, self.linears, self.norms):
+            x, _ = atn(x, x, x)
+            x = torch.relu(lin(x))
+            x = nrm(x)
+
         x, _ = self.last_attention(x, x, x)
         x = torch.relu(self.last_attention_linear(x))
-        x = self.last_attention_norm(x)
 
         # output
         x = self.flatten(x)
