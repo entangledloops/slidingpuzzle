@@ -22,7 +22,7 @@ Examples:
     1 2 3
     4 5 6
     7 8
-    >>> print_board(shuffle_board(b))
+    >>> print_board(shuffle(b))
     1 6 7
     4   8
     5 3 2

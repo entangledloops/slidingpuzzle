@@ -21,7 +21,6 @@ that indicates the estimated distance from the goal.
 
 from typing import Callable, Iterator, Optional, TypeAlias
 
-import enum
 import logging
 import math
 
