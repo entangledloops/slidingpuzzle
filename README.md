@@ -372,9 +372,12 @@ After training is complete, you can also evaluate each checkpoint for comparison
 ## Contributing
 
 First of all, thanks for contributing!
-Setup your dev environment:
+Setup your a standard dev environment using something like `conda` or `venv`.
 
 ```console
+git clone https://github.com/entangledloops/slidingpuzzle.git
+cd slidingpuzzle
+pip install -e .
 pip install -r requirements-dev.txt
 pre-commit install
 ```

@@ -180,7 +180,7 @@ def last_moves_distance(board: Board) -> int:
         board: The board
 
     Returns:
-        2 if the both of the last two tiles adj. to the blank corner are outside of the
+        2 if both of the last two tiles adj. to the blank corner are outside of the
         blank row/col.
     """
     h, w = board.shape
@@ -280,7 +280,7 @@ def linear_conflict_distance(board: Board) -> int:
         a bool specifying whether the tile is in its goal line.
 
         Returns:
-            A tuple of line index, line values, and goal positions..
+            A tuple of line index, line values, and goal positions.
         """
         for y, row in enumerate(board):
             yield row, np.fromiter(
@@ -317,15 +317,18 @@ def linear_conflict_distance(board: Board) -> int:
                     continue
                 # check if these tiles are in conflict
                 if tile2 < tile1:
+                    log.info(f"{pos1} conflict: {tile2} < {tile1}")
                     conflicts[pos1] += 1
                     conflicts[pos2] += 1
         return conflicts
 
     for line, goals in line_generator():
-        line = np.copy(line)  # don't modify original board
-        while np.any(line_conflicts := get_line_conflicts(line, goals)):
+        conflicts = get_line_conflicts(line, goals)
+        while np.any(conflicts):
+            log.info(f"{dist}, {conflicts}")
             dist += 2
-            line[np.argmax(line_conflicts)] = BLANK
+            conflicts[np.argmax(conflicts)] = 0  # remove largest conflict
+            conflicts = conflicts[conflicts > 0] - 1  # decrement others
 
     dist += last_moves_distance(board)
     dist += corner_tiles_distance(board)
