@@ -317,7 +317,6 @@ def linear_conflict_distance(board: Board) -> int:
                     continue
                 # check if these tiles are in conflict
                 if tile2 < tile1:
-                    log.info(f"{pos1} conflict: {tile2} < {tile1}")
                     conflicts[pos1] += 1
                     conflicts[pos2] += 1
         return conflicts
@@ -325,7 +324,6 @@ def linear_conflict_distance(board: Board) -> int:
     for line, goals in line_generator():
         conflicts = get_line_conflicts(line, goals)
         while np.any(conflicts):
-            log.info(f"{dist}, {conflicts}")
             dist += 2
             conflicts[np.argmax(conflicts)] = 0  # remove largest conflict
             conflicts = conflicts[conflicts > 0] - 1  # decrement others
