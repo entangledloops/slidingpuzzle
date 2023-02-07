@@ -308,8 +308,8 @@ def train(
             pbar.set_description(f"test/acc: {test_accuracy:0.5f}")
             pbar.update(1)
 
-            if test_loss < 1e-5:
-                log.info("Quitting early due to 0 training loss.")
+            if test_loss < 1e-5 or running_loss < 1e-5:
+                log.info("Quitting early due to 0 loss.")
                 break
             if test_accuracy > highest_acc:
                 # save a tagged checkpoint for highest acc

@@ -72,18 +72,23 @@ def test_last_moves_distance():
 
 def test_linear_conflict_distance():
     board = from_rows([1, 2, 3], [4, 5, 6], [7, 0, 8])
+    assert linear_conflict_distance(board, optimized=False) == 0
     assert linear_conflict_distance(board) == 1
 
     board = from_rows([2, 1, 3], [4, 5, 6], [7, 8, 0])
-    assert linear_conflict_distance(board) == 4
+    assert linear_conflict_distance(board, optimized=False) == 2
+    assert linear_conflict_distance(board) == 6
 
     board = from_rows([4, 2, 3], [1, 5, 6], [7, 8, 0])
-    assert linear_conflict_distance(board) == 4
+    assert linear_conflict_distance(board, optimized=False) == 2
+    assert linear_conflict_distance(board) == 6
 
     board = from_rows([2, 1, 3], [4, 5, 6], [7, 0, 8])
+    assert linear_conflict_distance(board, optimized=False) == 2
     assert linear_conflict_distance(board) == 5
 
     board = from_rows([1, 2, 3], [6, 5, 4], [7, 8, 0])
+    assert linear_conflict_distance(board, optimized=False) == 4
     assert linear_conflict_distance(board) == 8
 
 
@@ -133,10 +138,12 @@ def test_heuristic_behavior():
 
 
 @pytest.mark.slow
-def test_heuristic_admissibility():
+@pytest.mark.parametrize("hw", [(3, 3)])
+def test_heuristic_admissibility(hw):
+    h, w = hw
     # validate that solutions are in line with BFS
     # this does not guarantee admissibility, it's just an empirical sanity check
-    boards = [shuffle(new_board(3, 3)) for _ in range(50)]
+    boards = [shuffle(new_board(h, w)) for _ in range(50)]
     optimal = [len(search(b, "bfs").solution) for b in boards]
     for h in (linear_conflict_distance, manhattan_distance):
         for b, o in zip(boards, optimal):
@@ -144,10 +151,32 @@ def test_heuristic_admissibility():
 
 
 @pytest.mark.skip
-def test_linear_conflict_distance_exhaustive():
-    start = 0
-    stop = None
-    for i, b in enumerate(board_generator(3, 3, start, stop)):
+@pytest.mark.slow
+@pytest.mark.parametrize("hw", [(3, 3)])
+def test_linear_conflict_distance_exhaustive(hw):
+    h, w = hw
+    start, stop = 0, None
+    for i, b in enumerate(board_generator(h, w, start, stop)):
         expected = len(search(b, heuristic=manhattan_distance).solution)
-        actual = len(search(b, heuristic=linear_conflict_distance).solution)
-        assert expected == actual, f"{start + i}: {b}"
+        actual = linear_conflict_distance(b)
+        assert expected >= actual, f"board #{start + i}: {b}"
+
+
+@pytest.mark.skip
+@pytest.mark.slow
+@pytest.mark.parametrize("hw", [(3, 3), (4, 4)])
+def test_linear_conflict_distance_exhaustive_dataset(hw):
+    r"""
+    This test is ths same as above, but faster if a dataset file is available
+    instead of re-generating and solving all boards from scratch.
+    """
+    import json
+
+    h, w = hw
+    with open(f"datasets/examples_{h}x{w}.json") as fp:
+        db = json.load(fp)
+    for i, (board, solution) in enumerate(db):
+        board = from_rows(*board)
+        expected = len(solution)
+        actual = linear_conflict_distance(board)
+        assert expected >= actual, f"board #{i}: {board}, {solution}"

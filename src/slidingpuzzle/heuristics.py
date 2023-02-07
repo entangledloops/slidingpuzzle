@@ -99,78 +99,74 @@ def hamming_distance(board: Board) -> int:
     return dist
 
 
-def has_row_conflict(
-    board: Board, y: int, x: int, ignore_x: Optional[int] = None
-) -> bool:
+def has_row_conflict(board: Board, y: int, x: int) -> bool:
     r"""
-    On row ``y``, we check every tile for conflict with column ``x`` (ignoring
-    ``ignore_x``). The skip variable is used to ignore a specific column, if desired.
+    On row ``y``, we check every tile for conflict with column ``x``.
 
     Args:
         board: The board:
         y: The row of interest
         x: The column we will be checking for involvement in any conflicts
-        ignore_x: A column to ignore during conflict checks
 
     Returns:
         True if column ``x`` is involved in any conflicts on row ``y``
     """
-    _, w = board.shape
+    h, w = board.shape
     for col1 in range(w):
         tile1 = board[y, col1]
-        if BLANK == tile1 or col1 == ignore_x:
+        # check conflict conditions
+        if BLANK == tile1 or get_goal_y(h, w, tile1) != y:
             continue
         for col2 in range(col1 + 1, w):
-            tile2 = board[y, col2]
             # skip tiles that don't involve our x of interest
-            if BLANK == tile2 or col2 == ignore_x or (col1 != x and col2 != x):
+            if col1 != x and col2 != x:
                 continue
-            if tile2 < tile1:
+            tile2 = board[y, col2]
+            # check conflict conditions
+            if BLANK == tile2 or get_goal_y(h, w, tile2) != y:
+                continue
+            if get_goal_x(h, w, tile2) < get_goal_x(h, w, tile1):
                 return True
     return False
 
 
-def has_col_conflict(
-    board: Board, y: int, x: int, ignore_y: Optional[int] = None
-) -> bool:
+def has_col_conflict(board: Board, y: int, x: int) -> bool:
     r"""
     See :func:`has_row_conflict`. This is identical, but swaps rows for columns.
     """
-    h, _ = board.shape
+    h, w = board.shape
     for row1 in range(h):
         tile1 = board[row1, x]
-        if BLANK == tile1 or row1 == ignore_y:
+        # check conflict conditions
+        if BLANK == tile1 or get_goal_x(h, w, tile1) != x:
             continue
         for row2 in range(row1 + 1, h):
-            tile2 = board[row2, x]
-            if BLANK == tile2 or row2 == ignore_y or (row1 != y and row2 != y):
+            if row1 != y and row2 != y:
                 continue
-            if tile2 < tile1:
+            tile2 = board[row2, x]
+            # check conflict conditions
+            if BLANK == tile2 or get_goal_x(h, w, tile2) != x:
+                continue
+            if get_goal_y(h, w, tile2) < get_goal_y(h, w, tile1):
                 return True
     return False
 
 
-def has_conflict(
-    board: Board,
-    y: int,
-    x: int,
-    ignore_y: Optional[int] = None,
-    ignore_x: Optional[int] = None,
-):
+def has_conflict(board: Board, y: int, x: int):
     r"""
     Combines :func:`has_row_conflict` and :func:`has_col_conflict` for convenience.
     """
-    return has_row_conflict(board, y, x, ignore_x) or has_col_conflict(
-        board, y, x, ignore_y
-    )
+    return has_row_conflict(board, y, x) or has_col_conflict(board, y, x)
 
 
-def last_moves_distance(board: Board) -> int:
+def last_moves_distance(board: Board, relaxed: bool = True) -> int:
     r"""
-    If the tiles required for the final move are not in appropriate positions, we must
-    make at least 2 more moves to shuffle them. This is similar to
-    :func:`corner_tiles_distance`, but specifically targets the goal corner, which has
-    slightly different constraints.
+    Immediately before the last move, one of the tiles adjacent to the blank tile must
+    be in the corner. If not, we must make at least 2 more moves to shuffle.
+    This is similar to :func:`corner_tiles_distance`, but specifically targets the goal
+    corner, which has slightly different constraints.This function also ensures
+    admissibility with :func:`manhattan_distance` and :func:`linear_conflict_distance`.
+    If you aren't using this with other heuristics, you can set ``relaxed=True``.
 
     Note:
         Currently this only considers the very last moves, not the moves also prior to
@@ -178,25 +174,31 @@ def last_moves_distance(board: Board) -> int:
 
     Args:
         board: The board
+        relaxed: If False, can be safely combined with  :func:`manhattan_distance` and
+            :func:`linear_conflict_distance`.
 
     Returns:
-        2 if both of the last two tiles adj. to the blank corner are outside of the
-        blank row/col.
+        2 if neither of the final tiles to move are in the final corner, else 0.
     """
     h, w = board.shape
     adj1 = get_goal_tile(h, w, (h - 2, w - 1))  # tile in row next to goal
     adj2 = get_goal_tile(h, w, (h - 1, w - 2))  # tile in col next to goal
-    adj1_y, adj1_x = find_tile(board, adj1)  # coords of these tiles on cur. board
-    adj2_y, adj2_x = find_tile(board, adj2)
     corner = board[-1, -1]
+    if corner == adj1 or corner == adj2 or is_solved(board):
+        return 0
+    if relaxed:
+        return 2
 
-    # can't add anything if corner neighbors are already in their dest.
+    # coords of these tiles on cur. board
+    adj1_y, adj1_x = find_tile(board, adj1)
+    adj2_y, adj2_x = find_tile(board, adj2)
+    # prevent interaction with Manhattan
     if adj1_y == h - 1 or adj2_x == w - 1:
         return 0
-    # prevent over-counting when used with linear conflict distance
-    if adj1_y == h - 2 and (BLANK == corner or has_row_conflict(board, adj1_y, adj1_x)):
+    # prevent interaction with linear conflict distance
+    if adj1_y == h - 2 and has_row_conflict(board, adj1_y, adj1_x):
         return 0
-    if adj2_x == w - 2 and (BLANK == corner or has_col_conflict(board, adj2_y, adj2_x)):
+    if adj2_x == w - 2 and has_col_conflict(board, adj2_y, adj2_x):
         return 0
 
     # if the tiles that must make the final move are not located next to their goal
@@ -204,18 +206,21 @@ def last_moves_distance(board: Board) -> int:
     return 2
 
 
-def corner_tiles_distance(board: Board, ignore_conflicts: bool = False) -> int:
+def corner_tiles_distance(board: Board, relaxed: bool = True) -> int:
     r"""
     If tiles that belong in corners are not there, but the adjacent tiles are correct,
     additional reshuffling will need to occur. We must ensure that row/col conflicts
     have not already accounted for this in order to combine admissibily with the
     :func:`linear_conflict_distance`.
 
+    Note:
+        This heuristic is inadmissible if used on boards of insufficient size. For
+        example, on a 3x3 board, the corners share some adjacent tiles and this
+        will result in overcounting.
+
     Args:
         board: The board
-        ignore_conflicts: If True, tiles adjacent to corners that have conflicts in
-            their row/col will still be counted. When True, this cannot be admissibly
-            combined with :func:`linear_conflict_distance`.
+        relaxed: If False, relevant tiles will be checked for linear conflicts.
 
     Returns:
         The additional distance required to shuffle corners into position.
@@ -223,20 +228,28 @@ def corner_tiles_distance(board: Board, ignore_conflicts: bool = False) -> int:
     h, w = board.shape
     dist = 0
 
-    def check_adjacent(y, x, corner) -> int:
+    def check_adjacent(y, x) -> int:
+        r""" "
+        Helper to ensure this corner-adjacent tile is in its correct position
+        and is not involved in a conflict.
+        """
         adj = get_goal_tile(h, w, (y, x))
-        if adj != board[y, x] or (
-            not ignore_conflicts and has_conflict(board, y, x, *corner)
-        ):
+        if adj != board[y, x] or (not relaxed and has_conflict(board, y, x)):
             return 0
         return 2
 
     def check_corner(y, x, adj1, adj2) -> int:
-        if board[y, x] == BLANK:
-            return 0
+        r"""
+        Checks if:
+            - Corner tile is out of position
+            - Corner adjacents are in correct position
+
+        Returns:
+            Either 0, 2, or 4 to be added to distance.
+        """
         corner = get_goal_tile(h, w, (y, x))
-        if board[y, x] != corner and board[adj1] != corner and board[adj2] != corner:
-            return check_adjacent(*adj1, (y, x)) + check_adjacent(*adj2, (y, x))
+        if BLANK != board[y, x] and corner != board[y, x]:
+            return check_adjacent(*adj1) + check_adjacent(*adj2)
         return 0
 
     # top-left corner
@@ -249,10 +262,10 @@ def corner_tiles_distance(board: Board, ignore_conflicts: bool = False) -> int:
     return dist
 
 
-def linear_conflict_distance(board: Board) -> int:
+def linear_conflict_distance(board: Board, optimized: bool = True) -> int:
     r"""
     Starts with Manhattan distance, then for each row and column, the number of tiles
-    "in conflict" are identified, and 2 * this number is added to the distance.
+    "in conflict" are identified, and 2 * this number is added to the total distance.
     (It will take at least 2 additional moves to reshuffle the conflicting tiles into
     their correct positions.) This is an admissible improvement over
     :func:`manhattan_distance` (`Hansson, Mayer, Young, 1985 <hannson_>`_).
@@ -261,6 +274,9 @@ def linear_conflict_distance(board: Board) -> int:
 
     Args:
         board: The board
+        optimized: If False, will not include :func:`manhattan_distance`,
+            :func:`last_moves_distance` and :func:`corner_tiles_distance`. It will
+            return only the base number of linear conflicts.
 
     Returns:
         Estimated distance to goal.
@@ -272,7 +288,7 @@ def linear_conflict_distance(board: Board) -> int:
         https://www.aaai.org/Library/AAAI/1996/aaai96-178.php
     """
     h, w = board.shape
-    dist = manhattan_distance(board)
+    dist = manhattan_distance(board) if optimized else 0
 
     def line_generator() -> Iterator[tuple[npt.NDArray, npt.NDArray]]:
         r"""
@@ -296,8 +312,8 @@ def linear_conflict_distance(board: Board) -> int:
         Helper to return a list of conflict counts for a line.
 
         Args:
-            line: The values in the line
-            goals: The goal positions for each tile in line
+            line: The tile values in the line
+            goals: True/False if goal position for each tile is in this line
 
         Returns:
             Conflict counts for each tile
@@ -322,14 +338,17 @@ def linear_conflict_distance(board: Board) -> int:
         return conflicts
 
     for line, goals in line_generator():
-        conflicts = get_line_conflicts(line, goals)
-        while np.any(conflicts):
+        line = np.copy(line)  # don't modify original board
+        while np.any(conflicts := get_line_conflicts(line, goals)):
             dist += 2
-            conflicts[np.argmax(conflicts)] = 0  # remove largest conflict
-            conflicts = conflicts[conflicts > 0] - 1  # decrement others
+            line[np.argmax(conflicts)] = BLANK  # remove largest conflict
 
-    dist += last_moves_distance(board)
-    dist += corner_tiles_distance(board)
+    # we can't use corner distance on tiny boards, b/c it not only conflicts with
+    # last moves distance, it also conflicts with itself
+    if optimized:
+        if h > 3 and w > 3:
+            dist += corner_tiles_distance(board, relaxed=False)
+        dist += last_moves_distance(board, relaxed=False)
 
     return dist
 
