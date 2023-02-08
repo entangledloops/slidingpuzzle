@@ -31,6 +31,8 @@ Examples:
     solution_len=20, generated=829, expanded=518, unvisited=312, visited=313
 """
 
+from .__about__ import __version__
+
 from slidingpuzzle.heuristics import (
     corner_tiles_distance,
     euclidean_distance,
