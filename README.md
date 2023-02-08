@@ -118,6 +118,10 @@ There are numerous convenience functions available for working with boards. Belo
 >>> moves = get_next_moves(board)
 >>> moves
 [(1, 0), (1, 2), (0, 1), (2, 1)]
+>>> board
+array([[7, 5, 4],
+       [3, 0, 1],
+       [8, 6, 2]])
 >>> swap_tiles(board, moves[0])
 array([[7, 5, 4],
        [0, 3, 1],
@@ -151,8 +155,6 @@ Or we can compare two algorithms:
 >>> compare(3, 3, alga="a*", algb="greedy")
 (2907.5, 618.0)
 ```
-
-The solutions are actually stored as a list of (y, x)-coords of moves, indicating which tile is to be moved next:
 
 ## Algorithms
 
