@@ -341,22 +341,20 @@ def linear_conflict_distance(board: Board, optimized: bool = True) -> int:
     h, w = board.shape
     dist = manhattan_distance(board) if optimized else 0
 
-    def line_generator() -> Iterator[tuple[npt.NDArray, npt.NDArray]]:
+    def line_generator() -> Iterator[tuple[npt.NDArray, list]]:
         r"""
         Helper to generate all lines on a board (rows followed by columns) along with
         a bool specifying whether the tile is in its goal line.
 
         Returns:
-            A tuple of line index, line values, and goal positions.
+            A tuple of 2 iterables. The first is an array that contains the tile
+            values for the line. The second is a list of Booleans corresponding to each
+            tile. A value of ``True`` indicates a tile is in its goal row or column.
         """
         for y, row in enumerate(board):
-            yield row, np.fromiter(
-                (y == get_goal_y(h, w, tile) for tile in row), dtype=bool
-            )
+            yield row, [y == get_goal_y(h, w, tile) for tile in row]
         for x, col in enumerate(board.T):
-            yield col, np.fromiter(
-                (x == get_goal_x(h, w, tile) for tile in col), dtype=bool
-            )
+            yield col, [x == get_goal_x(h, w, tile) for tile in col]
 
     def get_line_conflicts(line, goals) -> npt.NDArray[np.integer]:
         r"""
