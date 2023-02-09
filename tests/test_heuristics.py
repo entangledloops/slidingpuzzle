@@ -69,36 +69,23 @@ def test_last_moves_distance():
     board = from_rows([8, 6, 0], [4, 5, 2], [7, 3, 1])
     assert last_moves_distance(board) == 2
 
-    board = from_iter(
-        5,
-        5,
-        [
-            17,
-            1,
-            20,
-            9,
-            16,
-            2,
-            22,
-            19,
-            14,
-            5,
-            15,
-            21,
-            0,
-            3,
-            24,
-            23,
-            18,
-            13,
-            12,
-            7,
-            10,
-            8,
-            6,
-            4,
-            11,
-        ],
+    assert last_moves_distance(new_board(5, 5)) == 0
+
+    board = from_rows(
+        [1, 2, 3, 4, 5],
+        [6, 7, 8, 9, 10],
+        [11, 12, 13, 14, 20],
+        [16, 17, 18, 19, 15],
+        [21, 22, 23, 24, 0],
+    )
+    assert last_moves_distance(board) == 2
+
+    board = from_rows(
+        [17, 1, 20, 9, 16],
+        [2, 22, 19, 14, 5],
+        [15, 21, 0, 3, 24],
+        [23, 18, 13, 12, 7],
+        [10, 8, 6, 4, 11],
     )
     assert last_moves_distance(board) == 4
 

@@ -86,9 +86,13 @@ The default search is [`A*`](https://slidingtilepuzzle.readthedocs.io/en/latest/
 
 ```python
 >>> board = shuffle(new_board(3, 3))
+>>> print_board(board)
+5 7 6
+4   2
+1 8 3
 >>> search(board)
-solution=[5, 4, 1, 2, 6, 5, 3, 7, 4, 1, 2, 3, 5, 8, 7, 4, 1, 2, 3, 6]
-solution_len=20, generated=360, expanded=164, unvisited=197, visited=136
+solution=[7, 6, 2, 3, 8, 7, 6, 2, 3, 6, 4, 1, 7, 8, 6, 3, 2, 5, 1, 4, 5, 2, 3, 6]
+solution_len=24, generated=2796, expanded=1662, unvisited=1135, visited=1045
 ```
 
 - `generated` is the total number of nodes generated during the search
@@ -96,17 +100,33 @@ solution_len=20, generated=360, expanded=164, unvisited=197, visited=136
 - `unvisited` is the number of nodes that we never reached because search terminated early (search frontier, "open")
 - `visited` is the number of unique states visited (`expanded` minus duplicate state expansions, "closed")
 
+```python
+>>> search(board, heuristic=manhattan_distance)
+solution=[7, 6, 2, 3, 8, 7, 4, 5, 6, 4, 5, 1, 7, 5, 4, 6, 1, 4, 6, 2, 3, 6, 5, 8]
+solution_len=24, generated=8614, expanded=5604, unvisited=3011, visited=3225
+```
+A weaker heuristic takes longer, but finds an optimal solution. Note that the solution is slightly different (there may be many equally good solutions).
 
 ```python
 >>> search(board, "bfs")
-solution=[3, 7, 5, 4, 1, 2, 6, 8, 7, 5, 4, 1, 2, 3, 5, 4, 1, 2, 3, 6]
-solution_len=20, generated=125450, expanded=88173, unvisited=37278, visited=45763
->>> search(board, "greedy")
-solution=[3, 7, 5, 4, 1, 3, 4, 1, 3, 2, 6, 8, 7, 4, 2, 6, 8, 7, 4, 5, 1, 2, 5, 4, 7, 8]
-solution_len=26, generated=556, expanded=374, unvisited=183, visited=202
+solution=[4, 1, 8, 4, 7, 5, 1, 7, 4, 8, 7, 4, 5, 6, 2, 3, 8, 5, 6, 2, 3, 6, 5, 8]
+solution_len=24, generated=363472, expanded=305020, unvisited=58453, visited=135180
 ```
+BFS is guaranteed to find the optimal solution, but it can take a very long time.
 
-Notice how many states are generated for BFS to find a solution. Greedy search finds a solution quickly, but the solution is of lower quality.
+```python
+>>> search(board, "greedy")
+solution=[7, 6, 2, 3, 8, 7, 4, 1, 7, 4, 6, 2, 3, 6, 4, 8, 6, 3, 2, 5, 1, 4, 5, 2, 3, 6]
+solution_len=26, generated=109, expanded=52, unvisited=58, visited=39
+```
+Greedy search finds a solution quickly, but the solution is of lower quality.
+
+```python
+>>> search(board, weight=4)
+solution=[7, 6, 2, 3, 8, 7, 4, 1, 7, 4, 6, 2, 3, 6, 4, 8, 6, 3, 2, 5, 1, 4, 5, 2, 3, 6]
+solution_len=26, generated=125, expanded=68, unvisited=58, visited=45
+```
+Here we use Weighted A* to find a bounded suboptimal solution. In this case, we know that the solution found will be no larger than 4x the length of the optimal solution.
 
 There are numerous convenience functions available for working with boards. Below are a few examples.
 

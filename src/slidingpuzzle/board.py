@@ -150,16 +150,13 @@ def freeze_board(board: Board) -> FrozenBoard:
     return tuple(tuple(int(col) for col in row) for row in board)
 
 
-def print_board(board: Board | FrozenBoard, file=sys.stdout) -> Board | FrozenBoard:
+def print_board(board: Board | FrozenBoard, file=sys.stdout) -> None:
     r"""
     Convienance function for printing a formatted board.
 
     Args:
         board: The board to print.
         file: The target output file. Defaults to stdout.
-
-    Returns:
-        The input board (useful for call chaining).
     """
     board_size = len(board) * len(board[0])
     # the longest str we need to print is the largest tile number
@@ -171,8 +168,6 @@ def print_board(board: Board | FrozenBoard, file=sys.stdout) -> Board | FrozenBo
             else:
                 print(str(tile).ljust(max_width), end=" ", file=file)
         print(file=file)
-
-    return board
 
 
 def get_goal_y(h: int, w: int, tile: int) -> int:
