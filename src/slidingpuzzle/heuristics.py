@@ -162,71 +162,120 @@ def has_conflict(board: Board, y: int, x: int):
 def last_moves_distance(board: Board, relaxed: bool = True) -> int:
     r"""
     Immediately before the last move, one of the tiles adjacent to the blank tile must
-    be in the corner. If not, we must make at least 2 more moves to shuffle.
-    This is similar to :func:`corner_tiles_distance`, but specifically targets the goal
-    corner, which has slightly different constraints.This function also ensures
-    admissibility with :func:`manhattan_distance` and :func:`linear_conflict_distance`.
-    If you aren't using this with other heuristics, you can set ``relaxed=True``.
-
-    Note:
-        Currently this only considers the very last moves, not the moves also prior to
-        the last moves (2-removed) as discussed in Korf.
+    be in the corner. If not, we must make at least 2 more moves to shuffle. Similarly,
+    for the next-to-last move, the tiles 1-removed from the ajacents must be beside the
+    corner. This is similar to :func:`corner_tiles_distance`, but specifically targets
+    the goal corner, which has slightly different constraints.
 
     Args:
         board: The board
-        relaxed: If False, can be safely combined with  :func:`manhattan_distance` and
-            :func:`linear_conflict_distance`.
+        relaxed: If False, can be safely combined with :func:`linear_conflict_distance`.
 
     Returns:
         2 if neither of the final tiles to move are in the final corner, else 0.
     """
     h, w = board.shape
+    dist = 0
+
+    # first, we check the next to last move tiles
+    #  1  2   3   4
+    #  5  6   7   8
+    #  9 10  11 <12>
+    # 13 14 <15>  0
     adj1 = get_goal_tile(h, w, (h - 2, w - 1))  # tile in row next to goal
     adj2 = get_goal_tile(h, w, (h - 1, w - 2))  # tile in col next to goal
     corner = board[-1, -1]
     if corner == adj1 or corner == adj2 or is_solved(board):
-        return 0
-    if relaxed:
-        return 2
+        return dist
 
-    # coords of these tiles on cur. board
-    adj1_y, adj1_x = find_tile(board, adj1)
-    adj2_y, adj2_x = find_tile(board, adj2)
-    # prevent interaction with Manhattan
-    if adj1_y == h - 1 or adj2_x == w - 1:
-        return 0
-    # prevent interaction with linear conflict distance
-    if adj1_y == h - 2 and has_row_conflict(board, adj1_y, adj1_x):
-        return 0
-    if adj2_x == w - 2 and has_col_conflict(board, adj2_y, adj2_x):
-        return 0
+    # check for heuristic interactions
+    if not relaxed:
+        # coords of these tiles on cur. board
+        adj1_y, adj1_x = find_tile(board, adj1)
+        adj2_y, adj2_x = find_tile(board, adj2)
+        # prevent interaction with Manhattan
+        if adj1_y > h - 2 or adj2_x > w - 2:
+            return dist
+        # prevent interaction with linear conflict distance
+        if adj1_y == h - 2 and has_row_conflict(board, adj1_y, adj1_x):
+            return dist
+        if adj2_x == w - 2 and has_col_conflict(board, adj2_y, adj2_x):
+            return dist
 
-    # if the tiles that must make the final move are not located next to their goal
-    # row/col, they will need to shuffle before the final move
-    return 2
+    # we are now certain that we can add 2 for the last move corner shuffle
+    dist += 2
+
+    # B/c we need to look at 3 squares around the final corner, and the corner
+    # heuristic needs to look at 2, these can interact and overcount tiles on
+    # either the bottom-left corner adjacent or top-right corner adjacent.
+    # Example:
+    #  1  2  3  4
+    #  5  6  7  8
+    # 10 13 11 12
+    #  9 14 15  0
+    # In this case, we would overcount the 14 tile; once for the corner heuristic,
+    # but again towards last moves heuristic.
+    if not relaxed and (h < 5 or w < 5):
+        return dist
+
+    # next, we check the 2nd to last move tiles in a similar way
+    #  1   2   3   4
+    #  5   6   7  <8>
+    #  9  10 <11> 12
+    # 13 <14> 15   0
+    adj3 = get_goal_tile(h, w, (h - 3, w - 1))
+    adj4 = get_goal_tile(h, w, (h - 2, w - 2))
+    adj5 = get_goal_tile(h, w, (h - 1, w - 3))
+    corner_adj1 = board[-1, -2]
+    corner_adj2 = board[-2, -1]
+    # if one of the adjacents is already in its dest, can't add any more
+    if {corner_adj1, corner_adj2} & {adj3, adj3, adj5}:
+        return dist
+
+    if not relaxed:
+        adj3_y, adj3_x = find_tile(board, adj3)
+        adj4_y, adj4_x = find_tile(board, adj4)
+        adj5_y, adj5_x = find_tile(board, adj5)
+        # prevent interaction with Manhattan
+        if adj3_y > h - 3 or adj4_y > h - 2 or adj4_x > w - 2 or adj5_x > w - 3:
+            return dist
+        # prevent interaction with linear conflict distance
+        if adj3_y == h - 3 and has_row_conflict(board, adj3_y, adj3_x):
+            return dist
+        if (adj4_y == h - 2 and has_row_conflict(board, adj4_y, adj4_x)) or (
+            adj4_x == w - 2 and has_col_conflict(board, adj4_y, adj4_x)
+        ):
+            return dist
+        if adj5_x == w - 3 and has_col_conflict(board, adj5_y, adj5_x):
+            return dist
+
+    dist += 2
+    return dist
 
 
 def corner_tiles_distance(board: Board, relaxed: bool = True) -> int:
     r"""
-    If tiles that belong in corners are not there, but the adjacent tiles are correct,
-    additional reshuffling will need to occur. We must ensure that row/col conflicts
-    have not already accounted for this in order to combine admissibily with the
-    :func:`linear_conflict_distance`.
+    If tiles that belong in corners are not there but the tiles adjacent are correct,
+    additional reshuffling will need to occur. This function adds 2 moves for every
+    correct adjacent tile next to an out-of-place corner.
 
     Note:
-        This heuristic is inadmissible if used on boards of insufficient size. For
-        example, on a 3x3 board, the corners share some adjacent tiles and this
-        will result in overcounting.
+        This heuristic will return 0 on boards smaller than 4x4, as the corner
+        adjacent tiles are shared between some corners, resulting in over-counting.
 
     Args:
         board: The board
-        relaxed: If False, relevant tiles will be checked for linear conflicts.
+        relaxed: If False, can be safely combined with :func:`linear_conflict_distance`.
 
     Returns:
         The additional distance required to shuffle corners into position.
     """
     h, w = board.shape
     dist = 0
+
+    # see note above
+    if h < 4 or w < 4:
+        return 0
 
     def check_adjacent(y, x) -> int:
         r""" "
@@ -346,8 +395,7 @@ def linear_conflict_distance(board: Board, optimized: bool = True) -> int:
     # we can't use corner distance on tiny boards, b/c it not only conflicts with
     # last moves distance, it also conflicts with itself
     if optimized:
-        if h > 3 and w > 3:
-            dist += corner_tiles_distance(board, relaxed=False)
+        dist += corner_tiles_distance(board, relaxed=False)
         dist += last_moves_distance(board, relaxed=False)
 
     return dist

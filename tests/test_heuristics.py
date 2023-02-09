@@ -24,24 +24,24 @@ def test_corner_tiles_distance():
     assert corner_tiles_distance(board) == 0
 
     # top-left corner
-    board = from_rows([8, 5, 3], [4, 2, 6], [7, 1, 0])
+    board = from_rows([6, 2, 3, 4], [7, 5, 8, 9], [10, 11, 12, 13], [14, 15, 1, 0])
     assert corner_tiles_distance(board) == 2
 
-    board = from_rows([8, 2, 3], [4, 5, 6], [7, 0, 1])
+    board = from_rows([6, 2, 3, 4], [5, 7, 8, 9], [10, 11, 12, 13], [14, 15, 1, 0])
     assert corner_tiles_distance(board) == 4
 
     # top-right corner
-    board = from_rows([1, 2, 8], [4, 6, 5], [7, 0, 3])
+    board = from_rows([1, 2, 3, 5], [4, 6, 7, 9], [8, 10, 11, 12], [13, 14, 15, 0])
     assert corner_tiles_distance(board) == 2
 
-    board = from_rows([1, 2, 8], [3, 5, 6], [4, 0, 7])
+    board = from_rows([1, 2, 3, 5], [4, 6, 7, 8], [9, 10, 11, 12], [13, 14, 15, 0])
     assert corner_tiles_distance(board) == 4
 
     # bottom-left corner
-    board = from_rows([1, 2, 3], [4, 7, 6], [5, 0, 8])
+    board = from_rows([1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12], [15, 13, 14, 0])
     assert corner_tiles_distance(board) == 2
 
-    board = from_rows([1, 2, 3], [4, 7, 6], [5, 8, 0])
+    board = from_rows([1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12], [15, 14, 13, 0])
     assert corner_tiles_distance(board) == 4
 
 
@@ -68,6 +68,39 @@ def test_last_moves_distance():
 
     board = from_rows([8, 6, 0], [4, 5, 2], [7, 3, 1])
     assert last_moves_distance(board) == 2
+
+    board = from_iter(
+        5,
+        5,
+        [
+            17,
+            1,
+            20,
+            9,
+            16,
+            2,
+            22,
+            19,
+            14,
+            5,
+            15,
+            21,
+            0,
+            3,
+            24,
+            23,
+            18,
+            13,
+            12,
+            7,
+            10,
+            8,
+            6,
+            4,
+            11,
+        ],
+    )
+    assert last_moves_distance(board) == 4
 
 
 def test_linear_conflict_distance():
