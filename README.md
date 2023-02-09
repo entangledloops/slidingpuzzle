@@ -248,7 +248,7 @@ plt.show()
 ([Download Pretrained Models](https://huggingface.co/entangledloops/slidingpuzzle))
 
 ```console
-pip install -r requirements-nn.txt
+pip install -r requirements/requirements-nn.txt
 ```
 > **_Note:_**  This will install a specific tested version of PyTorch. If you want another version, you will need to follow the [official instructions](https://pytorch.org/).
 
@@ -400,7 +400,7 @@ Setup your a standard dev environment using something like `conda` or `venv`.
 git clone https://github.com/entangledloops/slidingpuzzle.git
 cd slidingpuzzle
 pip install -e .
-pip install -r requirements-dev.txt
+pip install -r requirements/requirements-dev.txt
 pre-commit install
 ```
 
@@ -411,7 +411,7 @@ pytest
 
 If you changed anything in the `slidingpuzzle.nn` package, also run:
 ```console
-pip install -r requirements-nn.txt
+pip install -r requirements/requirements-nn.txt
 pytest tests/test_nn.py
 ```
 
