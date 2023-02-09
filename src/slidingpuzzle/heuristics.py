@@ -392,8 +392,6 @@ def linear_conflict_distance(board: Board, optimized: bool = True) -> int:
             dist += 2
             line[np.argmax(conflicts)] = BLANK  # remove largest conflict
 
-    # we can't use corner distance on tiny boards, b/c it not only conflicts with
-    # last moves distance, it also conflicts with itself
     if optimized:
         dist += corner_tiles_distance(board, relaxed=False)
         dist += last_moves_distance(board, relaxed=False)
