@@ -27,7 +27,7 @@ classifiers = [
 target-version = ["py310"]
 
 [tool.hatch.metadata.hooks.requirements_txt]
-files = ["requirements/requirements.txt"]
+files = ["requirements/build.txt"]
 
 [tool.hatch.version]
 path = "src/slidingpuzzle/__about__.py"
