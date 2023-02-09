@@ -213,7 +213,7 @@ def last_moves_distance(board: Board, relaxed: bool = True) -> int:
     #  5  6  7  8
     # 10 13 11 12
     #  9 14 15  0
-    # In this case, we would overcount the 14 tile; once for the corner heuristic,
+    # In this case, we would overcount the 14 tile; once if used with corner heuristic,
     # but again towards last moves heuristic.
     if not relaxed and (h < 5 or w < 5):
         return dist
