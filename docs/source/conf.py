@@ -18,7 +18,7 @@ sys.path.insert(0, os.path.abspath("../../src"))
 # -- Project information -----------------------------------------------------
 
 project = "slidingpuzzle"
-copyright = "2022, Stephen Dunn"
+copyright = "2023, Stephen Dunn"
 author = "Stephen Dunn"
 
 # The full version, including alpha/beta/rc tags
