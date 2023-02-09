@@ -163,13 +163,14 @@ def last_moves_distance(board: Board, relaxed: bool = True) -> int:
     r"""
     Immediately before the last move, one of the tiles adjacent to the blank tile must
     be in the corner. If not, we must make at least 2 more moves to shuffle. Similarly,
-    for the next-to-last move, the tiles 1-removed from the ajacents must be beside the
+    for the next-to-last move, the tiles 1-removed from the adjacents must be beside the
     corner. This is similar to :func:`corner_tiles_distance`, but specifically targets
     the goal corner, which has slightly different constraints.
 
     Args:
         board: The board
-        relaxed: If False, can be safely combined with :func:`linear_conflict_distance`.
+        relaxed: If False, can be safely combined with :func:`linear_conflict_distance`,
+            :func:`corner_tiles_distance`, or :func:`manhattan_distance`.
 
     Returns:
         2 if neither of the final tiles to move are in the final corner, else 0.
@@ -325,7 +326,8 @@ def linear_conflict_distance(board: Board, optimized: bool = True) -> int:
         board: The board
         optimized: If False, will not include :func:`manhattan_distance`,
             :func:`last_moves_distance` and :func:`corner_tiles_distance`. It will
-            return only the base number of linear conflicts.
+            return only the base number of linear conflicts, which may be useful in the
+            design of new heuristics.
 
     Returns:
         Estimated distance to goal.
