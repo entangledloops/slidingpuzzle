@@ -42,10 +42,10 @@ from slidingpuzzle.board import (
 )
 
 
-Heuristic: TypeAlias = Callable[[Board], int | float]
-
 log = logging.getLogger(__name__)
 manhattan_tables = {}  # (h, w): {(r, c, tile): manhattan dist}
+
+Heuristic: TypeAlias = Callable[[Board], int | float]
 
 
 def euclidean_distance(board: Board) -> float:
@@ -103,6 +103,21 @@ def has_row_conflict(board: Board, y: int, x: int) -> bool:
     r"""
     On row ``y``, we check every tile for conflict with column ``x``.
 
+    What defines a "conflict"?
+    From the original `paper <hannson_>`_:
+
+        Definition 6: Two tiles j and k are in a linear conflict if
+        j and k are in the same line, the goal positions of j and k are
+        both in that line, j is to the right of k, and the goal position of
+        j is to the left of the goal position of k.
+
+    Equivalently:
+
+    1. ``j`` and ``k`` are on the same line
+    2. ``j`` and ``k`` both have goal positions in their current line
+    3. ``j`` is right of ``k``
+    4. ``j`` has a goal left of ``k``
+
     Args:
         board: The board:
         y: The row of interest
@@ -110,22 +125,26 @@ def has_row_conflict(board: Board, y: int, x: int) -> bool:
 
     Returns:
         True if column ``x`` is involved in any conflicts on row ``y``
+
+    .. _hannson:
+        https://academiccommons.columbia.edu/doi/10.7916/D8154QZT/download
     """
     h, w = board.shape
     for col1 in range(w):
-        tile1 = board[y, col1]
-        # check conflict conditions
-        if BLANK == tile1 or get_goal_y(h, w, tile1) != y:
+        k = board[y, col1]
+        # check condition 4
+        if BLANK == k or get_goal_y(h, w, k) != y:
             continue
         for col2 in range(col1 + 1, w):
-            # skip tiles that don't involve our x of interest
+            # check condition 1
             if col1 != x and col2 != x:
                 continue
-            tile2 = board[y, col2]
-            # check conflict conditions
-            if BLANK == tile2 or get_goal_y(h, w, tile2) != y:
+            j = board[y, col2]
+            # check condition 2
+            if BLANK == j or get_goal_y(h, w, j) != y:
                 continue
-            if get_goal_x(h, w, tile2) < get_goal_x(h, w, tile1):
+            # check condition 3
+            if get_goal_x(h, w, j) < get_goal_x(h, w, k):
                 return True
     return False
 
@@ -136,18 +155,20 @@ def has_col_conflict(board: Board, y: int, x: int) -> bool:
     """
     h, w = board.shape
     for row1 in range(h):
-        tile1 = board[row1, x]
-        # check conflict conditions
-        if BLANK == tile1 or get_goal_x(h, w, tile1) != x:
+        k = board[row1, x]
+        # check condition 4
+        if BLANK == k or get_goal_x(h, w, k) != x:
             continue
         for row2 in range(row1 + 1, h):
+            # check condition 1
             if row1 != y and row2 != y:
                 continue
-            tile2 = board[row2, x]
-            # check conflict conditions
-            if BLANK == tile2 or get_goal_x(h, w, tile2) != x:
+            j = board[row2, x]
+            # check condition 2
+            if BLANK == j or get_goal_x(h, w, j) != x:
                 continue
-            if get_goal_y(h, w, tile2) < get_goal_y(h, w, tile1):
+            # check condition 3
+            if get_goal_y(h, w, j) < get_goal_y(h, w, k):
                 return True
     return False
 
@@ -400,6 +421,9 @@ def linear_conflict_distance(board: Board, optimized: bool = True) -> int:
 
 
 def prepare_manhattan_table(h, w) -> dict[tuple[int, int, int], int]:
+    r"""
+    Used on first invocation of :func:`manhattan_distance` to cache the board distances.
+    """
     log.debug(f"Preparing first use of Manhattan table {h}x{w}x{h*w}...")
     table = {}
     for y in range(h):

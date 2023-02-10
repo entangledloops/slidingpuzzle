@@ -21,6 +21,7 @@ from typing import Optional
 import collections
 import enum
 import heapq
+import logging
 
 import numpy as np
 
@@ -37,6 +38,9 @@ from slidingpuzzle.board import (
 )
 from slidingpuzzle.heuristics import Heuristic, linear_conflict_distance
 from slidingpuzzle.state import State, SearchResult
+
+
+log = logging.getLogger(__name__)
 
 
 class Algorithm(enum.Enum):
@@ -421,6 +425,7 @@ def ida_star(board: Board, **kwargs) -> SearchResult:
     generated, expanded = 0, 0
 
     while unvisited:
+        log.debug(f"f_bound: {bound}")
         while unvisited:
             state = unvisited.pop()
             expanded += 1
@@ -492,6 +497,7 @@ def iddfs(board: Board, **kwargs) -> SearchResult:
     generated, expanded = 0, 0
 
     while unvisited:
+        log.debug(f"depth_bound: {depth_bound}")
         while unvisited:
             state = unvisited.pop()
             expanded += 1
