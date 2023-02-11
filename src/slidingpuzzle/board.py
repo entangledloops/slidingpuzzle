@@ -183,7 +183,7 @@ def print_board(board: Board | FrozenBoard, file=sys.stdout) -> None:
             if tile == BLANK:
                 print(" " * max_width, end=" ", file=file)
             else:
-                print(str(tile).ljust(max_width), end=" ", file=file)
+                print(str(tile).rjust(max_width), end=" ", file=file)
         print(file=file)
 
 
