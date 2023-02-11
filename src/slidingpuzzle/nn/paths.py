@@ -16,8 +16,8 @@
 Utilities for dealing with paths required during model training and inference.
 """
 
-import pathlib
 import shutil
+from pathlib import Path
 
 
 CHECKPOINT_DIR = "checkpoints"
@@ -41,7 +41,7 @@ def get_board_size_str(h: int, w: int) -> str:
     return f"{h}x{w}"
 
 
-def get_path(dirname: str, filename: str) -> pathlib.Path:
+def get_path(dirname: str | Path, filename: str | Path) -> Path:
     """
     Creates intermediate directorys for dirname and returns the full path from dirname
     to filename.
@@ -53,12 +53,12 @@ def get_path(dirname: str, filename: str) -> pathlib.Path:
     Returns:
         The path object.
     """
-    dirpath = pathlib.Path(dirname)
+    dirpath = Path(dirname)
     dirpath.mkdir(exist_ok=True, parents=True)
     return dirpath / filename
 
 
-def get_checkpoint_dir(h: int, w: int) -> pathlib.Path:
+def get_checkpoint_dir(h: int, w: int) -> Path:
     """
     Get the path to store checkpoints for this board size.
 
@@ -69,10 +69,10 @@ def get_checkpoint_dir(h: int, w: int) -> pathlib.Path:
     Returns:
         The checkpoint dir path
     """
-    return pathlib.Path(CHECKPOINT_DIR) / get_board_size_str(h, w)
+    return Path(CHECKPOINT_DIR) / get_board_size_str(h, w)
 
 
-def get_checkpoint_path(h: int, w: int, tag: str) -> pathlib.Path:
+def get_checkpoint_path(h: int, w: int, tag: str) -> Path:
     """
     Get the path to a checkpoint, given a board size and optional tag.
 
@@ -87,16 +87,16 @@ def get_checkpoint_path(h: int, w: int, tag: str) -> pathlib.Path:
     return get_path(get_checkpoint_dir(h, w), f"checkpoint_{tag}")
 
 
-def get_examples_path(h: int, w: int) -> pathlib.Path:
+def get_examples_path(h: int, w: int) -> Path:
     board_size_str = get_board_size_str(h, w)
     return get_path(DATASET_DIR, f"examples_{board_size_str}.json")
 
 
-def get_model_path(h: int, w: int, version: str) -> pathlib.Path:
+def get_model_path(h: int, w: int, version: str) -> Path:
     board_size_str = get_board_size_str(h, w)
     return get_path(MODELS_DIR, f"{version}_{board_size_str}.pt")
 
 
-def get_log_dir(h: int, w: int) -> pathlib.Path:
+def get_log_dir(h: int, w: int) -> Path:
     board_size_str = get_board_size_str(h, w)
     return get_path(TENSORBOARD_DIR, f"slidingpuzzle_{board_size_str}")

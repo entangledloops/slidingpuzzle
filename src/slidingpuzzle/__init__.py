@@ -52,6 +52,7 @@ from slidingpuzzle.board import (
     find_tile,
     flatten_board,
     freeze_board,
+    from_cols,
     from_rows,
     from_iter,
     get_goal_tile,

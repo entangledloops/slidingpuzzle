@@ -13,7 +13,9 @@ A package for solving sliding tile puzzles.
 
 - [Sliding Puzzle](#sliding-puzzle)
   - [Installation](#installation)
-  - [Examples](#examples)
+  - [Simple Examples](#simple-examples)
+  - [Working with Boards](#working-with-boards)
+  - [Solving Boards](#solving-boards)
   - [Algorithms](#algorithms)
   - [Heuristics](#heuristics)
     - [Neural Nets](#neural-nets)
@@ -29,15 +31,33 @@ A package for solving sliding tile puzzles.
 pip install slidingpuzzle
 ```
 
-If you wish to use neural nets, at a minimum you will also need:
+If you wish to use neural nets for solving puzzles:
 
 ```console
 pip install torch
 ```
 
-The [nn.txt](https://github.com/entangledloops/slidingpuzzle/blob/main/requirements/nn.txt) file contains specific known working dependencies for training. Details can be found below in [Neural Nets](#neural-nets).
+The [nn.txt](https://github.com/entangledloops/slidingpuzzle/blob/main/requirements/nn.txt) file contains specific known working dependencies needed for training. Details can be found below in [Neural Nets](#neural-nets).
 
-## Examples
+## Simple Examples
+
+```python
+from slidingpuzzle import *
+board = from_rows([8,3,1], [4,0,2], [5,6,7])
+print_board(board)
+soln = search(board)
+print(soln)
+```
+
+```console
+8 3 1 
+4   2 
+5 6 7 
+solution=[3, 1, 2, 3, 6, 5, 4, 8, 1, 2, 3, 6, 5, 7, 6, 5, 8, 4, 7, 8, 5, 6]
+solution_len=22, generated=1059, expanded=618, unvisited=442, visited=394
+```
+
+## Working with Boards
 
 ```python
 >>> from slidingpuzzle import *
@@ -64,23 +84,51 @@ array([[8, 3, 1],
 You can easily build your own boards using numpy or any of the provided convenience methods:
 
 ```python
->>> board = from_rows([4, 5, 6], [7, 8, 0], [1, 2, 3])
+>>> board = from_rows([1, 2, 3], [4, 5, 6], [7, 8, 0])
 >>> print_board(board)
-4 5 6
-7 8
-1 2 3
->>> board = from_iter(3, 3, [4, 5, 6, 7, 8, 0, 1, 2, 3])
+1 2 3 
+4 5 6 
+7 8 
+>>> board = from_cols([1, 2, 3], [4, 5, 6], [7, 8, 0])
 >>> print_board(board)
-4 5 6
-7 8
-1 2 3
->>> manhattan_distance(board)
-11
+1 4 7 
+2 5 8 
+3 6  
+>>> board = from_iter(3, 3, [1, 2, 3, 4, 5, 6, 7, 8, 0])
+>>> print_board(board)
+1 2 3 
+4 5 6 
+7 8 
+>>> board = from_iter(3, 3, [1, 2, 3, 4, 5, 6, 7, 8, 0], row_major=False)
+>>> print_board(board)
+1 4 7 
+2 5 8 
+3 6  
 >>> is_solvable(board)
-False
+True
 ```
 
 Not all board configurations are solvable. The [`search()`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html#slidingpuzzle.algorithms.search) routine will validate the board before beginning, and may throw a `ValueError` if the board is illegal.
+
+```python
+>>> find_blank(board)
+(1, 1)
+>>> find_tile(board, 3)
+(1, 0)
+>>> moves = get_next_moves(board)
+>>> moves
+[(1, 0), (1, 2), (0, 1), (2, 1)]
+>>> board
+array([[7, 5, 4],
+       [3, 0, 1],
+       [8, 6, 2]])
+>>> swap_tiles(board, moves[0])
+array([[7, 5, 4],
+       [0, 3, 1],
+       [8, 6, 2]])
+```
+
+## Solving Boards
 
 The default search is [`A*`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html#slidingpuzzle.algorithms.a_star) with [`linear_conflict_distance()`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html#slidingpuzzle.heuristics.linear_conflict_distance) as the heuristic:
 
@@ -126,48 +174,42 @@ Greedy search finds a solution quickly, but the solution is of lower quality.
 solution=[7, 6, 2, 3, 8, 7, 4, 1, 7, 4, 6, 2, 3, 6, 4, 8, 6, 3, 2, 5, 1, 4, 5, 2, 3, 6]
 solution_len=26, generated=125, expanded=68, unvisited=58, visited=45
 ```
-Here we use Weighted A* to find a bounded suboptimal solution. In this case, we know that the solution found will be no larger than 4x the length of the optimal solution.
+Here we use [Weighted A*](https://cse.sc.edu/~mgv/csce580sp17/gradPres/pohl_HeuristicSearch_Weighted1970.pdf) to find a bounded suboptimal solution. In this case, we know that the solution found will be no larger than 4x the length of the optimal solution.
 
-There are numerous convenience functions available for working with boards. Below are a few examples.
+Solving a larger board with a *much* larger state space (10^25):
 
 ```python
->>> find_blank(board)
-(1, 1)
->>> find_tile(board, 3)
-(1, 0)
->>> moves = get_next_moves(board)
->>> moves
-[(1, 0), (1, 2), (0, 1), (2, 1)]
->>> board
-array([[7, 5, 4],
-       [3, 0, 1],
-       [8, 6, 2]])
->>> swap_tiles(board, moves[0])
-array([[7, 5, 4],
-       [0, 3, 1],
-       [8, 6, 2]])
+# optimal solution length: 100
+board = from_rows(
+  [17, 1, 20, 9, 16],
+  [2, 22, 19, 14, 5], 
+  [15, 21, 0, 3, 24], 
+  [23, 18, 13, 12, 7], 
+  [10, 8, 6, 4, 11]
+)
+print(search(board, weight=2))
+print(search(board, weight=1.5))
+print(search(board, weight=1.25))
 ```
 
-```python
->>> result = search(board)
->>> result.solution
-[(0, 1), (0, 2), (1, 2), (2, 2), (2, 1), (1, 1), (1, 0), (0, 0), (0, 1), (0, 2), (1, 2), (1, 1), (2, 1), (2, 0), (1, 0), (0, 0), (0, 1), (0, 2), (1, 2), (2, 2)]
-```
-
-If you are working with a physical puzzle and actual tile numbers would be easier to read, you can obtain them using the convenience function [`solution_as_tiles()`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html#slidingpuzzle.board.solution_as_tiles):
-
-```python
->>> solution_as_tiles(result.board, result.solution)
-[5, 4, 1, 2, 6, 5, 3, 7, 4, 1, 2, 3, 5, 8, 7, 4, 1, 2, 3, 6]
+```console
+...
+solution_len=134, generated=132468, expanded=73482, unvisited=58987, visited=39738
+...
+solution_len=118, generated=2517066, expanded=1296158, unvisited=1220909, visited=753608
+...
+solution_len=108, generated=80558936, expanded=37425835, unvisited=43133102, visited=24834937
 ```
 
 We can [`compare()`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html#slidingpuzzle.algorithms.compare) two heuristics like this:
 ```python
 >>> compare(3, 3, ha=manhattan_distance, hb=euclidean_distance)
 (1594.87, 3377.5)
+>>> compare(3, 3, ha=manhattan_distance, hb=linear_conflict_distance)
+(5182.28, 2195.5)
 ```
 
-The numbers are the average number of states generated over `num_iters` runs for each heuristic.
+The numbers are the average number of states generated over `num_iters` runs for each heuristic on the same random set of boards.
 
 Or we can compare two algorithms:
 

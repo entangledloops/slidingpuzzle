@@ -48,6 +48,24 @@ def new_board(h: int, w: int, dtype: Optional[npt.DTypeLike] = None) -> Board:
     return board
 
 
+def from_cols(*cols: Iterable[int], dtype: Optional[npt.DTypeLike] = None) -> Board:
+    r"""
+    Constructs a new board from a provided iterable of columns.
+    Internally uses :func:`from_rows`.
+    """
+    columns = [list(col) for col in cols]
+    col_lens = {len(c) for c in columns}
+    if len(col_lens) != 1:
+        raise ValueError(
+            f"Columns must have the same length. Found lengths: {col_lens}"
+        )
+
+    # tranpose cols -> rows
+    h, w = len(columns[0]), len(columns)
+    rows = [[columns[c][r] for c in range(w)] for r in range(h)]
+    return from_rows(*rows, dtype=dtype)
+
+
 def from_rows(*rows: Iterable[int], dtype: Optional[npt.DTypeLike] = None) -> Board:
     r"""
     Constructs a new board from a provided iterable of rows.
@@ -79,11 +97,9 @@ def from_rows(*rows: Iterable[int], dtype: Optional[npt.DTypeLike] = None) -> Bo
         board.append(new_row)
 
     # sanity check row lengths
-    for r1, r2 in zip(board[:-1], board[1:]):
-        if len(r1) != len(r2):
-            raise ValueError(
-                f"All rows must have the same length ({len(r1)} != {len(r2)})."
-            )
+    row_lens = {len(r) for r in board}
+    if len(row_lens) != 1:
+        raise ValueError(f"Rows must have the same length. Found lengths: {row_lens}")
 
     # check all values are present
     tiles = list(sorted(itertools.chain(*board)))
@@ -93,7 +109,7 @@ def from_rows(*rows: Iterable[int], dtype: Optional[npt.DTypeLike] = None) -> Bo
     return np.array(board, dtype=dtype)
 
 
-def from_iter(h: int, w: int, iter: Iterable[int]) -> Board:
+def from_iter(h: int, w: int, iterable: Iterable[int], row_major: bool = True) -> Board:
     r"""
     Given an iterable of ints, will construct a board of size ``h x w`` in
     row-major order. The number of values should equal :math:`h \cdot w` and
@@ -103,6 +119,7 @@ def from_iter(h: int, w: int, iter: Iterable[int]) -> Board:
         h: Height of the board to construct
         w: Width of the board to construct
         iter: Iterable of values to construct board from
+        row_major: If False, will assume values are provided in column-major order.
 
     Raises:
         TypeError: If a non-int value is found in a row.
@@ -113,14 +130,14 @@ def from_iter(h: int, w: int, iter: Iterable[int]) -> Board:
         The constructed board.
     """
     # construct board from iterable
-    rows = []
-    row = []
-    for tile in iter:
-        row.append(tile)
-        if len(row) == w:
-            rows.append(row)
-            row = []
-    return from_rows(*rows)
+    lines = []
+    line = []
+    for tile in iterable:
+        line.append(tile)
+        if (row_major and len(line) == w) or (not row_major and len(line) == h):
+            lines.append(line)
+            line = []
+    return from_rows(*lines) if row_major else from_cols(*lines)
 
 
 def flatten_board(board: Board | FrozenBoard) -> list[int]:

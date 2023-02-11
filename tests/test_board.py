@@ -30,6 +30,10 @@ def test_from_rows():
     assert np.array_equal(from_rows([1, 2], [3, 0]), new_board(2, 2))
 
 
+def test_from_cols():
+    assert np.array_equal(from_cols([1, 3], [2, 0]), new_board(2, 2))
+
+
 @pytest.mark.parametrize("h", [3, 5])
 @pytest.mark.parametrize("w", [3, 5])
 def test_from_iter(h, w):
@@ -37,6 +41,8 @@ def test_from_iter(h, w):
     values[-1] = BLANK
     b = from_iter(h, w, values)
     assert np.array_equal(b, new_board(h, w))
+    b = from_iter(h, w, values, row_major=False)
+    assert np.array_equal(b, new_board(w, h).T)
 
 
 def test_freeze_board():
