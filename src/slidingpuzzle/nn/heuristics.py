@@ -76,8 +76,7 @@ def v1_distance(board: Board) -> float:
     Returns:
         An estimated number of moves to reach the goal
     """
-    h, w = len(board), len(board[0])
-    heuristic = get_heuristic(h, w, models.VERSION_1)
+    heuristic = get_heuristic(*board.shape, models.VERSION_1)
     return heuristic(board)
 
 
@@ -91,6 +90,5 @@ def v2_distance(board: Board) -> float:
     Returns:
         An estimated number of moves to reach the goal
     """
-    h, w = len(board), len(board[0])
-    heuristic = get_heuristic(h, w, models.VERSION_2)
+    heuristic = get_heuristic(*board.shape, models.VERSION_2)
     return heuristic(board)
