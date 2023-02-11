@@ -66,6 +66,8 @@ solution_len=22, generated=1059, expanded=618, unvisited=442, visited=394
 6 8 4
 ```
 
+Using any of the provided [`shuffle()`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html#slidingpuzzle.board.shuffle) methods will guarantee a solvable board. Notice that the board is modified in-place and returned for chaining convenience.
+
 Regular boards are stored as [numpy arrays](https://numpy.org/doc/stable/reference/generated/numpy.array.html). The number `0` is reserved for the blank. 
 
 ```python
@@ -102,25 +104,32 @@ You can easily build your own boards using numpy or any of the provided convenie
 True
 ```
 
-Not all board configurations are solvable. The [`search()`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html#slidingpuzzle.algorithms.search) routine will validate the board before beginning, and may throw a `ValueError` if the board is illegal.
+Not all board configurations are solvable. The [`search()`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html#slidingpuzzle.algorithms.search) routine will validate the provided board before beginning, and may throw a `ValueError` if the board is illegal.
 
 ```python
->>> find_blank(board)
-(1, 1)
->>> find_tile(board, 3)
-(1, 0)
->>> moves = get_next_moves(board)
->>> moves
-[(1, 0), (1, 2), (0, 1), (2, 1)]
 >>> board
 array([[7, 5, 4],
        [3, 0, 1],
        [8, 6, 2]])
+>>> find_blank(board)
+(1, 1)
+>>> find_tile(board, 3)
+(1, 0)
+```
+
+Note that coordinates are in (row, column) order.
+
+```python
+>>> moves = get_next_moves(board)
+>>> moves
+[(1, 0), (1, 2), (0, 1), (2, 1)]
 >>> swap_tiles(board, moves[0])
 array([[7, 5, 4],
        [0, 3, 1],
        [8, 6, 2]])
 ```
+
+As seen above, if only one tile location is provided to [`swap_tiles()`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html#slidingpuzzle.board.swap_tiles) the blank location is located automatically.
 
 ## Solving Boards
 
