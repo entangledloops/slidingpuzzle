@@ -328,7 +328,7 @@ Here are some options, from easiest to most difficult:
 
 1. Use reverse BFS to generate all boards in order
 ```python
-examples = nn.all_examples(4, 4)  # interrupt this after you have enough boards
+examples = nn.generate_examples(4, 4)
 nn.save_examples(examples)
 ```
 2. Randomly sample boards and solve them

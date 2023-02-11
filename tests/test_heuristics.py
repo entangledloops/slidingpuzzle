@@ -137,23 +137,14 @@ def test_relaxed_adjacency_distance():
 def test_heuristic_behavior():
     # we compute avg generated nodes over multiple runs to confirm that
     # heuristic behavior is in line with expectations
-    generated_avg = compare(
-        3,
-        3,
-        ha=linear_conflict_distance,
-        hb=manhattan_distance,
-    )
+    generated_avg = compare(ha=linear_conflict_distance, hb=manhattan_distance)
     assert generated_avg[0] < generated_avg[1]
 
-    generated_avg = compare(
-        3, 3, num_iters=4, ha=manhattan_distance, hb=hamming_distance
-    )
+    generated_avg = compare(num_iters=4, ha=manhattan_distance, hb=hamming_distance)
     assert generated_avg[0] < generated_avg[1]
 
     # lcd/manhattan/euclidean are good contenders, so we don't compare them
-    generated_avg = compare(
-        3, 3, num_iters=4, ha=euclidean_distance, hb=hamming_distance
-    )
+    generated_avg = compare(num_iters=4, ha=euclidean_distance, hb=hamming_distance)
     assert generated_avg[0] < generated_avg[1]
 
 

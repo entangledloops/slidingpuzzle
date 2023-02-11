@@ -65,7 +65,7 @@ class SlidingPuzzleDataset(torch.utils.data.Dataset):
         return self.examples[idx]
 
 
-def all_examples(
+def generate_examples(
     h: int, w: int, start: int = 0, stop: Optional[int] = None
 ) -> list[Example]:
     """

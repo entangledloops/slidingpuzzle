@@ -463,9 +463,12 @@ def shuffle_lazy(
     board: Board, num_moves: Optional[int] = None, moves: Optional[list] = None
 ) -> Board:
     r"""
-    Shuffles a board in place by making random legal moves.
-    Each move is first checked to avoid repeated states, although
-    this does not guarantee the
+    Shuffles a board in place by making random legal moves from the solved state.
+    No repeated states are allowed.
+    It is possible that this method terminates after making fewer than ``num_moves``
+    if no new states can be reached. Generally you should prefer to use :func:`shuffle`,
+    although there are certain scenarios where this method may be preferable, such as
+    guaranteeing that a solution is no further than ``num_moves`` away.
 
     Args:
         board: The board to shuffle.
