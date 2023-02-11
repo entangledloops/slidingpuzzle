@@ -587,8 +587,8 @@ def search(
 
 
 def evaluate(
-    h: int,
-    w: int,
+    h: int = 3,
+    w: int = 3,
     heuristic: Heuristic = linear_conflict_distance,
     alg: Algorithm | str = Algorithm.A_STAR,
     num_iters: int = 64,
@@ -619,8 +619,8 @@ def evaluate(
 
 
 def compare(
-    h: int,
-    w: int,
+    h: int = 3,
+    w: int = 3,
     num_iters: int = 32,
     alga: Algorithm | str = Algorithm.A_STAR,
     algb: Algorithm | str = Algorithm.A_STAR,

@@ -13,7 +13,7 @@ A package for solving sliding tile puzzles.
 
 - [Sliding Puzzle](#sliding-puzzle)
   - [Installation](#installation)
-  - [Simple Examples](#simple-examples)
+  - [Simple Example](#simple-example)
   - [Working with Boards](#working-with-boards)
   - [Solving Boards](#solving-boards)
   - [Algorithms](#algorithms)
@@ -39,14 +39,16 @@ pip install torch
 
 The [nn.txt](https://github.com/entangledloops/slidingpuzzle/blob/main/requirements/nn.txt) file contains specific known working dependencies needed for training. Details can be found below in [Neural Nets](#neural-nets).
 
-## Simple Examples
+## Simple Example
 
 ```python
 from slidingpuzzle import *
+
 board = from_rows([8,3,1], [4,0,2], [5,6,7])
 print_board(board)
-soln = search(board)
-print(soln)
+
+solution = search(board)
+print(solution)
 ```
 
 ```console
@@ -67,18 +69,18 @@ solution_len=22, generated=1059, expanded=618, unvisited=442, visited=394
 4 5 6
 7 8
 >>> print_board(shuffle(board))
-8 3 1 
-4   2 
-5 6 7 
+3 5 7 
+  2 1 
+6 8 4
 ```
 
 Regular boards are stored as [numpy arrays](https://numpy.org/doc/stable/reference/generated/numpy.array.html). The number `0` is reserved for the blank. 
 
 ```python
 >>> board
-array([[8, 3, 1],
-       [4, 0, 2],
-       [5, 6, 7]])
+array([[3, 5, 7],
+       [0, 2, 1],
+       [6, 8, 4]])
 ```
 
 You can easily build your own boards using numpy or any of the provided convenience methods:
@@ -203,18 +205,18 @@ solution_len=108, generated=80558936, expanded=37425835, unvisited=43133102, vis
 
 We can [`compare()`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html#slidingpuzzle.algorithms.compare) two heuristics like this:
 ```python
->>> compare(3, 3, ha=manhattan_distance, hb=euclidean_distance)
+>>> compare(ha=manhattan_distance, hb=euclidean_distance)
 (1594.87, 3377.5)
->>> compare(3, 3, ha=manhattan_distance, hb=linear_conflict_distance)
+>>> compare(ha=manhattan_distance, hb=linear_conflict_distance)
 (5182.28, 2195.5)
 ```
 
-The numbers are the average number of states generated over `num_iters` runs for each heuristic on the same random set of boards.
+The numbers are the average number of states generated over `num_iters` runs for each heuristic on the same random set of boards. Default board size used is 3x3 (for the sake of time), but you can pass `h` / `w` to change as desired.
 
 Or we can compare two algorithms:
 
 ```python
->>> compare(3, 3, alga="a*", algb="greedy")
+>>> compare(alga="a*", algb="greedy")
 (2907.5, 618.0)
 ```
 
@@ -263,7 +265,7 @@ For example, here we use `compare()` with a trivial custom heuristic to see how 
 >>> def max_distance(board):
 ...     return max(manhattan_distance(board), relaxed_adjacency_distance(board))
 ... 
->>> compare(3, 3, ha=manhattan_distance, hb=max_distance)
+>>> compare(ha=manhattan_distance, hb=max_distance)
 (3020.5, 2857.53)
 ```
 
@@ -275,7 +277,7 @@ We can use `evaluate()` to study an algorithm's behavior when tweaking a paramet
 import matplotlib.pyplot as plt
 import numpy as np
 x = np.linspace(1, 32, num=256)
-y = [evaluate(3, 3, weight=w) for w in x]
+y = [evaluate(weight=w) for w in x]
 plt.plot(x, y)
 plt.title("Average Nodes Generated vs. A* Weight")
 plt.xlabel("Weight")
@@ -297,7 +299,7 @@ pip install -r requirements/nn.txt
 After downloading a model, create a `models` directory and paste the `pt` file there. The model is now available. For example:
 
 ```python
->>> evaluate(3, 3, heuristic=nn.v1_distance)
+>>> evaluate(heuristic=nn.v1_distance)
 88.75
 ```
 
@@ -393,7 +395,7 @@ You can freeze your preferred model to disk to be used as the default for `nn.v1
 The model will now be available whenever you import `slidingpuzzle.nn`.
 
 ```python
->>> compare(3, 3, ha=nn.v1_distance, hb=linear_conflict_distance, num_iters=256)
+>>> compare(ha=nn.v1_distance, hb=linear_conflict_distance, num_iters=256)
 (85.43, 1445.38)
 ```
 

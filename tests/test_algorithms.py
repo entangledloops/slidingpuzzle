@@ -78,12 +78,12 @@ def test_search_hard():
 
 
 def test_evaluate():
-    assert evaluate(3, 3, num_iters=1) > 0
+    assert evaluate(num_iters=1) > 0
 
 
 @pytest.mark.slow
 def test_compare():
-    ha, hb = compare(3, 3, hb=manhattan_distance)
+    ha, hb = compare(hb=manhattan_distance)
     assert ha < hb
 
 
