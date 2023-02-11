@@ -117,7 +117,7 @@ array([[7, 5, 4],
 (1, 0)
 ```
 
-Note that coordinates are in (row, column) order.
+> **_Note:_** Coordinates are in (row, column) order.
 
 ```python
 >>> moves = get_next_moves(board)
@@ -292,7 +292,7 @@ plt.show()
 
 ([Download Pretrained Models](https://huggingface.co/entangledloops/slidingpuzzle))
 
-If only wish to use pre-trained neural nets:
+If only wish to use pretrained neural nets:
 
 ```console
 pip install torch
