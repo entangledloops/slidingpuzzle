@@ -31,14 +31,6 @@ A package for solving sliding tile puzzles.
 pip install slidingpuzzle
 ```
 
-If you wish to use neural nets for solving puzzles:
-
-```console
-pip install torch
-```
-
-The [nn.txt](https://github.com/entangledloops/slidingpuzzle/blob/main/requirements/nn.txt) file contains specific known working dependencies needed for training. Details can be found below in [Neural Nets](#neural-nets).
-
 ## Simple Example
 
 ```python
@@ -291,10 +283,20 @@ plt.show()
 
 ([Download Pretrained Models](https://huggingface.co/entangledloops/slidingpuzzle))
 
+If you don't plan to train your own neural net, then you only ened:
+
+If only wish to use neural nets for solving puzzles:
+
+```console
+pip install torch
+```
+
+If want to train nets from scratch using the provided utilities:
+
 ```console
 pip install -r requirements/nn.txt
 ```
-> **_Note:_**  This will install a specific tested version of PyTorch. If you want another version, you will need to follow the [official instructions](https://pytorch.org/).
+> **_Note:_**  This will install a specific tested version of PyTorch. If you want another version, you will need to follow the [official PyTorch instructions](https://pytorch.org/).
 
 After downloading a model, create a `models` directory and paste the `pt` file there. The model is now available. For example:
 
