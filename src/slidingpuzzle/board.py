@@ -350,7 +350,7 @@ def swap_tiles(
             and used.
 
     Return:
-        The modified board, for conveience chaining calls.
+        The modified board.
     """
     if isinstance(tile1, int) or isinstance(tile1, np.integer):
         tile1 = find_tile(board, tile1)
