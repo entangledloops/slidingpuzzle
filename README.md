@@ -211,7 +211,7 @@ We can [`compare()`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingp
 (5182.28, 2195.5)
 ```
 
-The numbers are the average number of states generated over `num_iters` runs for each heuristic on the same random set of boards. Default board size used is 3x3 (for the sake of time), but you can pass `h` / `w` to change as desired.
+The outputs are the average number of states generated over `num_iters` runs for each heuristic on the same random set of boards. Default board size used is 3x3 (for the sake of time), but you can pass `h` / `w` to change as desired.
 
 Or we can compare two algorithms:
 
