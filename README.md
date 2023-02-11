@@ -292,9 +292,7 @@ plt.show()
 
 ([Download Pretrained Models](https://huggingface.co/entangledloops/slidingpuzzle))
 
-If you don't plan to train your own neural net, then you only ened:
-
-If only wish to use neural nets for solving puzzles:
+If only wish to use pre-trained neural nets:
 
 ```console
 pip install torch
