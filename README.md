@@ -100,13 +100,23 @@ You can easily build your own boards using numpy or any of the provided convenie
 1 4 7 
 2 5 8 
 3 6  
->>> is_solvable(board)
-True
+>>> flatten_board(board)
+[1, 4, 7, 2, 5, 8, 3, 6, 0]
+>>> freeze_board(board)
+((1, 4, 7), (2, 5, 8), (3, 6, 0))
 ```
 
-Not all board configurations are solvable. The [`search()`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html#slidingpuzzle.algorithms.search) routine will validate the provided board before beginning, and may throw a `ValueError` if the board is illegal.
+Not all board configurations are solvable. 
 
 ```python
+>>> is_solvable(board)
+False
+```
+
+The [`search()`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html#slidingpuzzle.algorithms.search) routine will validate the provided board before beginning, and may throw a `ValueError` if the board is illegal.
+
+```python
+>>> board = shuffle(new_board(3, 3))
 >>> board
 array([[7, 5, 4],
        [3, 0, 1],
@@ -119,7 +129,21 @@ array([[7, 5, 4],
 
 > **_Note:_** Coordinates are in (row, column) order.
 
+Provided a board size, you can find the target position for a particular tile.
+For example, to locate the destination of the 6 tile on a 3x3 board:
+
 ```python
+>>> get_goal_yx(3, 3, 6)
+(1, 2)
+```
+
+Moves are represented as coordinates adjacent to the blank.
+
+```python
+>>> board
+array([[7, 5, 4],
+       [3, 0, 1],
+       [8, 6, 2]])
 >>> moves = get_next_moves(board)
 >>> moves
 [(1, 0), (1, 2), (0, 1), (2, 1)]
@@ -129,7 +153,16 @@ array([[7, 5, 4],
        [8, 6, 2]])
 ```
 
-As seen above, if only one tile location is provided to [`swap_tiles()`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html#slidingpuzzle.board.swap_tiles) the blank location is located automatically.
+Notice that if only one tile coordinate is provided to [`swap_tiles()`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html#slidingpuzzle.board.swap_tiles) the blank location is located automatically and used.
+
+You can also use a tile number and it will be located automatically.
+
+```python
+>>> swap_tiles(board, 7, 5)
+array([[5, 7, 4],
+       [0, 3, 1],
+       [8, 6, 2]])
+```
 
 ## Solving Boards
 
