@@ -37,9 +37,9 @@ pip install slidingpuzzle
 from slidingpuzzle import *
 
 board = from_rows([8,3,1], [4,0,2], [5,6,7])
-print_board(board)
-
 solution = search(board)
+
+print_board(board)
 print(solution)
 ```
 
