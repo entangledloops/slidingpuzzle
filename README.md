@@ -66,7 +66,7 @@ solution_len=22, generated=1059, expanded=618, unvisited=442, visited=394
 6 8 4
 ```
 
-Using any of the provided [`shuffle()`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html#slidingpuzzle.board.shuffle) methods will guarantee a solvable board. Notice that the board is modified in-place.
+Using any of the provided [`shuffle()`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html#slidingpuzzle.board.shuffle) methods will guarantee a solvable board. The board is modified in-place and returned for chaining convenience.
 
 Regular boards are stored as [numpy arrays](https://numpy.org/doc/stable/reference/generated/numpy.array.html). The number `0` is reserved for the blank. 
 
