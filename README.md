@@ -44,9 +44,9 @@ print(solution)
 ```
 
 ```console
-8 3 1 
-4   2 
-5 6 7 
+8 3 1
+4   2
+5 6 7
 solution=[3, 1, 2, 3, 6, 5, 4, 8, 1, 2, 3, 6, 5, 7, 6, 5, 8, 4, 7, 8, 5, 6]
 solution_len=22, generated=1059, expanded=618, unvisited=442, visited=394
 ```
@@ -61,14 +61,14 @@ solution_len=22, generated=1059, expanded=618, unvisited=442, visited=394
 4 5 6
 7 8
 >>> print_board(shuffle(board))
-3 5 7 
-  2 1 
+3 5 7
+  2 1
 6 8 4
 ```
 
 Using any of the provided [`shuffle()`](https://slidingtilepuzzle.readthedocs.io/en/latest/slidingpuzzle.html#slidingpuzzle.board.shuffle) methods will guarantee a solvable board. The board is modified in-place and returned for chaining convenience.
 
-Regular boards are stored as [numpy arrays](https://numpy.org/doc/stable/reference/generated/numpy.array.html). The number `0` is reserved for the blank. 
+Boards are stored as [numpy arrays](https://numpy.org/doc/stable/reference/generated/numpy.array.html). The number `0` is reserved for the blank.
 
 ```python
 >>> board
@@ -82,31 +82,31 @@ You can easily build your own boards using numpy or any of the provided convenie
 ```python
 >>> board = from_rows([1, 2, 3], [4, 5, 6], [7, 8, 0])
 >>> print_board(board)
-1 2 3 
-4 5 6 
-7 8 
+1 2 3
+4 5 6
+7 8
 >>> board = from_cols([1, 2, 3], [4, 5, 6], [7, 8, 0])
 >>> print_board(board)
-1 4 7 
-2 5 8 
-3 6  
+1 4 7
+2 5 8
+3 6
 >>> board = from_iter(3, 3, [1, 2, 3, 4, 5, 6, 7, 8, 0])
 >>> print_board(board)
-1 2 3 
-4 5 6 
-7 8 
+1 2 3
+4 5 6
+7 8
 >>> board = from_iter(3, 3, [1, 2, 3, 4, 5, 6, 7, 8, 0], row_major=False)
 >>> print_board(board)
-1 4 7 
-2 5 8 
-3 6  
+1 4 7
+2 5 8
+3 6
 >>> flatten_board(board)
 [1, 4, 7, 2, 5, 8, 3, 6, 0]
 >>> freeze_board(board)
 ((1, 4, 7), (2, 5, 8), (3, 6, 0))
 ```
 
-Not all board configurations are solvable. 
+Not all board configurations are solvable.
 
 ```python
 >>> is_solvable(board)
@@ -218,9 +218,9 @@ Solving a larger board with a *much* larger state space (10^25):
 # optimal solution length: 100
 board = from_rows(
   [17, 1, 20, 9, 16],
-  [2, 22, 19, 14, 5], 
-  [15, 21, 0, 3, 24], 
-  [23, 18, 13, 12, 7], 
+  [2, 22, 19, 14, 5],
+  [15, 21, 0, 3, 24],
+  [23, 18, 13, 12, 7],
   [10, 8, 6, 4, 11]
 )
 print(search(board, weight=2))
@@ -298,7 +298,7 @@ For example, here we use `compare()` with a trivial custom heuristic to see how 
 ```python
 >>> def max_distance(board):
 ...     return max(manhattan_distance(board), relaxed_adjacency_distance(board))
-... 
+...
 >>> compare(ha=manhattan_distance, hb=max_distance)
 (3020.5, 2857.53)
 ```
