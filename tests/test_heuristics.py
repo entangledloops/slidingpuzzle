@@ -126,6 +126,12 @@ def test_relaxed_adjacency_distance():
     swap_tiles(b, (h - 1, w - 1), (0, 0))
     assert relaxed_adjacency_distance(b) == 1
 
+    h, w = 3, 3
+    b = new_board(h, w)
+    swap_tiles(b, (0, 0), (0, 1))
+    swap_tiles(b, (1, 0), (1, 1))
+    assert relaxed_adjacency_distance(b) == 6
+
     b = new_board(h, w)
     swap_tiles(b, (0, 0), (0, 1))
     swap_tiles(b, (0, 0), (h - 1, w - 1))

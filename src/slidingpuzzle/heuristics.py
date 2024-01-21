@@ -251,7 +251,7 @@ def last_moves_distance(board: Board, relaxed: bool = True) -> int:
     corner_adj1 = board[-1, -2]
     corner_adj2 = board[-2, -1]
     # if one of the adjacents is already in its dest, can't add any more
-    if {corner_adj1, corner_adj2} & {adj3, adj3, adj5}:
+    if {corner_adj1, corner_adj2} & {adj3, adj4, adj5}:
         return dist
 
     if not relaxed:
@@ -502,6 +502,7 @@ def relaxed_adjacency_distance(board: Board) -> int:
             for x in range(w):
                 if get_goal_yx(h, w, board[y][x]) != (y, x):
                     swap_tiles(board, (y, x), blank_yx)
+                    return
 
     while not is_solved(board):
         blank_yx = find_blank(board)
